@@ -1,0 +1,190 @@
+{
+  "project_info": {
+    "project_number": "433738249282",
+    "project_id": "frist-app-demo-01",
+    "storage_bucket": "frist-app-demo-01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433738249282:android:2afabcd10df10f3baea9db",
+        "android_client_info": {
+          "package_name": "com.example.appoinment_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApo3vJo8SU31LWEKz4KipJDrhXyxe81q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "433738249282-gmuoje1btkv0r2g7hujaln8t89ku6bek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appoinmentApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433738249282:android:d436bf3bbc17e475aea9db",
+        "android_client_info": {
+          "package_name": "com.example.fDemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApo3vJo8SU31LWEKz4KipJDrhXyxe81q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "433738249282-gmuoje1btkv0r2g7hujaln8t89ku6bek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appoinmentApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433738249282:android:908b6ab6d390832daea9db",
+        "android_client_info": {
+          "package_name": "com.example.firebaseDemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApo3vJo8SU31LWEKz4KipJDrhXyxe81q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "433738249282-gmuoje1btkv0r2g7hujaln8t89ku6bek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appoinmentApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433738249282:android:15f14344ea9f4f90aea9db",
+        "android_client_info": {
+          "package_name": "com.example.firebase_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApo3vJo8SU31LWEKz4KipJDrhXyxe81q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "433738249282-gmuoje1btkv0r2g7hujaln8t89ku6bek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appoinmentApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433738249282:android:ba80141d633f638aaea9db",
+        "android_client_info": {
+          "package_name": "com.usehex.firebaseDemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApo3vJo8SU31LWEKz4KipJDrhXyxe81q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "433738249282-a6770ovstmq5g4tpcflld77vd6rtf678.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "433738249282-gmuoje1btkv0r2g7hujaln8t89ku6bek.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.appoinmentApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
