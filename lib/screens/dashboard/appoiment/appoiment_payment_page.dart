@@ -133,8 +133,26 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment booked successfully')));
-      Navigator.popUntil(context, (route) => route.isFirst);
+
+      // 1. Show Success Notification
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Appointment booked successfully!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // 2. Delay navigation so the SnackBar is visible for a moment
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (!mounted) return;
+
+      // 3. Navigate to SuccessPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SuccessPage()),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to book appointment: $e')));
@@ -327,6 +345,38 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class SuccessPage extends StatelessWidget {
+  const SuccessPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 100),
+              const SizedBox(height: 20),
+              const Text(
+                "Booking Successful!",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                child: const Text("Back to Home"),
+              ),
+            ],
+          ),
         ),
       ),
     );
