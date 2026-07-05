@@ -1,3 +1,4 @@
+import 'package:appoinment_app/screens/dashboard/admin_dashboard.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/navigator/navigator.dart';
 import 'package:appoinment_app/screens/dashboard/patient/navigator/navigator.dart';
 import 'package:appoinment_app/services/notification_services.dart';
@@ -5,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
-import 'dashboard/admin_dashboard.dart';
+
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
