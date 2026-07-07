@@ -13,44 +13,48 @@ class NotificationService {
   static bool _loginNotified = false;
 
   Future<void> initNotifications() async {
-    NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      NotificationSettings settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-    }
-
-    String? token = await _messaging.getToken();
-    print("FCM Token: $token");
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    _initLocalNotifications();
-    
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-
-      if (notification != null && android != null) {
-        _localNotifications.show(
-          id: notification.hashCode,
-          title: notification.title,
-          body: notification.body,
-          notificationDetails: const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel', 
-              'High Importance Notifications', 
-              importance: Importance.max,
-              priority: Priority.high,
-              icon: '@mipmap/ic_launcher', 
-            ),
-          ),
-        );
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        print('User granted permission');
       }
-    });
+
+      String? token = await _messaging.getToken().timeout(const Duration(seconds: 4));
+      print("FCM Token: $token");
+
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+      _initLocalNotifications();
+      
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        RemoteNotification? notification = message.notification;
+        AndroidNotification? android = message.notification?.android;
+
+        if (notification != null && android != null) {
+          _localNotifications.show(
+            id: notification.hashCode,
+            title: notification.title,
+            body: notification.body,
+            notificationDetails: const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'high_importance_channel', 
+                'High Importance Notifications', 
+                importance: Importance.max,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher', 
+              ),
+            ),
+          );
+        }
+      });
+    } catch (e) {
+      print("FCM/Notification Init Error (continuing launch): $e");
+    }
   }
 
   void _initLocalNotifications() async {

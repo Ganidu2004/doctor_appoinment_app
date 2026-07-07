@@ -39,12 +39,15 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       // 2. CHECK MOUNTED IMMEDIATELY AFTER THE AWAIT
       if (!mounted) return;
 
-      await NotificationService().showLoginNotification(); 
+      // Call notifications asynchronously to prevent blocking the UI/login flow
+      NotificationService().showLoginNotification().catchError((e) {
+        debugPrint('Notification error: $e');
+      }); 
 
       setState(() {
         _notificationMessage = 'Login successful! Redirecting...';
@@ -70,7 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return; // 👈 Safety return check
       setState(() {
-        _notificationMessage = 'An unexpected error occurred.';
+        _notificationMessage = e.toString().contains('TimeoutException')
+            ? 'Connection timed out. Please check your internet connection.'
+            : 'An unexpected error occurred.';
         _isSuccessNotification = false;
       });
     } finally {

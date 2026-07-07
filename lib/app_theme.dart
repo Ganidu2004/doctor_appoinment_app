@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppTheme {
   static const Color primary = Color(0xFF0EA5E9);
@@ -52,7 +52,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          minimumSize: const Size.fromHeight(50),
+          minimumSize: const Size(88, 50),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -60,7 +60,7 @@ class AppTheme {
           foregroundColor: primary,
           side: const BorderSide(color: primary),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          minimumSize: const Size.fromHeight(50),
+          minimumSize: const Size(88, 50),
         ),
       ),
       textButtonTheme: TextButtonThemeData(

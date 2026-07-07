@@ -34,9 +34,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-      );
+      ).timeout(const Duration(seconds: 10));
 
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(credential.user!.uid)
+          .get()
+          .timeout(const Duration(seconds: 8));
       final userData = userDoc.data();
       final role = (userData?['role'] ?? '').toString().toLowerCase();
 
@@ -49,7 +53,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       }
 
       if (!mounted) return;
-      await NotificationService().showLoginNotification();
+      
+      // Call notifications asynchronously to prevent blocking the UI/login flow
+      NotificationService().showLoginNotification().catchError((e) {
+        debugPrint('Notification error: $e');
+      });
 
       setState(() {
         _notificationMessage = 'Admin login successful. Redirecting...';
@@ -68,7 +76,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _notificationMessage = 'Unable to authenticate admin account.';
+        _notificationMessage = e.toString().contains('TimeoutException')
+            ? 'Connection timed out. Please check your internet connection.'
+            : 'Unable to authenticate admin account.';
         _isSuccessNotification = false;
       });
     } finally {
