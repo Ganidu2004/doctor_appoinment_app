@@ -32,6 +32,62 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
     super.dispose();
   }
 
+
+
+  Widget _filterChip(String label, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(right: 10, top: 4, bottom: 4),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedFilter = label;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? const LinearGradient(
+                    colors: [Colors.blue, Colors.blueAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? Colors.transparent : Colors.grey.shade200,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.01),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black87,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Query query = FirebaseFirestore.instance.collection('doctors');
@@ -44,51 +100,90 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text("Find Doctor", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          "Find Doctor", 
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() => _searchTerm = val.trim().toLowerCase()),
-              decoration: InputDecoration(
-                hintText: "Search doctors by name or specialty...",
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchTerm.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchTerm = '');
-                        },
-                      )
-                    : Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
-                        child: const Icon(Icons.map, color: Colors.blue),
-                      ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                filled: true,
-                fillColor: Colors.grey.shade100,
+            // Styled Search Box
+            Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) => setState(() => _searchTerm = val.trim().toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: "Search doctors by name or specialty...",
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  prefixIcon: const Icon(Icons.search_rounded, color: Colors.blue),
+                  suffixIcon: _searchTerm.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchTerm = '');
+                          },
+                        )
+                      : Container(
+                          margin: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50, 
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.map_rounded, color: Colors.blue, size: 18),
+                        ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16), 
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade100),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Quick Filters", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  "Quick Filters", 
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                ),
                 GestureDetector(
                   onTap: () => setState(() => _selectedFilter = "All"),
-                  child: const Text("Clear all", style: TextStyle(color: Colors.blue)),
+                  child: const Text(
+                    "Clear all", 
+                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             SizedBox(
-              height: 50,
+              height: 48,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _filters.length,
@@ -97,7 +192,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             StreamBuilder<QuerySnapshot>(
               stream: query.snapshots(),
               builder: (context, snapshot) {
@@ -105,7 +200,12 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No doctors found."));
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: Text("No doctors found.", style: TextStyle(color: Colors.grey)),
+                    ),
+                  );
                 }
 
                 return StreamBuilder<QuerySnapshot>(
@@ -140,14 +240,13 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                     }).toList();
 
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Registered Doctors", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          ],
+                        const Text(
+                          "Registered Doctors", 
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 16),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -175,42 +274,64 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+            // Premium Redesigned Directory Banner
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(20)),
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue[700]!, Colors.blue[900]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
               child: Column(
                 children: [
-                  const Icon(Icons.local_hospital, size: 40, color: Colors.blue),
-                  const SizedBox(height: 10),
-                  const Text("Need a specific specialist?", style: TextStyle(fontWeight: FontWeight.bold)),
-                  const Text("Browse our directory of over 500+ verified medical professionals.", textAlign: TextAlign.center),
-                  const SizedBox(height: 10),
-                  OutlinedButton(onPressed: () {}, child: const Text("View Directory"))
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.local_hospital_rounded, size: 36, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Need a specific specialist?", 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Browse our directory of over 500+ verified medical professionals.", 
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13, height: 1.4),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {}, 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.blue[800],
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text("View Directory", style: TextStyle(fontWeight: FontWeight.bold)),
+                  )
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _filterChip(String label, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (bool selected) {
-          setState(() {
-            _selectedFilter = label;
-          });
-        },
-        backgroundColor: Colors.white,
-        selectedColor: Colors.blue,
-        labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.shade300)),
       ),
     );
   }

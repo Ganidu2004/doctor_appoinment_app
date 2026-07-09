@@ -54,92 +54,174 @@ class AdminDialogHelpers {
       "Psychiatrist"
     ];
 
+    InputDecoration fieldDeco(String hint, IconData icon) {
+      return InputDecoration(
+        labelText: hint,
+        labelStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+        filled: true,
+        fillColor: Colors.grey[50],
+        prefixIcon: Icon(icon, color: Colors.blue[400], size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+        ),
+      );
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text("Register New Doctor", style: TextStyle(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_add_rounded, color: Colors.blue, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text("Register Doctor", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: "Doctor Name (e.g. Dr. Emily)")),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController, 
+                  decoration: fieldDeco("Doctor Name (e.g. Dr. Emily)", Icons.person_outline),
+                ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedSpec,
-                  decoration: const InputDecoration(labelText: "Specialization"),
-                  items: specializations.map((spec) => DropdownMenuItem(value: spec, child: Text(spec))).toList(),
+                  decoration: fieldDeco("Specialization", Icons.workspace_premium_outlined),
+                  items: specializations.map((spec) => DropdownMenuItem(value: spec, child: Text(spec, style: const TextStyle(fontSize: 14)))).toList(),
                   onChanged: (val) { if (val != null) selectedSpec = val; },
                 ),
-                TextField(controller: phoneController, decoration: const InputDecoration(labelText: "Contact Phone"), keyboardType: TextInputType.phone),
-                TextField(controller: experienceController, decoration: const InputDecoration(labelText: "Years of Experience"), keyboardType: TextInputType.number),
-                TextField(controller: feeController, decoration: const InputDecoration(labelText: "Consultation Fee (LKR)"), keyboardType: TextInputType.number),
-                TextField(controller: hospitalNameController, decoration: const InputDecoration(labelText: "Hospital Name")),
-                TextField(controller: hospitalPhoneController, decoration: const InputDecoration(labelText: "Hospital Contact Phone")),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: phoneController, 
+                  decoration: fieldDeco("Contact Phone", Icons.phone_outlined), 
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: experienceController, 
+                  decoration: fieldDeco("Years of Experience", Icons.star_outline), 
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: feeController, 
+                  decoration: fieldDeco("Consultation Fee (LKR)", Icons.payment_outlined), 
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: hospitalNameController, 
+                  decoration: fieldDeco("Hospital Name", Icons.local_hospital_outlined),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: hospitalPhoneController, 
+                  decoration: fieldDeco("Hospital Contact Phone", Icons.contact_phone_outlined),
+                ),
               ],
             ),
           ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
-                
-                final navigator = Navigator.of(context);
-                final messenger = ScaffoldMessenger.of(context);
+            TextButton(
+              onPressed: () => Navigator.pop(context), 
+              child: Text("Cancel", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600)),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Colors.blue, Colors.blueAccent]),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
+                  
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
 
-                final double fee = double.tryParse(feeController.text) ?? 1500.0;
-                final int exp = int.tryParse(experienceController.text) ?? 5;
-                
-                final docRef = FirebaseFirestore.instance.collection('doctors').doc();
-                final String docId = docRef.id;
+                  final double fee = double.tryParse(feeController.text) ?? 1500.0;
+                  final int exp = int.tryParse(experienceController.text) ?? 5;
+                  
+                  final docRef = FirebaseFirestore.instance.collection('doctors').doc();
+                  final String docId = docRef.id;
 
-                await docRef.set({
-                  'uid': docId,
-                  'name': nameController.text.trim(),
-                  'specialization': selectedSpec,
-                  'phone': phoneController.text.trim(),
-                  'experience': exp,
-                  'personalPhone': phoneController.text.trim(),
-                  'profileImageUrl': '',
-                  'aboutMe': 'Experienced $selectedSpec dedicated to patient wellness and high-quality care.',
-                  'gender': 'Male',
-                  'createdAt': FieldValue.serverTimestamp(),
-                  'qualifications': ['MBBS', 'MD'],
-                  'hospitalPhones': [hospitalPhoneController.text.trim()],
-                  'hospitalsList': [
-                    {
+                  await docRef.set({
+                    'uid': docId,
+                    'name': nameController.text.trim(),
+                    'specialization': selectedSpec,
+                    'phone': phoneController.text.trim(),
+                    'experience': exp,
+                    'personalPhone': phoneController.text.trim(),
+                    'profileImageUrl': '',
+                    'aboutMe': 'Experienced $selectedSpec dedicated to patient wellness and high-quality care.',
+                    'gender': 'Male',
+                    'createdAt': FieldValue.serverTimestamp(),
+                    'qualifications': ['MBBS', 'MD'],
+                    'hospitalPhones': [hospitalPhoneController.text.trim()],
+                    'hospitalsList': [
+                      {
+                        'hospitalName': hospitalNameController.text.trim(),
+                        'hospitalPhone': hospitalPhoneController.text.trim(),
+                        'hospitalDistrict': 'Colombo',
+                        'hospitalAddresses': ['No. 120, Colombo Rd, Colombo 03']
+                      }
+                    ]
+                  });
+
+                  final days = ['Monday', 'Wednesday', 'Friday'];
+                  for (var day in days) {
+                    final schRef = docRef.collection('schedules').doc();
+                    await schRef.set({
+                      'id': schRef.id,
+                      'day': day,
+                      'startTime': '09:00 AM',
+                      'endTime': '12:00 PM',
+                      'maxPatients': 15,
+                      'consultationFee': fee,
                       'hospitalName': hospitalNameController.text.trim(),
                       'hospitalPhone': hospitalPhoneController.text.trim(),
-                      'hospitalDistrict': 'Colombo',
-                      'hospitalAddresses': ['No. 120, Colombo Rd, Colombo 03']
-                    }
-                  ]
-                });
+                      'isActive': true
+                    });
+                  }
 
-                // Write a default active schedule for the doctor so they can be booked
-                final days = ['Monday', 'Wednesday', 'Friday'];
-                for (var day in days) {
-                  final schRef = docRef.collection('schedules').doc();
-                  await schRef.set({
-                    'id': schRef.id,
-                    'day': day,
-                    'startTime': '09:00 AM',
-                    'endTime': '12:00 PM',
-                    'maxPatients': 15,
-                    'consultationFee': fee,
-                    'hospitalName': hospitalNameController.text.trim(),
-                    'hospitalPhone': hospitalPhoneController.text.trim(),
-                    'isActive': true
-                  });
-                }
-
-                navigator.pop();
-                messenger.showSnackBar(
-                  SnackBar(content: Text("Dr. ${nameController.text.trim()} registered successfully with schedules!")),
-                );
-              },
-              child: const Text("Register"),
+                  navigator.pop();
+                  messenger.showSnackBar(
+                    SnackBar(content: Text("Dr. ${nameController.text.trim()} registered successfully!")),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text("Register", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             )
           ],
         );
@@ -154,50 +236,127 @@ class AdminDialogHelpers {
     final phoneController = TextEditingController();
     final chargesController = TextEditingController();
 
+    InputDecoration fieldDeco(String hint, IconData icon) {
+      return InputDecoration(
+        labelText: hint,
+        labelStyle: TextStyle(color: Colors.grey[500], fontSize: 13),
+        filled: true,
+        fillColor: Colors.grey[50],
+        prefixIcon: Icon(icon, color: Colors.blue[400], size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+        ),
+      );
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text("Add New Hospital", style: TextStyle(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.local_hospital_rounded, color: Colors.blue, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text("Add New Hospital", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: "Hospital Name")),
-                TextField(controller: addressController, decoration: const InputDecoration(labelText: "Address")),
-                TextField(controller: districtController, decoration: const InputDecoration(labelText: "District")),
-                TextField(controller: phoneController, decoration: const InputDecoration(labelText: "Contact Number"), keyboardType: TextInputType.phone),
-                TextField(controller: chargesController, decoration: const InputDecoration(labelText: "Hospital Charges (LKR)"), keyboardType: TextInputType.number),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController, 
+                  decoration: fieldDeco("Hospital Name", Icons.local_hospital_outlined),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: addressController, 
+                  decoration: fieldDeco("Address", Icons.location_on_outlined),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: districtController, 
+                  decoration: fieldDeco("District", Icons.map_outlined),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: phoneController, 
+                  decoration: fieldDeco("Contact Number", Icons.phone_outlined), 
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: chargesController, 
+                  decoration: fieldDeco("Hospital Charges (LKR)", Icons.payment_outlined), 
+                  keyboardType: TextInputType.number,
+                ),
               ],
             ),
           ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameController.text.trim().isEmpty || addressController.text.trim().isEmpty) return;
+            TextButton(
+              onPressed: () => Navigator.pop(context), 
+              child: Text("Cancel", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600)),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Colors.blue, Colors.blueAccent]),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (nameController.text.trim().isEmpty || addressController.text.trim().isEmpty) return;
 
-                final navigator = Navigator.of(context);
-                final messenger = ScaffoldMessenger.of(context);
-                
-                final double charges = double.tryParse(chargesController.text) ?? 500.0;
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  
+                  final double charges = double.tryParse(chargesController.text) ?? 500.0;
 
-                await FirebaseFirestore.instance.collection('hospital').add({
-                  'name': nameController.text.trim(),
-                  'address': addressController.text.trim(),
-                  'district': districtController.text.trim(),
-                  'contact': phoneController.text.trim(),
-                  'charges': charges,
-                  'createdAt': FieldValue.serverTimestamp(),
-                });
+                  await FirebaseFirestore.instance.collection('hospital').add({
+                    'name': nameController.text.trim(),
+                    'address': addressController.text.trim(),
+                    'district': districtController.text.trim(),
+                    'contact': phoneController.text.trim(),
+                    'charges': charges,
+                    'createdAt': FieldValue.serverTimestamp(),
+                  });
 
-                navigator.pop();
-                messenger.showSnackBar(
-                  const SnackBar(content: Text("Hospital added successfully!")),
-                );
-              },
-              child: const Text("Save"),
+                  navigator.pop();
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text("Hospital added successfully!")),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             )
           ],
         );

@@ -136,42 +136,97 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                   final String? imageUrl = data['profileImageUrl'];
                                   final avgRating = averageRatings[docDoc.id] ?? 0.0;
 
-                                  return InkWell(
-                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DoctorDetailPage(doctorId: docDoc.id))),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade200)),
-                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                        Expanded(
-                                          child: Container(
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade50,
-                                              borderRadius: BorderRadius.circular(12),
-                                              image: imageUrl != null && imageUrl.isNotEmpty ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) : null,
-                                            ),
-                                            child: imageUrl == null || imageUrl.isEmpty ? const Icon(Icons.person, size: 50, color: Colors.blue) : null,
+                                   return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: Colors.grey.shade100),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.02),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: InkWell(
+                                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => DoctorDetailPage(doctorId: docDoc.id))),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Stack(
+                                                  children: [
+                                                    Container(
+                                                      width: double.infinity,
+                                                      height: double.infinity,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.blue.shade50,
+                                                        borderRadius: BorderRadius.circular(16),
+                                                        image: imageUrl != null && imageUrl.isNotEmpty 
+                                                            ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) 
+                                                            : null,
+                                                      ),
+                                                      child: imageUrl == null || imageUrl.isEmpty 
+                                                          ? const Icon(Icons.person, size: 40, color: Colors.blue) 
+                                                          : null,
+                                                    ),
+                                                    Positioned(
+                                                      top: 8,
+                                                      right: 8,
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.black.withValues(alpha: 0.6),
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
+                                                            const SizedBox(width: 2),
+                                                            Text(
+                                                              avgRating > 0 ? avgRating.toStringAsFixed(1) : 'New',
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 10,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Dr. ${data['name'] ?? 'Doctor'}', 
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), 
+                                                maxLines: 1, 
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                data['specialization'] ?? 'General', 
+                                                style: TextStyle(color: Colors.blue[600], fontSize: 11, fontWeight: FontWeight.bold),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '${data['experience'] ?? 0}+ Yrs Exp', 
+                                                style: const TextStyle(color: Colors.grey, fontSize: 10),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text('Dr. ${data['name'] ?? 'Doctor'}', style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                        Text(data['specialization'] ?? 'General', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.star, color: Colors.amber, size: 14),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              avgRating > 0 ? avgRating.toStringAsFixed(1) : 'No reviews',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: avgRating > 0 ? Colors.black87 : Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ]),
+                                      ),
                                     ),
                                   );
                                 },
@@ -196,47 +251,208 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
 class _UpcomingVisitCard extends StatelessWidget {
   const _UpcomingVisitCard();
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const SizedBox();
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('appointments').where('patientUid', isEqualTo: user.uid).snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox();
-        final now = DateTime.now();
-        var docs = snapshot.data!.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          try { return DateFormat("MMMM d, yyyy").parse(data['date']).isAfter(now.subtract(const Duration(days: 1))); } catch (e) { return false; }
-        }).toList();
-        if (docs.isEmpty) return const SizedBox();
-        final data = docs.first.data() as Map<String, dynamic>;
-        final String? doctorImageUrl = data['doctorImageUrl'];
+    if (user == null) return const SizedBox.shrink();
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: const Color(0xFFF3F8FF), borderRadius: BorderRadius.circular(16)),
-          child: Column(children: [
-            Row(children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white,
-                backgroundImage: (doctorImageUrl != null && doctorImageUrl.isNotEmpty) ? NetworkImage(doctorImageUrl) : null,
-                child: (doctorImageUrl == null || doctorImageUrl.isEmpty) ? const Icon(Icons.person, size: 30) : null,
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('doctors').snapshots(),
+      builder: (context, doctorsSnapshot) {
+        final Map<String, String> doctorImages = {};
+        if (doctorsSnapshot.hasData) {
+          for (var doc in doctorsSnapshot.data!.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final img = data['profileImageUrl'] ?? data['imageUrl'] ?? '';
+            doctorImages[doc.id] = img.toString();
+          }
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('appointments')
+              .where('patientUid', isEqualTo: user.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
+            final now = DateTime.now();
+
+            var docs = snapshot.data!.docs.where((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              try {
+                return DateFormat("MMMM d, yyyy").parse(data['date']).isAfter(now.subtract(const Duration(days: 1)));
+              } catch (e) {
+                return false;
+              }
+            }).toList();
+
+            if (docs.isEmpty) return const SizedBox.shrink();
+
+            // Sort appointments to get the soonest one
+            docs.sort((a, b) {
+              final aData = a.data() as Map<String, dynamic>;
+              final bData = b.data() as Map<String, dynamic>;
+              try {
+                final aTime = DateFormat("MMMM d, yyyy").parse(aData['date']);
+                final bTime = DateFormat("MMMM d, yyyy").parse(bData['date']);
+                return aTime.compareTo(bTime);
+              } catch (_) {
+                return 0;
+              }
+            });
+
+            final doc = docs.first;
+            final data = doc.data() as Map<String, dynamic>;
+            final doctorId = data['doctorId'] ?? '';
+            final String imageUrl = doctorImages[doctorId] ?? '';
+            final status = (data['status'] ?? 'Booked').toString();
+
+            return InkWell(
+              onTap: () {
+                if (doctorId.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DoctorDetailPage(doctorId: doctorId)),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue[600]!, Colors.blue[800]!],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: CircleAvatar(
+                            radius: 26,
+                            backgroundColor: Colors.blue[50],
+                            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                            child: imageUrl.isEmpty ? const Icon(Icons.person, size: 30, color: Colors.blue) : null,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Dr. ${data['doctorName']}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                data['specialization'] ?? 'Specialist',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            status,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${data['date']} | ${data['time']}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  data['hospitalName'] ?? 'Hospital',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(data['doctorName'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(data['specialization'] ?? 'Doctor', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                ]),
-              ),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.blue.shade100, borderRadius: BorderRadius.circular(10)),
-                child: Text(data['status'], style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12))),
-            ]),
-            const SizedBox(height: 15),
-            Row(children: [const Icon(Icons.access_time, size: 16, color: Colors.grey), const SizedBox(width: 5), Text("${data['date']} | ${data['time']}", style: const TextStyle(color: Colors.grey))]),
-          ]),
+            );
+          },
         );
       },
     );
@@ -245,32 +461,94 @@ class _UpcomingVisitCard extends StatelessWidget {
 
 class _QuickActionsGrid extends StatelessWidget {
   const _QuickActionsGrid();
+
   @override
   Widget build(BuildContext context) {
     final actions = [
-      {'icon': Icons.medical_services, 'label': 'Search', 'page': const FindDoctorScreen()},
-      {'icon': Icons.calendar_today_outlined, 'label': 'Appointments', 'page': const PatientAppointmentsPage(showAppBar: true)},
-      {'icon': Icons.assignment, 'label': 'Profile', 'page': const PatientAccount(showAppBar: true)},
-      {'icon': Icons.chat, 'label': 'Support', 'page': const PatientSupportPage(showAppBar: true)},
+      {
+        'icon': Icons.medical_services_rounded, 
+        'label': 'Search', 
+        'page': const FindDoctorScreen(),
+        'bgColor': const Color(0xFFEFF6FF),
+        'iconColor': const Color(0xFF3B82F6),
+      },
+      {
+        'icon': Icons.calendar_today_rounded, 
+        'label': 'Appointments', 
+        'page': const PatientAppointmentsPage(showAppBar: true),
+        'bgColor': const Color(0xFFECFDF5),
+        'iconColor': const Color(0xFF10B981),
+      },
+      {
+        'icon': Icons.assignment_rounded, 
+        'label': 'Profile', 
+        'page': const PatientAccount(showAppBar: true),
+        'bgColor': const Color(0xFFF5F3FF),
+        'iconColor': const Color(0xFF8B5CF6),
+      },
+      {
+        'icon': Icons.forum_rounded, 
+        'label': 'Support', 
+        'page': const PatientSupportPage(showAppBar: true),
+        'bgColor': const Color(0xFFFFF7ED),
+        'iconColor': const Color(0xFFF97316),
+      },
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: actions.map((a) {
         final page = a['page'] as Widget;
-        return InkWell(
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(16)),
-                child: Icon(a['icon'] as IconData),
+        final bgColor = a['bgColor'] as Color;
+        final iconColor = a['iconColor'] as Color;
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: InkWell(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        a['icon'] as IconData, 
+                        color: iconColor,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      a['label'] as String, 
+                      style: const TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 5),
-              Text(a['label'] as String, style: const TextStyle(fontSize: 12)),
-            ],
+            ),
           ),
         );
       }).toList(),
@@ -300,78 +578,150 @@ class _RecentActivityList extends StatelessWidget {
 
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('appointments')
+              .collection('reviews')
               .where('patientUid', isEqualTo: user.uid)
               .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0),
-                child: Text('No booked doctors yet. Find doctors to schedule appointments.', 
-                  style: TextStyle(color: Colors.grey, fontSize: 13)),
-              );
-            }
-
-            // Group by doctorId to get unique list of booked doctors
-            final docs = snapshot.data!.docs;
-            final Map<String, Map<String, dynamic>> bookedDoctors = {};
-            for (var doc in docs) {
-              final data = doc.data() as Map<String, dynamic>;
-              final doctorId = data['doctorId'];
-              if (doctorId != null) {
-                bookedDoctors[doctorId] = {
-                  'id': doctorId,
-                  'name': data['doctorName'] ?? 'Doctor',
-                  'specialization': data['specialization'] ?? 'Specialist',
-                };
+          builder: (context, reviewsSnapshot) {
+            final Map<String, int> ratedDoctors = {};
+            if (reviewsSnapshot.hasData) {
+              for (var doc in reviewsSnapshot.data!.docs) {
+                final rData = doc.data() as Map<String, dynamic>;
+                final docId = rData['doctorId']?.toString();
+                final rating = rData['rating'];
+                if (docId != null && rating is num) {
+                  ratedDoctors[docId] = rating.toInt();
+                }
               }
             }
 
-            final doctorList = bookedDoctors.values.toList();
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('appointments')
+                  .where('patientUid', isEqualTo: user.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            return Column(
-              children: doctorList.map((docInfo) {
-                final doctorId = docInfo['id'];
-                final doctorName = docInfo['name'];
-                final spec = docInfo['specialization'];
-                final imageUrl = doctorImages[doctorId] ?? '';
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                    child: Text('No booked doctors yet. Find doctors to schedule appointments.', 
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  );
+                }
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue.shade50,
-                      backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                      child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.blue) : null,
-                    ),
-                    title: Text(
-                      'Dr. $doctorName',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(spec),
-                    trailing: TextButton.icon(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => DoctorRatingDialog(
-                            doctorId: doctorId,
-                            doctorName: doctorName,
-                            patientUid: user.uid,
+                // Group by doctorId to get unique list of booked doctors
+                final docs = snapshot.data!.docs;
+                final Map<String, Map<String, dynamic>> bookedDoctors = {};
+                for (var doc in docs) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final doctorId = data['doctorId'];
+                  if (doctorId != null) {
+                    bookedDoctors[doctorId] = {
+                      'id': doctorId,
+                      'name': data['doctorName'] ?? 'Doctor',
+                      'specialization': data['specialization'] ?? 'Specialist',
+                    };
+                  }
+                }
+
+                final doctorList = bookedDoctors.values.toList();
+
+                return Column(
+                  children: doctorList.map((docInfo) {
+                    final doctorId = docInfo['id'];
+                    final doctorName = docInfo['name'];
+                    final spec = docInfo['specialization'];
+                    final imageUrl = doctorImages[doctorId] ?? '';
+                    final hasReviewed = ratedDoctors.containsKey(doctorId);
+                    final existingRating = ratedDoctors[doctorId] ?? 0;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.star, color: Colors.amber, size: 18),
-                      label: const Text('Rate'),
-                    ),
-                  ),
+                        ],
+                        border: Border.all(color: Colors.grey.shade100),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.blue.shade100, width: 1.5),
+                          ),
+                          child: CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.blue.shade50,
+                            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                            child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.blue) : null,
+                          ),
+                        ),
+                        title: Text(
+                          'Dr. $doctorName',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            spec,
+                            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                          ),
+                        ),
+                        trailing: InkWell(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => DoctorRatingDialog(
+                                doctorId: doctorId,
+                                doctorName: doctorName,
+                                patientUid: user.uid,
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: hasReviewed ? Colors.green.shade50 : Colors.amber.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  color: hasReviewed ? Colors.green : Colors.amber,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  hasReviewed ? 'Rated $existingRating' : 'Rate',
+                                  style: TextStyle(
+                                    color: hasReviewed ? Colors.green.shade900 : Colors.amber.shade900,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         );
@@ -476,57 +826,222 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
     }
   }
 
+  String _getRatingText(int rating) {
+    switch (rating) {
+      case 1:
+        return 'Poor 😞';
+      case 2:
+        return 'Fair 😐';
+      case 3:
+        return 'Good 🙂';
+      case 4:
+        return 'Very Good 😊';
+      case 5:
+        return 'Excellent! 🤩';
+      default:
+        return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const AlertDialog(
-        content: SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          height: 150,
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(),
+        ),
       );
     }
 
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text('Rate Dr. ${widget.doctorName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-      content: SingleChildScrollView(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      elevation: 10,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Tap stars to rate:'),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                final starValue = index + 1;
-                return IconButton(
-                  icon: Icon(
-                    starValue <= _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 32,
-                  ),
-                  onPressed: () => setState(() => _rating = starValue),
-                );
-              }),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _commentController,
-              decoration: const InputDecoration(
-                hintText: 'Leave a comment about your experience...',
-                border: OutlineInputBorder(),
+            // Header Gradient Block
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.blueAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
               ),
-              maxLines: 3,
+              child: Column(
+                children: [
+                  const Icon(Icons.star_rate_rounded, color: Colors.amber, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Rate Dr. ${widget.doctorName}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Content Block
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const Text(
+                    'How was your experience?',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Star Selection Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final starValue = index + 1;
+                      final isSelected = starValue <= _rating;
+                      return GestureDetector(
+                        onTap: () => setState(() => _rating = starValue),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          transform: isSelected 
+                              ? Matrix4.diagonal3Values(1.1, 1.1, 1.1) 
+                              : Matrix4.identity(),
+                          child: Icon(
+                            Icons.star_rounded,
+                            color: isSelected ? Colors.amber : Colors.grey[300],
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  
+                  // Star feedback label
+                  const SizedBox(height: 10),
+                  Text(
+                    _getRatingText(_rating),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Comment TextField
+                  TextField(
+                    controller: _commentController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Share details of your consultation (optional)...',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: const EdgeInsets.all(16),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Colors.blue, Colors.blueAccent],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _submitReview,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: _submitReview,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-          child: const Text('Submit'),
-        ),
-      ],
     );
   }
 }

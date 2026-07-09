@@ -235,55 +235,65 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              final double cardWidth =
-                  (width - 48) / (width > 900 ? 4 : (width > 600 ? 2 : 1));
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
+          Column(
+            children: [
+              Row(
                 children: [
-                  _buildHeaderCard(
-                    title: "Total Patients",
-                    value: NumberFormat('#,###')
-                        .format(totalPatients > 0 ? totalPatients : 2453),
-                    icon: Icons.people_outline,
-                    iconBg: const Color(0xFFEFF6FF),
-                    iconColor: const Color(0xFF2563EB),
-                    cardWidth: cardWidth,
-                    onTap: () => setState(() => _activeTab = 3),
+                  Expanded(
+                    child: _buildHeaderCard(
+                      title: "Total Patients",
+                      value: NumberFormat('#,###')
+                          .format(totalPatients > 0 ? totalPatients : 2453),
+                      icon: Icons.people_outline,
+                      iconBg: const Color(0xFFEFF6FF),
+                      iconColor: const Color(0xFF2563EB),
+                      cardWidth: double.infinity,
+                      onTap: () => setState(() => _activeTab = 3),
+                    ),
                   ),
-                  _buildHeaderCard(
-                    title: "Today's Appointments",
-                    value: todayAppts > 0 ? todayAppts.toString() : "42",
-                    icon: Icons.calendar_today_outlined,
-                    iconBg: const Color(0xFFECFDF5),
-                    iconColor: const Color(0xFF10B981),
-                    cardWidth: cardWidth,
-                    onTap: () => setState(() => _activeTab = 1),
-                  ),
-                  _buildHeaderCard(
-                    title: "Available Doctors",
-                    value: "${totalDoctors > 0 ? totalDoctors : 8} Active",
-                    icon: Icons.medical_services_outlined,
-                    iconBg: const Color(0xFFFFF7ED),
-                    iconColor: const Color(0xFFF97316),
-                    cardWidth: cardWidth,
-                    onTap: () => setState(() => _activeTab = 2),
-                  ),
-                  _buildHeaderCard(
-                    title: "Total Hospitals",
-                    value: hospitalDocs.length.toString(),
-                    icon: Icons.local_hospital_outlined,
-                    iconBg: const Color(0xFFF5F3FF),
-                    iconColor: const Color(0xFF7C3AED),
-                    cardWidth: cardWidth,
-                    onTap: () => setState(() => _activeTab = 4),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildHeaderCard(
+                      title: "Today's Appointments",
+                      value: todayAppts > 0 ? todayAppts.toString() : "42",
+                      icon: Icons.calendar_today_outlined,
+                      iconBg: const Color(0xFFECFDF5),
+                      iconColor: const Color(0xFF10B981),
+                      cardWidth: double.infinity,
+                      onTap: () => setState(() => _activeTab = 1),
+                    ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildHeaderCard(
+                      title: "Available Doctors",
+                      value: "${totalDoctors > 0 ? totalDoctors : 8} Active",
+                      icon: Icons.medical_services_outlined,
+                      iconBg: const Color(0xFFFFF7ED),
+                      iconColor: const Color(0xFFF97316),
+                      cardWidth: double.infinity,
+                      onTap: () => setState(() => _activeTab = 2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildHeaderCard(
+                      title: "Total Hospitals",
+                      value: hospitalDocs.length.toString(),
+                      icon: Icons.local_hospital_outlined,
+                      iconBg: const Color(0xFFF5F3FF),
+                      iconColor: const Color(0xFF7C3AED),
+                      cardWidth: double.infinity,
+                      onTap: () => setState(() => _activeTab = 4),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           const Text("Quick Actions",
@@ -294,19 +304,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
           const SizedBox(height: 12),
           Row(
             children: [
-              ElevatedButton.icon(
-                onPressed: () => AdminDialogHelpers.showAddHospital(context),
-                icon: const Icon(Icons.local_hospital, size: 18),
-                label: const Text("Add Hospital"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  minimumSize: const Size(0, 48),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () => AdminDialogHelpers.showAddHospital(context),
+                  icon: const Icon(Icons.local_hospital_rounded, size: 18),
+                  label: const Text("Add Hospital"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
             ],
@@ -627,62 +650,165 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     final data = doc.data() as Map<String, dynamic>;
                     final status = (data['status'] ?? 'Booked').toString();
                     final patientUid = data['patientUid']?.toString() ?? '';
-                    return Card(
+                    return Container(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      child: ListTile(
-                        leading: patientUid.isEmpty
-                            ? CircleAvatar(
-                                backgroundColor: Colors.grey.shade100,
-                                child: const Icon(Icons.person,
-                                    color: Colors.grey),
-                              )
-                            : FutureBuilder<DocumentSnapshot>(
-                                future: _patientsCol.doc(patientUid).get(),
-                                builder: (context, snapshot) {
-                                  String imageUrl = '';
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData &&
-                                      snapshot.data!.exists) {
-                                    final patientData = snapshot.data!.data()
-                                        as Map<String, dynamic>?;
-                                    imageUrl =
-                                        patientData?['profileImageUrl'] ?? '';
-                                  }
-                                  return CircleAvatar(
-                                    backgroundColor: Colors.grey.shade100,
-                                    backgroundImage: imageUrl.isNotEmpty
-                                        ? NetworkImage(imageUrl)
-                                        : null,
-                                    child: imageUrl.isEmpty
-                                        ? const Icon(Icons.person,
-                                            color: Colors.grey)
-                                        : null,
-                                  );
-                                },
-                              ),
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: InkWell(
                         onTap: () => AdminDialogHelpers.showAppointmentDetails(
                             context, doc),
-                        title: Text(
-                            "${data['patientName']} with ${data['doctorName']}"),
-                        subtitle: Text(
-                            "${data['date']} at ${data['time']} • Fee: LKR ${(data['consultationFee'] ?? 0).toString()}"),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AdminDialogHelpers.getStatusBgColor(status),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            status,
-                            style: TextStyle(
-                              color:
-                                  AdminDialogHelpers.getStatusTextColor(status),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              patientUid.isEmpty
+                                  ? CircleAvatar(
+                                      radius: 24,
+                                      backgroundColor: Colors.blue.shade50,
+                                      child: Icon(Icons.person,
+                                          color: Colors.blue.shade300, size: 26),
+                                    )
+                                  : FutureBuilder<DocumentSnapshot>(
+                                      future: _patientsCol.doc(patientUid).get(),
+                                      builder: (context, snapshot) {
+                                        String imageUrl = '';
+                                        if (snapshot.connectionState ==
+                                                ConnectionState.done &&
+                                            snapshot.hasData &&
+                                            snapshot.data!.exists) {
+                                          final patientData = snapshot.data!.data()
+                                              as Map<String, dynamic>?;
+                                          imageUrl =
+                                              patientData?['profileImageUrl'] ?? '';
+                                        }
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: Colors.blue.shade50, width: 2),
+                                          ),
+                                          child: CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor: Colors.grey.shade100,
+                                            backgroundImage: imageUrl.isNotEmpty
+                                                ? NetworkImage(imageUrl)
+                                                : null,
+                                            child: imageUrl.isEmpty
+                                                ? Icon(Icons.person,
+                                                    color: Colors.blue.shade300,
+                                                    size: 26)
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      data['patientName'] ?? 'Unknown Patient',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Colors.black87),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.medical_services_outlined,
+                                            size: 13, color: Colors.blue[400]),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            "Dr. ${data['doctorName'] ?? 'Doctor'}",
+                                            style: TextStyle(
+                                                color: Colors.blue[700],
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_today_outlined,
+                                            size: 12, color: Colors.grey[400]),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          data['date'] ?? 'N/A',
+                                          style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 11),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Icon(Icons.access_time_rounded,
+                                            size: 12, color: Colors.grey[400]),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          data['time'] ?? 'N/A',
+                                          style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade50,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        "Fee: LKR ${(data['consultationFee'] ?? 0).toString()}",
+                                        style: TextStyle(
+                                            color: Colors.green.shade700,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AdminDialogHelpers.getStatusBgColor(status),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  status,
+                                  style: TextStyle(
+                                    color: AdminDialogHelpers
+                                        .getStatusTextColor(status),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -698,14 +824,41 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  "Registered Doctors (${docs.length})",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                "Registered Doctors (${docs.length})",
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.blue, Colors.blueAccent],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () => AdminDialogHelpers.showAddDoctor(context),
+                  icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                  label: const Text("Register Doctor", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
             ],
@@ -714,7 +867,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Expanded(
           child: docs.isEmpty
               ? const Center(
-                  child: Text("No registered doctors in the database."))
+                  child: Text("No registered doctors in the database.",
+                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)))
               : ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
@@ -725,57 +879,145 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     final exp = data['experience'] ?? 0;
                     final String imageUrl = data['profileImageUrl'] ?? '';
 
-                    return Card(
+                    return Container(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue.shade50,
-                          backgroundImage: imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
-                          child: imageUrl.isEmpty
-                              ? const Icon(Icons.person, color: Colors.blue)
-                              : null,
-                        ),
-                        title: Text("Dr. $name",
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("$spec • $exp Years Experience"),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline,
-                              color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text("Remove Doctor"),
-                                content: Text(
-                                    "Are you sure you want to delete Dr. $name from the registry?"),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(ctx, false),
-                                      child: const Text("Cancel")),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text("Delete",
-                                        style: TextStyle(color: Colors.red)),
-                                  )
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.blue.shade50, width: 2),
+                              ),
+                              child: CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Colors.blue.shade50,
+                                backgroundImage: imageUrl.isNotEmpty
+                                    ? NetworkImage(imageUrl)
+                                    : null,
+                                child: imageUrl.isEmpty
+                                    ? Icon(Icons.person, color: Colors.blue.shade300, size: 28)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Dr. $name",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.shade50,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          spec,
+                                          style: TextStyle(
+                                              color: Colors.blue.shade700,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.work_history_outlined,
+                                                size: 11, color: Colors.grey[600]),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              "$exp Yrs Exp",
+                                              style: TextStyle(
+                                                  color: Colors.grey[700],
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 11),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
-                            );
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text("Remove Doctor"),
+                                    content: Text(
+                                        "Are you sure you want to delete Dr. $name from the registry?"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text("Cancel")),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        child: const Text("Delete",
+                                            style: TextStyle(color: Colors.red)),
+                                      )
+                                    ],
+                                  ),
+                                );
 
-                            if (confirm == true) {
-                              await doc.reference.delete();
-                              final schedules = await doc.reference
-                                  .collection('schedules')
-                                  .get();
-                              for (var s in schedules.docs) {
-                                await s.reference.delete();
-                              }
-                            }
-                          },
+                                if (confirm == true) {
+                                  await doc.reference.delete();
+                                  final schedules = await doc.reference
+                                      .collection('schedules')
+                                      .get();
+                                  for (var s in schedules.docs) {
+                                    await s.reference.delete();
+                                  }
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.delete_outline_rounded,
+                                    color: Colors.red.shade600, size: 20),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -790,14 +1032,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   "Registered Patients (${docs.length})",
                   style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                      fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
             ],
@@ -805,7 +1047,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         Expanded(
           child: docs.isEmpty
-              ? const Center(child: Text("No registered patients in database."))
+              ? const Center(child: Text("No registered patients in database.",
+                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)))
               : ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
@@ -816,46 +1059,111 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     final isBlocked = data['isBlocked'] ?? false;
                     final String imageUrl = data['profileImageUrl'] ?? '';
 
-                    return Card(
+                    return Container(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey.shade100,
-                          backgroundImage: imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
-                          child: imageUrl.isEmpty
-                              ? const Icon(Icons.person, color: Colors.grey)
-                              : null,
-                        ),
-                        title: Text(name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                decoration: isBlocked
-                                    ? TextDecoration.lineThrough
-                                    : null)),
-                        subtitle: Text(email),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
                           children: [
-                            IconButton(
-                              icon: Icon(
-                                isBlocked ? Icons.lock_open : Icons.block,
-                                color: isBlocked ? Colors.green : Colors.orange,
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.grey.shade200, width: 2),
                               ),
-                              onPressed: () async {
+                              child: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.grey.shade100,
+                                backgroundImage: imageUrl.isNotEmpty
+                                    ? NetworkImage(imageUrl)
+                                    : null,
+                                child: imageUrl.isEmpty
+                                    ? const Icon(Icons.person, color: Colors.grey, size: 26)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: Colors.black87,
+                                            decoration: isBlocked
+                                                ? TextDecoration.lineThrough
+                                                : null),
+                                      ),
+                                      if (isBlocked) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            "Blocked",
+                                            style: TextStyle(
+                                                color: Colors.red.shade700,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 9),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    email,
+                                    style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () async {
                                 await doc.reference
                                     .update({'isBlocked': !isBlocked});
                               },
-                              tooltip: isBlocked
-                                  ? "Unblock Patient"
-                                  : "Block Patient",
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isBlocked ? Colors.green.shade50 : Colors.orange.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
+                                  color: isBlocked ? Colors.green.shade700 : Colors.orange.shade700,
+                                  size: 18,
+                                ),
+                              ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline,
-                                  color: Colors.red),
-                              onPressed: () async {
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
@@ -868,11 +1176,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                               Navigator.pop(ctx, false),
                                           child: const Text("Cancel")),
                                       TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(ctx, true),
+                                        onPressed: () => Navigator.pop(ctx, true),
                                         child: const Text("Delete",
-                                            style:
-                                                TextStyle(color: Colors.red)),
+                                            style: TextStyle(color: Colors.red)),
                                       )
                                     ],
                                   ),
@@ -882,6 +1188,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                   await doc.reference.delete();
                                 }
                               },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.delete_outline_rounded,
+                                    color: Colors.red.shade600, size: 18),
+                              ),
                             ),
                           ],
                         ),
@@ -935,13 +1251,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ? (data['charges'] as num).toDouble()
                         : 0.0;
 
-                    return Card(
+                    return Container(
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.01),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.red.shade50,
-                          child: Icon(Icons.local_hospital,
+                          child: Icon(Icons.local_hospital_rounded,
                               color: Colors.red.shade600),
                         ),
                         title: Text(name,

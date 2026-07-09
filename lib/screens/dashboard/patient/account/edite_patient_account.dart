@@ -42,7 +42,6 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
     _fetchUserData(); 
   }
 
-  // 🔄 Firestore එකෙන් දත්ත ලබාගැනීමේ Function එක
   Future<void> _fetchUserData() async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
@@ -172,16 +171,17 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        centerTitle: true,
       ),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator()) 
             : SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -189,12 +189,12 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                     children: [
                       const Text(
                         "Update Your Information",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       const Text(
                         "Keep your profile details up to date for better channelings.",
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),
                       const SizedBox(height: 32),
 
@@ -202,17 +202,46 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                       Center(
                         child: Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 54,
-                              backgroundColor: Colors.grey.shade200,
-                              backgroundImage: _selectedImage != null 
-                                  ? FileImage(_selectedImage!) 
-                                  : (_existingProfileImageUrl.isNotEmpty 
-                                      ? NetworkImage(_existingProfileImageUrl) as ImageProvider
-                                      : null),
-                              child: _selectedImage == null && _existingProfileImageUrl.isEmpty
-                                  ? Icon(Icons.person, size: 55, color: Colors.grey.shade400)
-                                  : null,
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.blue.shade100, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 54,
+                                backgroundColor: Colors.grey.shade100,
+                                backgroundImage: _selectedImage != null 
+                                    ? FileImage(_selectedImage!) 
+                                    : (_existingProfileImageUrl.isNotEmpty 
+                                        ? NetworkImage(_existingProfileImageUrl) as ImageProvider
+                                        : null),
+                                child: _selectedImage == null && _existingProfileImageUrl.isEmpty
+                                    ? Icon(Icons.person_rounded, size: 55, color: Colors.blue.shade200)
+                                    : null,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -228,7 +257,25 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                               textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: 'First Name',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
                               ),
                               validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
                             ),
@@ -240,7 +287,25 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                               textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 labelText: 'Last Name',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
                               ),
                               validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
                             ),
@@ -259,8 +324,26 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: 'Age',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                prefixIcon: const Icon(Icons.cake_outlined),
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                prefixIcon: Icon(Icons.cake_outlined, color: Colors.blue[400]),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) return 'Required';
@@ -276,8 +359,26 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                               initialValue: _selectedGender,
                               decoration: InputDecoration(
                                 labelText: 'Gender',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                prefixIcon: const Icon(Icons.wc_outlined),
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                prefixIcon: Icon(Icons.wc_outlined, color: Colors.blue[400]),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
                               ),
                               items: _genderOptions.map((String gender) {
                                 return DropdownMenuItem<String>(
@@ -304,8 +405,8 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                           if (value == null || value.trim().isEmpty) return 'Please enter your NIC number';
                           final nicStr = value.trim().toUpperCase();
                           final oldNicRegEx = RegExp(r'^[0-9]{9}[VXvx]$');
-                          final newNicRegEx = RegExp(r'^[0-9]{12}$');
-                          if (!oldNicRegEx.hasMatch(nicStr) && !newNicRegEx.hasMatch(nicStr)) {
+                          final nicRegEx12 = RegExp(r'^[0-9]{12}$');
+                          if (!oldNicRegEx.hasMatch(nicStr) && !nicRegEx12.hasMatch(nicStr)) {
                             return 'Enter a valid Sri Lankan NIC';
                           }
                           return null;
@@ -348,14 +449,28 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                       const SizedBox(height: 40),
 
                       // --- SAVE BUTTON ---
-                      SizedBox(
+                      Container(
                         width: double.infinity,
                         height: 52,
+                        decoration: BoxDecoration(
+                          gradient: _isSaving ? null : const LinearGradient(
+                            colors: [Colors.blue, Colors.blueAccent],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: _isSaving ? null : [
+                            BoxShadow(
+                              color: Colors.blue.withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: ElevatedButton(
                           onPressed: _isSaving ? null : _updatePatientProfile,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
                           child: _isSaving
                               ? const SizedBox(
@@ -401,8 +516,26 @@ class TextModelField extends StatelessWidget {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: labelText,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        prefixIcon: Icon(prefixIcon),
+        labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+        filled: true,
+        fillColor: Colors.grey[50],
+        prefixIcon: Icon(prefixIcon, color: Colors.blue[400]),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
       ),
       validator: validator,
     );

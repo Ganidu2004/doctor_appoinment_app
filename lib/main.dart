@@ -1,9 +1,10 @@
-﻿import 'package:appoinment_app/app_theme.dart';
+import 'package:appoinment_app/app_theme.dart';
 import 'package:appoinment_app/screens/auth_gate.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:appoinment_app/config.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -15,8 +16,8 @@ void main() async {
   await NotificationService().initNotifications();
 
   await Supabase.initialize(
-    url: 'https://wpzmyoryvvbftrooqobm.supabase.co', 
-    publishableKey: 'eyJhbGciOiJIUzI1NiIsInJlZiI6Indwem15b3J5dnZiZnRyb29xb2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzM5ODQsImV4cCI6MjA5NzQ0OTk4NH0.fKWmEnVp-5NlbwOk6cf2cxPtJQAj9Enma55eMOhj9fk',
+    url: AppConfig.supabaseUrl, 
+    publishableKey: AppConfig.supabaseKey,
   );
 
   runApp(const MyApp());

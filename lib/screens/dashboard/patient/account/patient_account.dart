@@ -148,8 +148,7 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
               title: const Text('Profile', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               centerTitle: true,
             )
-          : null,
-      body: RefreshIndicator(
+          : null,      body: RefreshIndicator(
         onRefresh: _fetchPatientData,
         child: _isLoading 
         ? const Center(child: CircularProgressIndicator()) 
@@ -158,83 +157,132 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Profile Section
+                // Header Profile Section (Redesigned with Premium Gradient & Card)
                 Container(
                   width: double.infinity,
-                  color: const Color(0xFFF2F6FE),
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Column(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Stack(
                     children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey.shade300,
-                            child: _profileImageUrl.isNotEmpty
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Image.network(
-                                _profileImageUrl,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(Icons.person, size: 45, color: Colors.grey.shade500);
-                                },
-                              ),
-                            )
-                            : Icon(Icons.person_outline, size: 45, color: Colors.grey.shade500),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check_circle,
-                                color: Colors.blue,
-                                size: 24,
+                      // Decorative Mesh
+                      Positioned(
+                        right: -40,
+                        top: -40,
+                        child: CircleAvatar(
+                          radius: 80,
+                          backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        ),
+                      ),
+                      Positioned(
+                        left: -20,
+                        bottom: -40,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white.withValues(alpha: 0.03),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+                        child: Column(
+                          children: [
+                            Center(
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 3),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.15),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 48,
+                                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                      backgroundImage: _profileImageUrl.isNotEmpty
+                                          ? NetworkImage(_profileImageUrl)
+                                          : null,
+                                      child: _profileImageUrl.isEmpty
+                                          ? const Icon(Icons.person_outline, size: 40, color: Colors.white)
+                                          : null,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 2,
+                                    right: 2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.verified_rounded,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _patientName,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _patientSubtitle,
-                        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE3EDFF),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Patient Member',
-                          style: TextStyle(color: Color(0xFF1E88E5), fontWeight: FontWeight.w600, fontSize: 13),
+                            const SizedBox(height: 16),
+                            Text(
+                              _patientName,
+                              style: const TextStyle(
+                                fontSize: 22, 
+                                fontWeight: FontWeight.bold, 
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _patientSubtitle,
+                              style: TextStyle(
+                                fontSize: 13, 
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Patient Member',
+                                style: TextStyle(
+                                  color: Colors.white, 
+                                  fontWeight: FontWeight.bold, 
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
 
+                const SizedBox(height: 8),
+
                 // Account Management Section
                 _buildSectionHeader('Account Management'),
                 
                 _buildListTile(
-                  icon: Icons.person_outline,
+                  icon: Icons.person_outline_rounded,
                   title: 'Personal Information',
                   subtitle: 'Manage your name, age, city and contact details',
                   onTap: () async {
@@ -298,27 +346,6 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                   value: _pushNotifications,
                   onChanged: (val) => setState(() => _pushNotifications = val),
                 ),
-    
-                _buildListTile(
-                  icon: Icons.person_outline,
-                  title: 'Personal Information',
-                  subtitle: 'Manage your name, age, city and contact details',
-                  onTap: () async {
-                    User? currentUser = FirebaseAuth.instance.currentUser;
-                    if (currentUser != null) {
-                      final isUpdated = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => PatientProfileEditPage(
-                            userId: currentUser.uid,
-                          ),
-                        ),
-                      );
-                      if (isUpdated == true) {
-                        _fetchPatientData();
-                      }
-                    }
-                  },
-                ),
 
                 // Support & Legal Section
                 _buildSectionHeader('Support & Legal'),
@@ -339,24 +366,25 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                   onTap: () {},
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 
-                // Sign Out Button
+                // Sign Out Button (Styled to fit premium aesthetics)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 52,
                     child: OutlinedButton.icon(
                       onPressed: _showSignOutDialog, 
-                      icon: const Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                      icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
                       label: const Text(
                         'Sign Out',
-                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.redAccent, width: 1),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        side: BorderSide(color: Colors.red.shade100, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.red.shade50.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -370,12 +398,12 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                     children: [
                       Text(
                         'Version 2.4.1 (Build 890)',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         'DOCCONNECT INC. © 2024',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5),
                       ),
                     ],
                   ),
