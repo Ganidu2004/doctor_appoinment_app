@@ -7,6 +7,7 @@ class ScheduleModel {
   final String endTime;
   final int maxPatients;
   final double? consultationFee;
+  final String hospitalId;
   final String hospitalName;
   final String hospitalPhone; 
   final bool isActive;       
@@ -18,6 +19,7 @@ class ScheduleModel {
     required this.endTime,
     required this.maxPatients,
     required this.consultationFee,
+    required this.hospitalId,
     required this.hospitalName,
     required this.hospitalPhone, 
     required this.isActive,
@@ -31,6 +33,7 @@ class ScheduleModel {
       'endTime': endTime,
       'maxPatients': maxPatients,
       'consultationFee': consultationFee ?? 0.0,
+      'hospitalId': hospitalId,
       'hospitalName': hospitalName,
       'hospitalPhone': hospitalPhone, 
       'isActive': isActive,
@@ -47,6 +50,7 @@ class ScheduleModel {
           ? (map['maxPatients'] as num).toInt()
           : int.tryParse(map['maxPatients']?.toString() ?? '') ?? 0,
       consultationFee: _parseFee(map['consultationFee']),
+      hospitalId: map['hospitalId'] ?? '',
       hospitalName: map['hospitalName'] ?? '',
       hospitalPhone: map['hospitalPhone'] ?? '', 
       isActive: map['isActive'] ?? true,

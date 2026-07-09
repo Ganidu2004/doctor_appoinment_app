@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:appoinment_app/services/notification_services.dart';
 
 class ConfirmBookingScreen extends StatefulWidget {
   final String doctorId;
@@ -30,6 +31,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   String _selectedPaymentMethod = 'Card Payment';
   Map<String, dynamic>? _doctorData;
   Map<String, dynamic>? _scheduleData;
+  double _hospitalCharges = 0.0;
 
   @override
   void initState() {
@@ -55,9 +57,35 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
           .doc(widget.scheduleId)
           .get();
 
+      // Fetch the currently logged-in patient's details
+      final patientSnap = await FirebaseFirestore.instance.collection('patients').doc(widget.patientUid).get();
+
+      double loadedHospitalCharges = 0.0;
+      final scheduleData = scheduleSnap.data() ?? {};
+      final hospitalId = scheduleData['hospitalId']?.toString() ?? '';
+      if (hospitalId.isNotEmpty) {
+        final hospitalSnap = await FirebaseFirestore.instance.collection('hospital').doc(hospitalId).get();
+        if (hospitalSnap.exists && hospitalSnap.data() != null) {
+          final chargesVal = hospitalSnap.data()!['charges'];
+          if (chargesVal is num) {
+            loadedHospitalCharges = chargesVal.toDouble();
+          } else if (chargesVal is String) {
+            loadedHospitalCharges = double.tryParse(chargesVal) ?? 0.0;
+          }
+        }
+      }
+
       setState(() {
         _doctorData = doctorSnap.data() ?? {};
-        _scheduleData = scheduleSnap.data() ?? {};
+        _scheduleData = scheduleData;
+        _hospitalCharges = loadedHospitalCharges;
+        if (patientSnap.exists && patientSnap.data() != null) {
+          final patientData = patientSnap.data()!;
+          final name = patientData['name']?.toString() ?? '';
+          if (name.isNotEmpty) {
+            _patientNameController.text = name;
+          }
+        }
       });
     } catch (error) {
       debugPrint('Failed to load appointment data: $error');
@@ -95,10 +123,6 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         throw Exception('Patient must be logged in to book an appointment.');
       }
 
-      final hospitalCharges = _parseFee(_scheduleData?['hospitalCharges']) > 0
-          ? _parseFee(_scheduleData?['hospitalCharges'])
-          : double.parse((consultationFee * 0.15).toStringAsFixed(2));
-
       final appointmentRef = await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': widget.doctorId,
         'patientUid': widget.patientUid,
@@ -109,7 +133,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         'date': widget.appointmentDate,
         'time': widget.appointmentTime,
         'consultationFee': consultationFee,
-        'hospitalCharges': hospitalCharges,
+        'hospitalCharges': _hospitalCharges,
         'patientName': _patientNameController.text.trim(),
         'reason': _reasonController.text.trim(),
         'paymentMethod': _selectedPaymentMethod,
@@ -122,7 +146,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         'patientId': patient.uid,
         'doctorId': widget.doctorId,
         'amount': consultationFee,
-        'hospitalCharges': hospitalCharges,
+        'hospitalCharges': _hospitalCharges,
         'paymentMethod': _selectedPaymentMethod,
         'paymentStatus': 'Pending',
         'paymentDate': FieldValue.serverTimestamp(),
@@ -135,6 +159,16 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       if (!mounted) return;
 
       // 1. Show Success Notification
+      try {
+        await NotificationService().showNotification(
+          id: 501,
+          title: 'Appointment Booked Successfully',
+          body: 'Your appointment booking was completed.',
+        );
+      } catch (err) {
+        debugPrint('Notification error: $err');
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Appointment booked successfully!'),
@@ -261,7 +295,6 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                         ),
                       ],
                     ),
-                    const Divider(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -269,11 +302,44 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                         Row(children: [const Icon(Icons.access_time, size: 16), const SizedBox(width: 5), Text(widget.appointmentTime)]),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Charges Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 10),
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const SizedBox(width: 5),
-                        Text('Consultation Fee: ${_formatCurrency(_parseFee(_scheduleData?['consultationFee']))}'),
+                        const Text('Doctor Charges (Consultation Fee)', style: TextStyle(color: Colors.grey)),
+                        Text(_formatCurrency(_parseFee(_scheduleData?['consultationFee']))),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Hospital Charges', style: TextStyle(color: Colors.grey)),
+                        Text(_formatCurrency(_hospitalCharges)),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(
+                          _formatCurrency(_parseFee(_scheduleData?['consultationFee']) + _hospitalCharges),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue),
+                        ),
                       ],
                     ),
                   ],
@@ -330,7 +396,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 leading: const Icon(Icons.payment, color: Colors.blue),
                 title: Text(_selectedPaymentMethod),
                 subtitle: const Text('Appointment will be recorded with this payment method.'),
-                trailing: Text('Total ${_formatCurrency(_parseFee(_scheduleData?['consultationFee']))}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                trailing: Text('Total ${_formatCurrency(_parseFee(_scheduleData?['consultationFee']) + _hospitalCharges)}', style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 20),

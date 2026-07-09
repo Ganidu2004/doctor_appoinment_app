@@ -108,44 +108,70 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                   return const Center(child: Text("No doctors found."));
                 }
 
-                final docs = snapshot.data!.docs;
-                final filteredDocs = docs.where((d) {
-                  final doc = d.data() as Map<String, dynamic>;
-                  final name = (doc['name'] ?? '').toString().toLowerCase();
-                  final spec = (doc['specialization'] ?? '').toString().toLowerCase();
-                  if (_searchTerm.isEmpty) return true;
-                  return name.contains(_searchTerm) || spec.contains(_searchTerm);
-                }).toList();
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance.collection('reviews').snapshots(),
+                  builder: (context, reviewsSnapshot) {
+                    final docs = snapshot.data!.docs;
+                    final reviews = reviewsSnapshot.data?.docs ?? [];
 
-                return Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Calculate average rating for each doctorId
+                    final Map<String, List<int>> doctorRatings = {};
+                    for (var doc in reviews) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final docId = data['doctorId']?.toString();
+                      final rating = data['rating'];
+                      if (docId != null && rating is num) {
+                        doctorRatings.putIfAbsent(docId, () => []).add(rating.toInt());
+                      }
+                    }
+
+                    final Map<String, double> averageRatings = {};
+                    for (var entry in doctorRatings.entries) {
+                      final sum = entry.value.reduce((a, b) => a + b);
+                      averageRatings[entry.key] = sum / entry.value.length;
+                    }
+
+                    final filteredDocs = docs.where((d) {
+                      final doc = d.data() as Map<String, dynamic>;
+                      final name = (doc['name'] ?? '').toString().toLowerCase();
+                      final spec = (doc['specialization'] ?? '').toString().toLowerCase();
+                      if (_searchTerm.isEmpty) return true;
+                      return name.contains(_searchTerm) || spec.contains(_searchTerm);
+                    }).toList();
+
+                    return Column(
                       children: [
-                        const Text("Registered Doctors", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("Registered Doctors", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredDocs.length,
+                          itemBuilder: (context, index) {
+                            final docSnapshot = filteredDocs[index];
+                            final doc = docSnapshot.data() as Map<String, dynamic>;
+                            final avgRating = averageRatings[docSnapshot.id] ?? 0.0;
+
+                            return DoctorCard(
+                              doctorId: docSnapshot.id,
+                              name: doc['name'] ?? 'Doctor Name',
+                              spec: doc['specialization'] ?? 'Specialty',
+                              rate: avgRating > 0 ? avgRating.toStringAsFixed(1) : 'No reviews',
+                              exp: doc['experience']?.toString() ?? '0',
+                              dist: doc['dist'] ?? 'Location',
+                              imageUrl: doc['profileImageUrl'],
+                              createdAt: doc['createdAt'] as Timestamp?,
+                            );
+                          },
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 15),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filteredDocs.length,
-                      itemBuilder: (context, index) {
-                        final docSnapshot = filteredDocs[index];
-                        final doc = docSnapshot.data() as Map<String, dynamic>;
-                        return DoctorCard(
-                          doctorId: docSnapshot.id,
-                          name: doc['name'] ?? 'Doctor Name',
-                          spec: doc['specialization'] ?? 'Specialty',
-                          rate: doc['rating']?.toString() ?? '0.0',
-                          exp: doc['experience']?.toString() ?? '0',
-                          dist: doc['dist'] ?? 'Location',
-                          imageUrl: doc['profileImageUrl'],
-                          createdAt: doc['createdAt'] as Timestamp?,
-                        );
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 );
               },
             ),

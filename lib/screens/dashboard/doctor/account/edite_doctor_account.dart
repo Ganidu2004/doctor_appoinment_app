@@ -7,29 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase; 
 
-// --- Hospital Controllers Model ---
-class HospitalControllers {
-  final TextEditingController nameController;
-  final TextEditingController phoneController; 
-  final List<TextEditingController> addressControllers;
-  String? selectedDistrict; 
-
-  HospitalControllers({
-    required this.nameController,
-    required this.phoneController,
-    required this.addressControllers,
-    this.selectedDistrict,
-  });
-
-  void dispose() {
-    nameController.dispose();
-    phoneController.dispose();
-    for (var controller in addressControllers) {
-      controller.dispose();
-    }
-  }
-}
-
 // --- Doctor Profile Edit Page ---
 class DoctorProfileEditPage extends StatefulWidget {
   final Map<String, dynamic> doctorData; 
@@ -52,7 +29,11 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
   final _experienceController = TextEditingController();
   
   List<TextEditingController> _qualificationControllers = [];
-  List<HospitalControllers> _hospitalControllers = [];
+
+  // Hospital selection state
+  List<Map<String, dynamic>> _availableHospitals = [];
+  List<Map<String, dynamic>> _selectedHospitals = [];
+  bool _isLoadingHospitals = true;
 
   String? _selectedGender;
   final List<String> _genders = ['Male', 'Female', 'Other'];
@@ -61,14 +42,6 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
   final List<String> _specializations = [
     'Cardiologist', 'Pediatrician', 'Dermatologist', 'Neurologist',
     'General Practitioner', 'Orthopedic Surgeon', 'Psychiatrist'
-  ];
-
-  final List<String> _districts = [
-    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 
-    'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 
-    'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 
-    'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 
-    'Trincomalee', 'Vavuniya'
   ];
 
   bool _isSaving = false;
@@ -80,6 +53,7 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
   void initState() {
     super.initState();
     _loadDoctorData();
+    _loadHospitals();
   }
 
   void _loadDoctorData() {
@@ -105,40 +79,65 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
     } else {
       _qualificationControllers = [TextEditingController()];
     }
+  }
 
-    if (data['hospitalsList'] != null && (data['hospitalsList'] as List).isNotEmpty) {
-      _hospitalControllers = (data['hospitalsList'] as List).map((h) {
-        final hMap = h as Map<String, dynamic>;
+  Future<void> _loadHospitals() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('hospital').get();
+      final seenIds = <String>{};
+      final seenNames = <String>{};
+      final hospitals = <Map<String, dynamic>>[];
+      
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final name = (data['name'] ?? 'Unknown Hospital').trim();
+        final id = doc.id;
         
-        List<TextEditingController> addrControllers = [];
-        if (hMap['hospitalAddresses'] != null && (hMap['hospitalAddresses'] as List).isNotEmpty) {
-          addrControllers = (hMap['hospitalAddresses'] as List).map((addr) {
-            return TextEditingController(text: addr.toString());
-          }).toList();
-        } else {
-          addrControllers = [TextEditingController()];
+        if (seenIds.add(id)) {
+          if (seenNames.add(name.toLowerCase())) {
+            hospitals.add({
+              'id': id,
+              'hospitalName': name,
+              'address': data['address'] ?? '',
+              'district': data['district'] ?? '',
+              'hospitalPhone': data['contact'] ?? '',
+              'charges': data['charges'] is num ? (data['charges'] as num).toDouble() : 0.0,
+            });
+          }
         }
+      }
 
-        String? dist = hMap['hospitalDistrict'];
-        if (dist != null && !_districts.contains(dist)) {
-          dist = null; 
+      // Pre-select hospitals from existing doctor data
+      List<Map<String, dynamic>> preSelected = [];
+      if (widget.doctorData['hospitalsList'] != null) {
+        final existingList = widget.doctorData['hospitalsList'] as List;
+        for (var existing in existingList) {
+          final hMap = existing as Map<String, dynamic>;
+          final hospitalId = hMap['hospitalId'] ?? '';
+          // Try to match by ID first, then by name as fallback
+          final match = hospitals.firstWhere(
+            (h) => h['id'] == hospitalId,
+            orElse: () => hospitals.firstWhere(
+              (h) => h['hospitalName'] == hMap['hospitalName'],
+              orElse: () => <String, dynamic>{},
+            ),
+          );
+          if (match.isNotEmpty && !preSelected.any((s) => s['id'] == match['id'])) {
+            preSelected.add(match);
+          }
         }
+      }
 
-        return HospitalControllers(
-          nameController: TextEditingController(text: hMap['hospitalName'] ?? ''),
-          phoneController: TextEditingController(text: hMap['hospitalPhone'] ?? ''),
-          addressControllers: addrControllers,
-          selectedDistrict: dist,
-        );
-      }).toList();
-    } else {
-      _hospitalControllers = [
-        HospitalControllers(
-          nameController: TextEditingController(), 
-          phoneController: TextEditingController(), 
-          addressControllers: [TextEditingController()],
-        )
-      ];
+      if (mounted) {
+        setState(() {
+          _availableHospitals = hospitals;
+          _selectedHospitals = preSelected;
+          _isLoadingHospitals = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading hospitals: $e");
+      if (mounted) setState(() => _isLoadingHospitals = false);
     }
   }
 
@@ -148,9 +147,6 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
     _aboutMeController.dispose();
     _personalPhoneController.dispose();
     _experienceController.dispose();
-    for (var hController in _hospitalControllers) {
-      hController.dispose();
-    }
     for (var controller in _qualificationControllers) {
       controller.dispose();
     }
@@ -164,42 +160,6 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
     if (image != null) {
       setState(() {
         _pickedImage = File(image.path);
-      });
-    }
-  }
-
-  void _addHospitalField() {
-    setState(() {
-      _hospitalControllers.add(
-        HospitalControllers(
-          nameController: TextEditingController(), 
-          phoneController: TextEditingController(), 
-          addressControllers: [TextEditingController()],
-        ),
-      );
-    });
-  }
-
-  void _removeHospitalField(int index) {
-    if (_hospitalControllers.length > 1) {
-      setState(() {
-        _hospitalControllers[index].dispose();
-        _hospitalControllers.removeAt(index);
-      });
-    }
-  }
-
-  void _addAddressField(int hospitalIndex) {
-    setState(() {
-      _hospitalControllers[hospitalIndex].addressControllers.add(TextEditingController());
-    });
-  }
-
-  void _removeAddressField(int hospitalIndex, int addressIndex) {
-    if (_hospitalControllers[hospitalIndex].addressControllers.length > 1) {
-      setState(() {
-        _hospitalControllers[hospitalIndex].addressControllers[addressIndex].dispose();
-        _hospitalControllers[hospitalIndex].addressControllers.removeAt(addressIndex);
       });
     }
   }
@@ -221,6 +181,13 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
 
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedHospitals.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one hospital.'), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
 
     setState(() {
       _isSaving = true;
@@ -249,23 +216,20 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
             .where((text) => text.isNotEmpty)
             .toList();
 
-        List<String> hospitalPhonesList = _hospitalControllers
-            .map((h) => h.phoneController.text.trim())
+        List<String> hospitalPhonesList = _selectedHospitals
+            .map((h) => (h['hospitalPhone'] ?? '').toString())
             .where((text) => text.isNotEmpty)
             .toList();
 
-        List<Map<String, dynamic>> finalHospitalsList = _hospitalControllers
-          .where((h) => h.nameController.text.trim().isNotEmpty)
-          .map((h) => {
-            'hospitalName': h.nameController.text.trim(),
-            'hospitalPhone': h.phoneController.text.trim(), 
-            'hospitalDistrict': h.selectedDistrict ?? '', 
-            'hospitalAddresses': h.addressControllers
-              .map((ac) => ac.text.trim())
-              .where((text) => text.isNotEmpty)
-              .toList(),
-          })
-          .toList();
+        List<Map<String, dynamic>> finalHospitalsList = _selectedHospitals
+            .map((h) => {
+              'hospitalId': h['id'] ?? '',
+              'hospitalName': h['hospitalName'] ?? '',
+              'hospitalPhone': h['hospitalPhone'] ?? '',
+              'hospitalDistrict': h['district'] ?? '',
+              'hospitalAddresses': [h['address'] ?? ''].where((a) => a.isNotEmpty).toList(),
+            })
+            .toList();
 
         List<dynamic> existingSchedules = widget.doctorData['schedules'] ?? [];
 
@@ -275,8 +239,8 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
           'specialization': _selectedSpecialization ?? 'General',
           'phone': _personalPhoneController.text.trim(),
           'personalPhone': _personalPhoneController.text.trim(),
-                    'experience': int.tryParse(_experienceController.text.trim()) ?? (widget.doctorData['experience'] is int ? widget.doctorData['experience'] : int.tryParse(widget.doctorData['experience']?.toString() ?? '0') ?? 0),
-                    'hospitalPhones': hospitalPhonesList,
+          'experience': int.tryParse(_experienceController.text.trim()) ?? (widget.doctorData['experience'] is int ? widget.doctorData['experience'] : int.tryParse(widget.doctorData['experience']?.toString() ?? '0') ?? 0),
+          'hospitalPhones': hospitalPhonesList,
           'hospitalsList': finalHospitalsList,
           'qualifications': qualificationsList,
           'aboutMe': _aboutMeController.text.trim(),
@@ -317,6 +281,202 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
         });
       }
     }
+  }
+
+  // Build the hospital selection section
+  Widget _buildHospitalSelectionSection() {
+    if (_isLoadingHospitals) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: const Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Loading hospitals...', style: TextStyle(color: Colors.grey)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_availableHospitals.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.red[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red[200]!),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'No hospitals available. Please contact the admin to add hospitals.',
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Filter out already-selected hospitals from the dropdown
+    final unselectedHospitals = _availableHospitals
+        .where((h) => !_selectedHospitals.any((s) => s['id'] == h['id']))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Dropdown to add a hospital
+        if (unselectedHospitals.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[400]!),
+              color: Colors.white,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<Map<String, dynamic>>(
+                value: null,
+                isExpanded: true,
+                hint: const Row(
+                  children: [
+                    Icon(Icons.add_business, color: Colors.blueGrey, size: 20),
+                    SizedBox(width: 10),
+                    Text('Select a hospital to add'),
+                  ],
+                ),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.blueGrey),
+                items: unselectedHospitals.map((hospital) {
+                  final district = hospital['district'] ?? '';
+                  final displayName = district.isNotEmpty
+                      ? "${hospital['hospitalName']} — $district"
+                      : hospital['hospitalName'] ?? 'Unknown Hospital';
+                  return DropdownMenuItem<Map<String, dynamic>>(
+                    value: hospital,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_hospital, color: Colors.blueGrey, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedHospitals.add(value);
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+
+        if (unselectedHospitals.isEmpty && _selectedHospitals.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 20),
+                SizedBox(width: 8),
+                Text('All available hospitals have been selected.', 
+                  style: TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 12),
+
+        // Selected hospitals as cards
+        if (_selectedHospitals.isNotEmpty)
+          ...List.generate(_selectedHospitals.length, (index) {
+            final hospital = _selectedHospitals[index];
+            final district = hospital['district'] ?? '';
+            final address = hospital['address'] ?? '';
+            final contact = hospital['hospitalPhone'] ?? '';
+            
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.blue[50]?.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.local_hospital, color: Colors.blueGrey, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          hospital['hospitalName'] ?? 'Unknown',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        if (district.isNotEmpty || address.isNotEmpty)
+                          Text(
+                            [address, district].where((s) => s.isNotEmpty).join(', '),
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          ),
+                        if (contact.isNotEmpty)
+                          Text(
+                            '📞 $contact',
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.redAccent, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _selectedHospitals.removeAt(index);
+                      });
+                    },
+                    tooltip: 'Remove hospital',
+                  ),
+                ],
+              ),
+            );
+          }),
+        
+        if (_selectedHospitals.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'No hospitals selected. Please select at least one hospital from the dropdown above.',
+              style: TextStyle(color: Colors.grey[500], fontStyle: FontStyle.italic, fontSize: 13),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -445,106 +605,13 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
                         validator: (value) => value == null || value.trim().isEmpty ? 'Please enter personal phone number.' : null,
                       ),
                       const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Hospitals & Addresses Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                          TextButton.icon(onPressed: _addHospitalField, icon: const Icon(Icons.add_business_outlined), label: const Text('Add Hospital')),
-                        ],
-                      ),
+
+                      // --- HOSPITAL SELECTION SECTION ---
+                      const Text('Hospitals & Addresses Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                       const Divider(),
                       const SizedBox(height: 8),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _hospitalControllers.length,
-                        itemBuilder: (context, hIndex) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 20.0),
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50], 
-                              borderRadius: BorderRadius.circular(12), 
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Hospital / Clinic Box #${hIndex + 1}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey[800], fontSize: 14)),
-                                    if (_hospitalControllers.length > 1)
-                                      IconButton(icon: const Icon(Icons.delete_forever, color: Colors.redAccent), onPressed: () => _removeHospitalField(hIndex)),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _hospitalControllers[hIndex].nameController,
-                                  textCapitalization: TextCapitalization.words,
-                                  decoration: const InputDecoration(labelText: 'Hospital / Clinic Name', prefixIcon: Icon(Icons.local_hospital), filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Please enter a hospital name' : null,
-                                ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _hospitalControllers[hIndex].phoneController,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: const InputDecoration(labelText: 'Hospital Phone Number', prefixIcon: Icon(Icons.phone_in_talk_outlined), filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Please enter hospital phone number' : null,
-                                ),
-                                const SizedBox(height: 12),
-                                DropdownButtonFormField<String>(
-                                  initialValue: _hospitalControllers[hIndex].selectedDistrict,
-                                  hint: const Text('Select Hospital District'),
-                                  decoration: const InputDecoration(prefixIcon: Icon(Icons.map_outlined), filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
-                                  items: _districts.map((String district) {
-                                    return DropdownMenuItem<String>(value: district, child: Text(district));
-                                  }).toList(),
-                                  onChanged: (newValue) => setState(() => _hospitalControllers[hIndex].selectedDistrict = newValue),
-                                  validator: (value) => value == null ? 'Please select the district' : null,
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Hospital Addresses', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-                                    TextButton.icon(
-                                      onPressed: () => _addAddressField(hIndex), 
-                                      icon: const Icon(Icons.add, size: 16), 
-                                      label: const Text('Add Address', style: TextStyle(fontSize: 12)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Column(
-                                  children: List.generate(
-                                    _hospitalControllers[hIndex].addressControllers.length,
-                                    (aIndex) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(bottom: 8.0),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: TextFormField(
-                                                controller: _hospitalControllers[hIndex].addressControllers[aIndex],
-                                                maxLines: 2,
-                                                decoration: const InputDecoration(labelText: 'Address', filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
-                                                validator: (v) => v == null || v.trim().isEmpty ? 'Please enter the address' : null,
-                                              ),
-                                            ),
-                                            if (_hospitalControllers[hIndex].addressControllers.length > 1)
-                                              IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.red), onPressed: () => _removeAddressField(hIndex, aIndex)),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                      _buildHospitalSelectionSection(),
+
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

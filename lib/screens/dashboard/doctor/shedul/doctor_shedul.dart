@@ -1,7 +1,7 @@
 // lib/screens/dashboard/doctor/shedul/doctor_shedul.dart
 
 import 'package:appoinment_app/screens/dashboard/doctor/modles/shedul.dart';
-import 'package:appoinment_app/screens/dashboard/doctor/modles/user_profile.dart';
+import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -37,12 +37,51 @@ class _MySchedulePageState extends State<MySchedulePage> {
     try {
       String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
+        // Fetch the doctor's profile to get their selected hospitals
         final doctorDoc = await FirebaseFirestore.instance.collection('doctors').doc(uid).get();
-        
-        List<Map<String, dynamic>> loadedHospitals = [];
+        final List<String> profileHospitalIds = [];
+        final List<String> profileHospitalNames = [];
         if (doctorDoc.exists && doctorDoc.data() != null) {
-          final doctorModel = DoctorModel.fromMap(doctorDoc.data()!);
-          loadedHospitals = doctorModel.hospitalsList;
+          final data = doctorDoc.data()!;
+          if (data['hospitalsList'] != null && data['hospitalsList'] is List) {
+            for (var item in data['hospitalsList']) {
+              if (item is Map) {
+                final id = item['hospitalId']?.toString() ?? '';
+                final name = item['hospitalName']?.toString() ?? '';
+                if (id.isNotEmpty) profileHospitalIds.add(id);
+                if (name.isNotEmpty) profileHospitalNames.add(name.toLowerCase());
+              }
+            }
+          }
+        }
+
+        // Fetch hospitals from the admin-managed 'hospital' collection
+        final hospitalSnapshot = await FirebaseFirestore.instance.collection('hospital').get();
+        final seenIds = <String>{};
+        final seenNames = <String>{};
+        List<Map<String, dynamic>> loadedHospitals = [];
+        
+        for (var doc in hospitalSnapshot.docs) {
+          final data = doc.data();
+          final name = (data['name'] ?? 'Unknown Hospital').trim();
+          final id = doc.id;
+          
+          // Check if this hospital was selected in the doctor's profile
+          final isSelectedInProfile = profileHospitalIds.contains(id) || 
+                                     profileHospitalNames.contains(name.toLowerCase());
+
+          if (isSelectedInProfile && seenIds.add(id)) {
+            if (seenNames.add(name.toLowerCase())) {
+              loadedHospitals.add({
+                'id': id,
+                'hospitalName': name,
+                'address': data['address'] ?? '',
+                'district': data['district'] ?? '',
+                'hospitalPhone': data['contact'] ?? '',
+                'charges': data['charges'] is num ? (data['charges'] as num).toDouble() : 0.0,
+              });
+            }
+          }
         }
 
         final snapshot = await FirebaseFirestore.instance
@@ -90,13 +129,13 @@ class _MySchedulePageState extends State<MySchedulePage> {
       
       if (slot != null) {
         _selectedHospital = _doctorHospitals.firstWhere(
-          (h) => h['hospitalName'] == slot.hospitalName,
+          (h) => h['id'] == slot.hospitalId,
           orElse: () => _doctorHospitals.isNotEmpty 
               ? _doctorHospitals.first 
               : {
+                  'id': slot.hospitalId,
                   'hospitalName': slot.hospitalName, 
                   'hospitalPhone': slot.hospitalPhone,
-                  'hospitalAddresses': []
                 },
         );
       } else {
@@ -137,12 +176,6 @@ class _MySchedulePageState extends State<MySchedulePage> {
       final firestore = FirebaseFirestore.instance.collection('doctors').doc(uid).collection('schedules');
       
       DocumentReference docRef = _editingSlot != null ? firestore.doc(_editingSlot!.id) : firestore.doc();
-      String hospitalContact = _selectedHospital!['hospitalPhone'] ?? '';
-      if (hospitalContact.isEmpty && 
-          _selectedHospital!['hospitalAddresses'] != null && 
-          (_selectedHospital!['hospitalAddresses'] as List).isNotEmpty) {
-        hospitalContact = _selectedHospital!['hospitalAddresses'][0].toString();
-      }
 
       ScheduleModel newSlot = ScheduleModel(
         id: docRef.id,
@@ -151,12 +184,24 @@ class _MySchedulePageState extends State<MySchedulePage> {
         endTime: _endTime,
         maxPatients: _maxPatients,
         consultationFee: _consultationFee,
+        hospitalId: _selectedHospital!['id'] ?? '',
         hospitalName: _selectedHospital!['hospitalName'] ?? '',
-        hospitalPhone: hospitalContact,
+        hospitalPhone: _selectedHospital!['hospitalPhone'] ?? '',
         isActive: _editingSlot?.isActive ?? true,
       );
 
       await docRef.set(newSlot.toMap());
+      
+      try {
+        await NotificationService().showNotification(
+          id: 201,
+          title: _editingSlot != null ? 'Schedule Updated' : 'Schedule Created',
+          body: _editingSlot != null ? 'The schedule slot was updated successfully.' : 'The schedule slot was created successfully.',
+        );
+      } catch (err) {
+        debugPrint('Notification error: $err');
+      }
+
       _closeInlineForm();
       _loadInitialData();
     } catch (e) {
@@ -168,12 +213,23 @@ class _MySchedulePageState extends State<MySchedulePage> {
   Future<void> _toggleSlotStatus(ScheduleModel slot) async {
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
+      final newStatus = !slot.isActive;
       await FirebaseFirestore.instance
           .collection('doctors')
           .doc(uid)
           .collection('schedules')
           .doc(slot.id)
-          .update({'isActive': !slot.isActive});
+          .update({'isActive': newStatus});
+
+      try {
+        await NotificationService().showNotification(
+          id: 202,
+          title: 'Schedule Status Updated',
+          body: 'The schedule slot status has been updated successfully.',
+        );
+      } catch (err) {
+        debugPrint('Notification error: $err');
+      }
 
       _loadInitialData();
     } catch (e) {
@@ -255,7 +311,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                           ? const Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.0),
                               child: Text(
-                                "⚠️ No hospitals found in your profile! Please add hospitals to your profile first.",
+                                "⚠️ No hospitals available. Please contact the admin to add hospitals.",
                                 style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500),
                               ),
                             )
@@ -267,20 +323,24 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<Map<String, dynamic>>(
-                                  value: _doctorHospitals.any((h) => h['hospitalName'] == _selectedHospital?['hospitalName']) 
+                                  value: _doctorHospitals.any((h) => h['id'] == _selectedHospital?['id']) 
                                       ? _selectedHospital 
                                       : null,
                                   isExpanded: true,
                                   hint: const Text("Select Hospital / Clinic"),
                                   icon: const Icon(Icons.arrow_drop_down, color: primaryColor),
                                   items: _doctorHospitals.map((hospital) {
+                                    final district = hospital['district'] ?? '';
+                                    final displayName = district.isNotEmpty
+                                        ? "${hospital['hospitalName']} — $district"
+                                        : hospital['hospitalName'] ?? 'Unknown Hospital';
                                     return DropdownMenuItem<Map<String, dynamic>>(
                                       value: hospital,
                                       child: Row(
                                         children: [
                                           const Icon(Icons.local_hospital, color: primaryColor, size: 20),
                                           const SizedBox(width: 10),
-                                          Text(hospital['hospitalName'] ?? 'Unknown Hospital'),
+                                          Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis)),
                                         ],
                                       ),
                                     );

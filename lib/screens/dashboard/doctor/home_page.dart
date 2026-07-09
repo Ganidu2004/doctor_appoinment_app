@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/services/notification_services.dart';
 
 class DoctorHomePage extends StatefulWidget {
   final Map<String, dynamic> doctorData;
@@ -113,6 +114,25 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
 
     try {
       await _updateAppointmentStatus(appointmentId, newStatus);
+      
+      try {
+        if (newStatus == 'CONFIRMED') {
+          await NotificationService().showNotification(
+            id: 301,
+            title: 'Appointment Accepted',
+            body: 'You have accepted the appointment successfully.',
+          );
+        } else if (newStatus == 'CANCELLED') {
+          await NotificationService().showNotification(
+            id: 302,
+            title: 'Appointment Cancelled',
+            body: 'You have cancelled the appointment successfully.',
+          );
+        }
+      } catch (err) {
+        debugPrint('Notification error: $err');
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Appointment updated successfully')),
       );
@@ -196,38 +216,173 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// 🔵 DOCTOR HEADER WITH IMAGE
+                /// 🔵 DOCTOR HEADER WITH IMAGE (Layout 4 Glass design)
                 StreamBuilder<DocumentSnapshot>(
                   stream: _doctorStream(user.uid),
                   builder: (context, docSnap) {
-                    final data = docSnap.data?.data()
-                        as Map<String, dynamic>?;
+                    final data = docSnap.data?.data() as Map<String, dynamic>?;
+                    final imageUrl = data?['imageUrl'] ?? data?['profileImageUrl'] ?? '';
+                    final specialization = data?['specialization'] ?? 'Specialist';
+                    final String timeStr = DateFormat('h:mm a').format(DateTime.now());
 
-                    final imageUrl = data?['imageUrl'];
-
-                    return Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundImage: imageUrl != null &&
-                                  imageUrl.toString().isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
-                          child: imageUrl == null
-                              ? const Icon(Icons.person, size: 28)
-                              : null,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF10B981)], // Teal to Green gradient matching Screen 5
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Hello, Dr. $doctorName',
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 6),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: Container(
+                                color: Colors.white.withValues(alpha: 0.05),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        timeStr,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.battery_charging_full,
+                                            color: Colors.white.withValues(alpha: 0.85),
+                                            size: 13,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "84%",
+                                            style: TextStyle(
+                                              color: Colors.white.withValues(alpha: 0.85),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(alpha: 0.15),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.grid_view_rounded,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Dr. $doctorName',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              "$specialization — Doctor Portal",
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: Colors.white.withValues(alpha: 0.8),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Stack(
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white.withValues(alpha: 0.6),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: CircleAvatar(
+                                              radius: 22,
+                                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                              backgroundImage: imageUrl.isNotEmpty
+                                                  ? NetworkImage(imageUrl)
+                                                  : null,
+                                              child: imageUrl.isEmpty
+                                                  ? const Icon(Icons.person, color: Colors.white, size: 22)
+                                                  : null,
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 0,
+                                            bottom: 0,
+                                            child: Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF10B981),
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     );
                   },
                 ),

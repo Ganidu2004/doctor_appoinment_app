@@ -11,6 +11,7 @@ void main() {
         endTime: '10:00 AM',
         maxPatients: 10,
         consultationFee: 75.5,
+        hospitalId: 'hosp-1',
         hospitalName: 'City Clinic',
         hospitalPhone: '123456',
         isActive: true,

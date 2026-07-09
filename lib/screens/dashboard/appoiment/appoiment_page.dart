@@ -38,6 +38,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   List<DateTime> dateOptions = [];
   Map<String, bool> fullyBookedMap = {};
   Map<String, Map<String, _SlotInfo>> slotInfoByDate = {};
+  Map<String, Map<String, dynamic>> _hospitalsMap = {};
 
   DateTime? selectedDate;
   String? selectedTime;
@@ -51,6 +52,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   Future<void> _initialize() async {
     await _fetchDoctorData();
+    await _loadHospitals();
     await _loadSchedulesAndAvailability();
     if (mounted) {
       setState(() {
@@ -68,6 +70,21 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
       setState(() {
         doctorData = doc.data() as Map<String, dynamic>?;
       });
+    }
+  }
+
+  Future<void> _loadHospitals() async {
+    try {
+      final snap = await FirebaseFirestore.instance.collection('hospital').get();
+      if (mounted) {
+        setState(() {
+          _hospitalsMap = {
+            for (var doc in snap.docs) doc.id: doc.data()
+          };
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading hospitals: $e");
     }
   }
 
@@ -208,6 +225,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         endTime: '',
         maxPatients: 0,
         consultationFee: 0,
+        hospitalId: '',
         hospitalName: '',
         hospitalPhone: '',
         isActive: true,
@@ -245,7 +263,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Select Slot", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text("Select Appointment", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -254,13 +272,14 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            if (doctorData != null) _buildDoctorCard(doctorData!),
-            const SizedBox(height: 20),
-            _buildDateSelector(),
-            const SizedBox(height: 20),
             Expanded(
               child: ListView(
                 children: [
+                  if (doctorData != null) _buildDoctorCard(doctorData!),
+                  const SizedBox(height: 20),
+                  _buildHospitalDetails(),
+                  _buildDateSelector(),
+                  const SizedBox(height: 20),
                   _buildGeneratedSlotSection(),
                   const SizedBox(height: 20),
                   _buildInfoBox(),
@@ -297,6 +316,101 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
           ],
         ),
       );
+
+  Widget _buildHospitalDetails() {
+    if (selectedDate == null) return const SizedBox.shrink();
+    
+    // Find active schedule for selectedDate
+    final weekdayFull = DateFormat('EEEE').format(selectedDate!).toLowerCase();
+    final weekdayShort = DateFormat('EEE').format(selectedDate!).toLowerCase();
+    
+    final daySchedule = schedules.firstWhere(
+      (s) {
+        final d = s.day.toLowerCase();
+        return (d.contains(weekdayFull) || d.contains(weekdayShort)) && s.isActive;
+      },
+      orElse: () => ScheduleModel(
+        id: '',
+        day: '',
+        startTime: '',
+        endTime: '',
+        maxPatients: 0,
+        consultationFee: 0,
+        hospitalId: '',
+        hospitalName: '',
+        hospitalPhone: '',
+        isActive: false,
+      ),
+    );
+    
+    if (daySchedule.id.isEmpty) return const SizedBox.shrink();
+    
+    // Try to get details from loaded hospitals map
+    Map<String, dynamic>? hospitalData = _hospitalsMap[daySchedule.hospitalId];
+    
+    final name = hospitalData?['name'] ?? daySchedule.hospitalName;
+    final address = hospitalData?['address'] ?? '';
+    final district = hospitalData?['district'] ?? '';
+    final contact = hospitalData?['contact'] ?? daySchedule.hospitalPhone;
+    final charges = hospitalData?['charges'];
+    
+    if (name.isEmpty) return const SizedBox.shrink();
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_hospital, color: Colors.red.shade600, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                "Hospital Details",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 12),
+          Text(
+            name,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+          ),
+          const SizedBox(height: 4),
+          if (address.isNotEmpty || district.isNotEmpty) ...[
+            Text(
+              [address, district].where((s) => s.isNotEmpty).join(', '),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            ),
+          ],
+          if (contact.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              "📞 Contact: $contact",
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            ),
+          ],
+          if (charges != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              "Hospital Charges: LKR ${charges.toString()}",
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 12),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildDateSelector() {
     if (dateOptions.isEmpty) {

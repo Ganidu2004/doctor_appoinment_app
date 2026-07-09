@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -116,6 +117,16 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
           'createdAt': FieldValue.serverTimestamp(),
         });
         
+        try {
+          await NotificationService().showNotification(
+            id: 101,
+            title: 'Profile Created Successfully',
+            body: 'Your patient profile has been set up.',
+          );
+        } catch (e) {
+          debugPrint('Notification error: $e');
+        }
+
         widget.onProfileCreated();
       }
     } catch (e) {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:appoinment_app/services/notification_services.dart';
 
 class PatientProfileEditPage extends StatefulWidget {
   final String userId;
@@ -126,6 +127,16 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
       
+      try {
+        await NotificationService().showNotification(
+          id: 102,
+          title: 'Profile Updated Successfully',
+          body: 'Your patient profile has been updated.',
+        );
+      } catch (e) {
+        debugPrint('Notification error: $e');
+      }
+
       _showSnackBar("Profile Updated Successfully!");
       if (!mounted) return;
       Navigator.of(context).pop(true);

@@ -1,4 +1,4 @@
-import 'package:appoinment_app/screens/dashboard/doctor/notification/doctor_notifications_page.dart';
+import 'package:appoinment_app/screens/notifications_page.dart';
 import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -16,7 +16,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const DoctorNotificationsPage()),
+              MaterialPageRoute(builder: (_) => const NotificationsPage()),
             );
           },
         ),

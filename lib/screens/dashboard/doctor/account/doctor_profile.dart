@@ -46,64 +46,102 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           final data = doctorSnapshot.data!.data() as Map<String, dynamic>;
           final List hospitalsList = data['hospitalsList'] ?? [];
 
-          return FutureBuilder<QuerySnapshot>(
-            future: _scheduleFuture,
-            builder: (context, scheduleSnapshot) {
-              List<Map<String, dynamic>> scheduleList = [];
-              if (scheduleSnapshot.hasData) {
-                scheduleList = scheduleSnapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('reviews')
+                .where('doctorId', isEqualTo: widget.doctorId)
+                .snapshots(),
+            builder: (context, reviewsSnapshot) {
+              final reviews = reviewsSnapshot.data?.docs ?? [];
+              
+              // Calculate average rating
+              double averageRating = 0.0;
+              if (reviews.isNotEmpty) {
+                final sum = reviews.map((r) {
+                  final rData = r.data() as Map<String, dynamic>;
+                  return (rData['rating'] as num?)?.toDouble() ?? 0.0;
+                }).reduce((a, b) => a + b);
+                averageRating = sum / reviews.length;
               }
 
-              return CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 300,
-                    pinned: true,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Image.network(data['profileImageUrl'] ?? '', fit: BoxFit.cover),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Dr. ${data['name'] ?? ''}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(data['specialization'] ?? '', style: const TextStyle(color: Colors.blue, fontSize: 16)),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStatBox('${data['experience'] ?? 0}+ Yrs', 'EXPERIENCE'),
-                              _buildStatBox('${data['patients'] ?? 0}+', 'PATIENTS'),
-                              _buildStatBox('${data['rating'] ?? 0.0}', 'RATING'),
-                            ],
+              return StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('appointments')
+                    .where('doctorId', isEqualTo: widget.doctorId)
+                    .snapshots(),
+                builder: (context, appointmentsSnapshot) {
+                  final appointments = appointmentsSnapshot.data?.docs ?? [];
+                  final uniquePatients = appointments.map((a) {
+                    final aData = a.data() as Map<String, dynamic>;
+                    return aData['patientUid'] ?? '';
+                  }).where((uid) => uid.isNotEmpty).toSet().length;
+
+                  return FutureBuilder<QuerySnapshot>(
+                    future: _scheduleFuture,
+                    builder: (context, scheduleSnapshot) {
+                      List<Map<String, dynamic>> scheduleList = [];
+                      if (scheduleSnapshot.hasData) {
+                        scheduleList = scheduleSnapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+                      }
+
+                      return CustomScrollView(
+                        slivers: [
+                          SliverAppBar(
+                            expandedHeight: 300,
+                            pinned: true,
+                            flexibleSpace: FlexibleSpaceBar(
+                              background: Image.network(data['profileImageUrl'] ?? '', fit: BoxFit.cover),
+                            ),
                           ),
-                          const SizedBox(height: 24),
-                          const Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text(data['aboutMe'] ?? "", style: TextStyle(color: Colors.grey.shade600)),
-                          const SizedBox(height: 20),
-                          ListTile(
-                            leading: const Icon(Icons.location_on, color: Colors.blue),
-                            title: Text(hName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text(hAddress),
-                            tileColor: Colors.grey.shade100,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Dr. ${data['name'] ?? ''}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                  Text(data['specialization'] ?? '', style: const TextStyle(color: Colors.blue, fontSize: 16)),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildStatBox('${data['experience'] ?? 0}+ Yrs', 'Experience'),
+                                      _buildStatBox(uniquePatients > 0 ? '$uniquePatients+' : '0+', 'Patients'),
+                                      _buildStatBox(averageRating > 0 ? averageRating.toStringAsFixed(1) : '0.0', 'Rating'),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                  const Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  Text(data['aboutMe'] ?? "", style: TextStyle(color: Colors.grey.shade600)),
+                                  const SizedBox(height: 20),
+                                  ListTile(
+                                    leading: const Icon(Icons.location_on, color: Colors.blue),
+                                    title: Text(hName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text(hAddress),
+                                    tileColor: Colors.grey.shade100,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  const Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ScheduleSection(
+                                    scheduleList: scheduleList,
+                                    hospitalsList: hospitalsList,
+                                    onDateSelected: updateLocation,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  const Text("Patient Reviews", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 10),
+                                  _buildReviewsSection(reviews),
+                                  const SizedBox(height: 30),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 24),
-                          const Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          ScheduleSection(
-                            scheduleList: scheduleList,
-                            hospitalsList: hospitalsList,
-                            onDateSelected: updateLocation,
-                          ),
-                          const SizedBox(height: 30),
                         ],
-                      ),
-                    ),
-                  ),
-                ],
+                      );
+                    },
+                  );
+                },
               );
             },
           );
@@ -138,6 +176,115 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           child: const Text("Book Appointment", style: TextStyle(color: Colors.white)),
         ),
       ),
+    );
+  }
+
+  Widget _buildReviewsSection(List<QueryDocumentSnapshot> reviews) {
+    if (reviews.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        child: Text(
+          "No reviews yet. Be the first to leave a review!",
+          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+        ),
+      );
+    }
+
+    // Sort in memory to avoid composite index requirement
+    final sortedReviews = reviews.toList()
+      ..sort((a, b) {
+        final aData = a.data() as Map<String, dynamic>;
+        final bData = b.data() as Map<String, dynamic>;
+        final aTime = aData['updatedAt'] as Timestamp?;
+        final bTime = bData['updatedAt'] as Timestamp?;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: sortedReviews.length,
+      itemBuilder: (context, index) {
+        final data = sortedReviews[index].data() as Map<String, dynamic>;
+        final rating = data['rating'] is num ? (data['rating'] as num).toInt() : 5;
+        final comment = data['comment']?.toString() ?? '';
+        final timestamp = data['updatedAt'] as Timestamp?;
+        final patientUid = data['patientUid'] ?? '';
+        
+        String formattedDate = '';
+        if (timestamp != null) {
+          formattedDate = DateFormat('MMM d, yyyy').format(timestamp.toDate());
+        }
+
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance.collection('patients').doc(patientUid).get(),
+          builder: (context, patientSnapshot) {
+            final patientData = patientSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+            final String patientName = patientData['name'] ?? 'Patient';
+            final String? patientImageUrl = patientData['profileImageUrl'];
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.blue.shade50,
+                          backgroundImage: patientImageUrl != null && patientImageUrl.isNotEmpty 
+                              ? NetworkImage(patientImageUrl) 
+                              : null,
+                          child: patientImageUrl == null || patientImageUrl.isEmpty 
+                              ? const Icon(Icons.person, size: 18, color: Colors.blue) 
+                              : null,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                patientName,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              Row(
+                                children: List.generate(5, (starIdx) {
+                                  return Icon(
+                                    starIdx < rating ? Icons.star : Icons.star_border,
+                                    color: Colors.amber,
+                                    size: 14,
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (formattedDate.isNotEmpty)
+                          Text(
+                            formattedDate,
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      comment.isNotEmpty ? comment : 'No comment provided.',
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

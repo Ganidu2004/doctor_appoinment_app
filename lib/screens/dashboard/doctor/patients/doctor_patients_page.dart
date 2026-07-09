@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:appoinment_app/services/notification_services.dart';
 import 'package:intl/intl.dart';
 
 class DoctorPatientsPage extends StatefulWidget {
@@ -36,6 +37,25 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      try {
+        if (status == 'completed') {
+          await NotificationService().showNotification(
+            id: 601,
+            title: 'Appointment Completed',
+            body: 'The appointment has been marked as completed.',
+          );
+        } else if (status == 'cancelled') {
+          await NotificationService().showNotification(
+            id: 602,
+            title: 'Appointment Cancelled',
+            body: 'The appointment has been marked as cancelled.',
+          );
+        }
+      } catch (err) {
+        debugPrint('Notification error: $err');
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Appointment marked ${status.toLowerCase()}')),

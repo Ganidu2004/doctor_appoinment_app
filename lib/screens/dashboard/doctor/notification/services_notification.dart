@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -28,11 +30,30 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
+  static Future<void> _saveNotificationToFirestore(String title, String body) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': user.uid,
+          'title': title,
+          'body': body,
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+        });
+      }
+    } catch (e) {
+      print("Error saving notification to Firestore: $e");
+    }
+  }
+
   static Future<void> showNotification({
     required int id,
     required String title,
     required String body,
   }) async {
+    await _saveNotificationToFirestore(title, body);
+
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'doctor_profile_channel', 
       'Doctor Profile Notifications', 

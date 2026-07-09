@@ -150,6 +150,7 @@ class AdminDialogHelpers {
   static void showAddHospital(BuildContext context) {
     final nameController = TextEditingController();
     final addressController = TextEditingController();
+    final districtController = TextEditingController();
     final phoneController = TextEditingController();
     final chargesController = TextEditingController();
 
@@ -165,6 +166,7 @@ class AdminDialogHelpers {
               children: [
                 TextField(controller: nameController, decoration: const InputDecoration(labelText: "Hospital Name")),
                 TextField(controller: addressController, decoration: const InputDecoration(labelText: "Address")),
+                TextField(controller: districtController, decoration: const InputDecoration(labelText: "District")),
                 TextField(controller: phoneController, decoration: const InputDecoration(labelText: "Contact Number"), keyboardType: TextInputType.phone),
                 TextField(controller: chargesController, decoration: const InputDecoration(labelText: "Hospital Charges (LKR)"), keyboardType: TextInputType.number),
               ],
@@ -184,6 +186,7 @@ class AdminDialogHelpers {
                 await FirebaseFirestore.instance.collection('hospital').add({
                   'name': nameController.text.trim(),
                   'address': addressController.text.trim(),
+                  'district': districtController.text.trim(),
                   'contact': phoneController.text.trim(),
                   'charges': charges,
                   'createdAt': FieldValue.serverTimestamp(),
