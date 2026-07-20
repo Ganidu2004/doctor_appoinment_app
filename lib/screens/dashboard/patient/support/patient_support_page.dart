@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'patient_chat_page.dart';
 
 class PatientSupportPage extends StatelessWidget {
   final bool showAppBar;
@@ -15,7 +16,7 @@ class PatientSupportPage extends StatelessWidget {
               iconTheme: const IconThemeData(color: Colors.black),
               title: const Text('Support', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               centerTitle: true,
-            )
+              )
           : null,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -48,7 +49,14 @@ class PatientSupportPage extends StatelessWidget {
                 title: 'Live Help',
                 subtitle: 'Use our in-app chat for immediate assistance with bookings and updates.',
                 actionLabel: 'Start chat',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PatientChatPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

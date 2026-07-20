@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:appoinment_app/screens/dashboard/admin/widgets/custom_charts.dart';
 import 'package:appoinment_app/screens/dashboard/admin/widgets/dialog_helpers.dart';
+import 'admin_support_chats_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -296,13 +297,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text("Quick Actions",
+          const Text("Add Hospital",
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87)),
+          const SizedBox(height: 8),
+          const Text(
+            "Expand our healthcare network by adding a new hospital. Please fill in the official details below, including the hospital name, location, contact information, and available facilities, to help patients discover and connect with the right medical care easily.",
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
+              height: 1.4,
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 decoration: BoxDecoration(
@@ -327,8 +338,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     shadowColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -679,30 +692,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                       radius: 24,
                                       backgroundColor: Colors.blue.shade50,
                                       child: Icon(Icons.person,
-                                          color: Colors.blue.shade300, size: 26),
+                                          color: Colors.blue.shade300,
+                                          size: 26),
                                     )
                                   : FutureBuilder<DocumentSnapshot>(
-                                      future: _patientsCol.doc(patientUid).get(),
+                                      future:
+                                          _patientsCol.doc(patientUid).get(),
                                       builder: (context, snapshot) {
                                         String imageUrl = '';
                                         if (snapshot.connectionState ==
                                                 ConnectionState.done &&
                                             snapshot.hasData &&
                                             snapshot.data!.exists) {
-                                          final patientData = snapshot.data!.data()
-                                              as Map<String, dynamic>?;
+                                          final patientData = snapshot.data!
+                                              .data() as Map<String, dynamic>?;
                                           imageUrl =
-                                              patientData?['profileImageUrl'] ?? '';
+                                              patientData?['profileImageUrl'] ??
+                                                  '';
                                         }
                                         return Container(
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                                color: Colors.blue.shade50, width: 2),
+                                                color: Colors.blue.shade50,
+                                                width: 2),
                                           ),
                                           child: CircleAvatar(
                                             radius: 24,
-                                            backgroundColor: Colors.grey.shade100,
+                                            backgroundColor:
+                                                Colors.grey.shade100,
                                             backgroundImage: imageUrl.isNotEmpty
                                                 ? NetworkImage(imageUrl)
                                                 : null,
@@ -794,15 +812,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color:
-                                      AdminDialogHelpers.getStatusBgColor(status),
+                                  color: AdminDialogHelpers.getStatusBgColor(
+                                      status),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   status,
                                   style: TextStyle(
-                                    color: AdminDialogHelpers
-                                        .getStatusTextColor(status),
+                                    color:
+                                        AdminDialogHelpers.getStatusTextColor(
+                                            status),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
                                   ),
@@ -831,7 +850,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Text(
                 "Registered Doctors (${docs.length})",
                 style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
               Container(
                 decoration: BoxDecoration(
@@ -849,15 +870,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 child: ElevatedButton.icon(
                   onPressed: () => AdminDialogHelpers.showAddDoctor(context),
-                  icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                  label: const Text("Register Doctor", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  icon: const Icon(Icons.add_rounded,
+                      size: 16, color: Colors.white),
+                  label: const Text("Register Doctor",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(0, 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -868,7 +894,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: docs.isEmpty
               ? const Center(
                   child: Text("No registered doctors in the database.",
-                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)))
+                      style: TextStyle(
+                          color: Colors.grey, fontWeight: FontWeight.w500)))
               : ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
@@ -901,7 +928,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.blue.shade50, width: 2),
+                                border: Border.all(
+                                    color: Colors.blue.shade50, width: 2),
                               ),
                               child: CircleAvatar(
                                 radius: 26,
@@ -910,7 +938,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     ? NetworkImage(imageUrl)
                                     : null,
                                 child: imageUrl.isEmpty
-                                    ? Icon(Icons.person, color: Colors.blue.shade300, size: 28)
+                                    ? Icon(Icons.person,
+                                        color: Colors.blue.shade300, size: 28)
                                     : null,
                               ),
                             ),
@@ -934,7 +963,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                             horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.blue.shade50,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           spec,
@@ -950,13 +980,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                             horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(Icons.work_history_outlined,
-                                                size: 11, color: Colors.grey[600]),
+                                                size: 11,
+                                                color: Colors.grey[600]),
                                             const SizedBox(width: 4),
                                             Text(
                                               "$exp Yrs Exp",
@@ -988,9 +1020,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                               Navigator.pop(ctx, false),
                                           child: const Text("Cancel")),
                                       TextButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
                                         child: const Text("Delete",
-                                            style: TextStyle(color: Colors.red)),
+                                            style:
+                                                TextStyle(color: Colors.red)),
                                       )
                                     ],
                                   ),
@@ -1039,7 +1073,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 child: Text(
                   "Registered Patients (${docs.length})",
                   style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
                 ),
               ),
             ],
@@ -1047,8 +1083,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         Expanded(
           child: docs.isEmpty
-              ? const Center(child: Text("No registered patients in database.",
-                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)))
+              ? const Center(
+                  child: Text("No registered patients in database.",
+                      style: TextStyle(
+                          color: Colors.grey, fontWeight: FontWeight.w500)))
               : ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
@@ -1081,7 +1119,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey.shade200, width: 2),
+                                border: Border.all(
+                                    color: Colors.grey.shade200, width: 2),
                               ),
                               child: CircleAvatar(
                                 radius: 24,
@@ -1090,7 +1129,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                     ? NetworkImage(imageUrl)
                                     : null,
                                 child: imageUrl.isEmpty
-                                    ? const Icon(Icons.person, color: Colors.grey, size: 26)
+                                    ? const Icon(Icons.person,
+                                        color: Colors.grey, size: 26)
                                     : null,
                               ),
                             ),
@@ -1118,7 +1158,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                               horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
                                             color: Colors.red.shade50,
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
                                           ),
                                           child: Text(
                                             "Blocked",
@@ -1135,8 +1176,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                   Text(
                                     email,
                                     style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 13),
+                                        color: Colors.grey[600], fontSize: 13),
                                   ),
                                 ],
                               ),
@@ -1151,12 +1191,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: isBlocked ? Colors.green.shade50 : Colors.orange.shade50,
+                                  color: isBlocked
+                                      ? Colors.green.shade50
+                                      : Colors.orange.shade50,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
-                                  isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
-                                  color: isBlocked ? Colors.green.shade700 : Colors.orange.shade700,
+                                  isBlocked
+                                      ? Icons.lock_open_rounded
+                                      : Icons.block_rounded,
+                                  color: isBlocked
+                                      ? Colors.green.shade700
+                                      : Colors.orange.shade700,
                                   size: 18,
                                 ),
                               ),
@@ -1176,9 +1222,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                               Navigator.pop(ctx, false),
                                           child: const Text("Cancel")),
                                       TextButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
                                         child: const Text("Delete",
-                                            style: TextStyle(color: Colors.red)),
+                                            style:
+                                                TextStyle(color: Colors.red)),
                                       )
                                     ],
                                   ),
@@ -1345,6 +1393,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.black87),
+            tooltip: "Support Chats",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const AdminSupportChatsPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black87),
             tooltip: "Logout",

@@ -207,40 +207,46 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                             return Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFF500CA4),
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                                    color: const Color(0xFF500CA4).withValues(alpha: 0.4),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 8),
+                                    spreadRadius: 2,
                                   ),
                                 ],
-                                border: Border.all(color: Colors.grey.shade100),
+                                border: Border.all(color: const Color(0xFF500CA4).withValues(alpha: 0.2)),
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: Material(
                                   color: Colors.transparent,
                                   child: Theme(
-                                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                    data: Theme.of(context).copyWith(
+                                      dividerColor: Colors.transparent,
+                                      iconTheme: const IconThemeData(color: Colors.white),
+                                    ),
                                     child: ExpansionTile(
+                                    iconColor: Colors.white,
+                                    collapsedIconColor: Colors.white.withValues(alpha: 0.7),
                                     leading: CircleAvatar(
                                       radius: 26,
-                                      backgroundColor: Colors.blue.shade50,
+                                      backgroundColor: Colors.white.withValues(alpha: 0.2),
                                       backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                                      child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.blue) : null,
+                                      child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
                                     ),
                                     title: Text(
                                       'Dr. ${data['doctorName'] ?? 'Doctor'}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                                     ),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           data['specialization'] ?? 'Specialist',
-                                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                                         ),
                                         const SizedBox(height: 4),
                                         Wrap(
@@ -250,22 +256,22 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.calendar_today, size: 12, color: Colors.blue),
+                                                Icon(Icons.calendar_today, size: 12, color: Colors.white.withValues(alpha: 0.9)),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   data['date'] ?? 'N/A',
-                                                  style: TextStyle(color: Colors.grey[800], fontSize: 12, fontWeight: FontWeight.w500),
+                                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                                                 ),
                                               ],
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.access_time, size: 12, color: Colors.blue),
+                                                Icon(Icons.access_time, size: 12, color: Colors.white.withValues(alpha: 0.9)),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   data['time'] ?? 'N/A',
-                                                  style: TextStyle(color: Colors.grey[800], fontSize: 12, fontWeight: FontWeight.w500),
+                                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                                                 ),
                                               ],
                                             ),
@@ -274,12 +280,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.local_hospital, size: 12, color: Colors.blue),
+                                            Icon(Icons.local_hospital, size: 12, color: Colors.white.withValues(alpha: 0.9)),
                                             const SizedBox(width: 4),
                                             Expanded(
                                               child: Text(
                                                 data['hospitalName'] ?? 'Hospital/Clinic',
-                                                style: TextStyle(color: Colors.grey[800], fontSize: 12, fontWeight: FontWeight.w500),
+                                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
@@ -290,12 +296,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                     trailing: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: _statusColor(status).withValues(alpha: 0.1),
+                                        color: _statusColor(status),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
                                         status,
-                                        style: TextStyle(color: _statusColor(status), fontWeight: FontWeight.bold, fontSize: 12),
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                                       ),
                                     ),
                                     children: [
@@ -304,7 +310,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Divider(height: 1, color: Colors.grey),
+                                            Divider(height: 1, color: Colors.white.withValues(alpha: 0.3)),
                                             const SizedBox(height: 16),
                                             _buildDetailRow(Icons.calendar_today_outlined, 'Date', data['date'] ?? 'N/A'),
                                             const SizedBox(height: 10),
@@ -320,11 +326,11 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                 Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Text('Charges', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                                    const Text('Charges', style: TextStyle(color: Colors.white70, fontSize: 12)),
                                                     const SizedBox(height: 4),
                                                     Text(
                                                       _formatCurrency(data['consultationFee']),
-                                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                                                     ),
                                                   ],
                                                 ),
@@ -393,16 +399,16 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: Colors.blue.shade600),
+        Icon(icon, size: 18, color: Colors.white),
         const SizedBox(width: 10),
         Text(
           '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54, fontSize: 13),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Colors.black87, fontSize: 13),
+            style: const TextStyle(color: Colors.white, fontSize: 13),
           ),
         ),
       ],

@@ -236,7 +236,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      const Text('Recent Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text('Give your Rating', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 14),
                       const _RecentActivityList(),
                       const SizedBox(height: 20),
