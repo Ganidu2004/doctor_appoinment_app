@@ -38,7 +38,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: FutureBuilder<DocumentSnapshot>(
         future: _doctorFuture,
         builder: (context, doctorSnapshot) {
@@ -54,7 +54,6 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
             builder: (context, reviewsSnapshot) {
               final reviews = reviewsSnapshot.data?.docs ?? [];
               
-              // Calculate average rating
               double averageRating = 0.0;
               if (reviews.isNotEmpty) {
                 final sum = reviews.map((r) {
@@ -86,11 +85,81 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 
                       return CustomScrollView(
                         slivers: [
+                          // Creative SliverAppBar with Floating Glassmorphic Effect
                           SliverAppBar(
-                            expandedHeight: 300,
+                            expandedHeight: 320,
                             pinned: true,
+                            backgroundColor: const Color(0xFF2563EB),
+                            iconTheme: const IconThemeData(color: Colors.white),
                             flexibleSpace: FlexibleSpaceBar(
-                              background: Image.network(data['profileImageUrl'] ?? '', fit: BoxFit.cover),
+                              background: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  data['profileImageUrl'] != null && data['profileImageUrl'].toString().isNotEmpty
+                                      ? Image.network(data['profileImageUrl'], fit: BoxFit.cover)
+                                      : Container(
+                                          color: Colors.blue.shade100,
+                                          child: const Icon(Icons.person, size: 100, color: Colors.blue),
+                                        ),
+                                  // Dark overlay at the bottom for readability
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.transparent, Colors.black54],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
+                                    ),
+                                  ),
+                                  // Doctor Info floating in bottom banner
+                                  Positioned(
+                                    bottom: 16,
+                                    left: 16,
+                                    right: 16,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Dr. ${data['name'] ?? ''}',
+                                          style: const TextStyle(
+                                            fontSize: 24, 
+                                            fontWeight: FontWeight.bold, 
+                                            color: Colors.white,
+                                            shadows: [Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2))],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF2563EB).withValues(alpha: 0.8),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                data['specialization'] ?? 'Specialist',
+                                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              averageRating > 0 ? averageRating.toStringAsFixed(1) : '0.0',
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                            ),
+                                            Text(
+                                              ' (${reviews.length} reviews)',
+                                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
@@ -99,37 +168,91 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Dr. ${data['name'] ?? ''}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                                  Text(data['specialization'] ?? '', style: const TextStyle(color: Colors.blue, fontSize: 16)),
-                                  const SizedBox(height: 20),
+                                  // Stats boxes in modern row
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
-                                      _buildStatBox('${data['experience'] ?? 0}+ Yrs', 'Experience'),
-                                      _buildStatBox(uniquePatients > 0 ? '$uniquePatients+' : '0+', 'Patients'),
-                                      _buildStatBox(averageRating > 0 ? averageRating.toStringAsFixed(1) : '0.0', 'Rating'),
+                                      Expanded(
+                                        child: _buildStatBox(
+                                          value: '${data['experience'] ?? 0}+ Yrs',
+                                          label: 'Experience',
+                                          icon: Icons.work_history_outlined,
+                                          color: Colors.blue.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildStatBox(
+                                          value: uniquePatients > 0 ? '$uniquePatients+' : '0+',
+                                          label: 'Patients',
+                                          icon: Icons.people_outline,
+                                          color: Colors.green.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildStatBox(
+                                          value: averageRating > 0 ? averageRating.toStringAsFixed(1) : '0.0',
+                                          label: 'Rating',
+                                          icon: Icons.star_outline_rounded,
+                                          color: Colors.amber.shade700,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 24),
-                                  const Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                  Text(data['aboutMe'] ?? "", style: TextStyle(color: Colors.grey.shade600)),
-                                  const SizedBox(height: 20),
-                                  ListTile(
-                                    leading: const Icon(Icons.location_on, color: Colors.blue),
-                                    title: Text(hName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text(hAddress),
-                                    tileColor: Colors.grey.shade100,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  
+                                  // About doctor
+                                  const Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    data['aboutMe'] ?? "No description available.",
+                                    style: TextStyle(color: Colors.grey.shade600, height: 1.5, fontSize: 14),
                                   ),
                                   const SizedBox(height: 24),
-                                  const Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                                  // Location info card
+                                  const Text("Location", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.02),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                      border: Border.all(color: Colors.grey.shade100),
+                                    ),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      leading: CircleAvatar(
+                                        backgroundColor: Colors.blue.shade50,
+                                        child: const Icon(Icons.location_on, color: Colors.blue),
+                                      ),
+                                      title: Text(hName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                      subtitle: Padding(
+                                        padding: const EdgeInsets.only(top: 4.0),
+                                        child: Text(hAddress, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Next availability
+                                  const Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  const SizedBox(height: 12),
                                   ScheduleSection(
                                     scheduleList: scheduleList,
                                     hospitalsList: hospitalsList,
                                     onDateSelected: updateLocation,
                                   ),
                                   const SizedBox(height: 24),
-                                  const Text("Patient Reviews", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                                  // Patient reviews
+                                  const Text("Patient Reviews", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                                   const SizedBox(height: 10),
                                   _buildReviewsSection(reviews),
                                   const SizedBox(height: 30),
@@ -147,33 +270,46 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           );
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          onPressed: () {
-            final String patientUid = FirebaseAuth.instance.currentUser?.uid ?? "";
-            if (patientUid.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SelectSlotPage(
-                    doctorId: widget.doctorId,
-                    patientUid: patientUid,
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () {
+              final String patientUid = FirebaseAuth.instance.currentUser?.uid ?? "";
+              if (patientUid.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SelectSlotPage(
+                      doctorId: widget.doctorId,
+                      patientUid: patientUid,
+                    ),
                   ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Please login to book an appointment.")),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Please login to book an appointment.")),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text("Book Appointment", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
-          child: const Text("Book Appointment", style: TextStyle(color: Colors.white)),
         ),
       ),
     );
@@ -190,7 +326,6 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       );
     }
 
-    // Sort in memory to avoid composite index requirement
     final sortedReviews = reviews.toList()
       ..sort((a, b) {
         final aData = a.data() as Map<String, dynamic>;
@@ -225,9 +360,20 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
             final String patientName = patientData['name'] ?? 'Patient';
             final String? patientImageUrl = patientData['profileImageUrl'];
 
-            return Card(
+            return Container(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.015),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+                border: Border.all(color: Colors.grey.shade100),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -252,14 +398,14 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                             children: [
                               Text(
                                 patientName,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
                               ),
                               Row(
                                 children: List.generate(5, (starIdx) {
                                   return Icon(
                                     starIdx < rating ? Icons.star : Icons.star_border,
                                     color: Colors.amber,
-                                    size: 14,
+                                    size: 13,
                                   );
                                 }),
                               ),
@@ -273,10 +419,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Text(
                       comment.isNotEmpty ? comment : 'No comment provided.',
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      style: const TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -288,11 +434,35 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  Widget _buildStatBox(String value, String label) {
+  Widget _buildStatBox({
+    required String value, 
+    required String label, 
+    required IconData icon, 
+    required Color color
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(12)),
-      child: Column(children: [Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey))]),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500)),
+        ],
+      ),
     );
   }
 }
@@ -368,14 +538,33 @@ class _ScheduleBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
+      width: 65,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: isSelected ? Colors.blue : Colors.white, border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300, width: 2), borderRadius: BorderRadius.circular(12)),
-      child: Column(children: [
-        Text(day, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white : Colors.grey)),
-        Text(date, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black)),
-        Text(slots, style: TextStyle(fontSize: 8, color: isSelected ? Colors.white : Colors.black, fontWeight: FontWeight.bold))
-      ]),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0xFF2563EB) : Colors.white, 
+        border: Border.all(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.grey.shade200, 
+          width: 1.5,
+        ), 
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: isSelected ? [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ] : [],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(day, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white : Colors.grey, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(date, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black87)),
+          const SizedBox(height: 4),
+          Text(slots, style: TextStyle(fontSize: 8, color: isSelected ? Colors.white70 : Colors.grey.shade600, fontWeight: FontWeight.w600))
+        ],
+      ),
     );
   }
 }
