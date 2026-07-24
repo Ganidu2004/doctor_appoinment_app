@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:appoinment_app/services/notification_services.dart';
+import 'package:appoinment_app/services/schedule_cancellation_service.dart';
+import 'package:intl/intl.dart';
 import '../doctor_find_page/find_doctor.dart';
 
 class PatientAppointmentsPage extends StatefulWidget {
@@ -50,16 +52,35 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
     }
   }
 
+  String _formatDoctorName(String? name) {
+    if (name == null || name.trim().isEmpty) return 'Dr. Doctor';
+    var cleanName = name.trim();
+    if (cleanName.toLowerCase().startsWith('dr.') || cleanName.toLowerCase().startsWith('dr ')) {
+      cleanName = cleanName.substring(3).trim();
+    }
+    return 'Dr. $cleanName';
+  }
+
+  String _formatStatusBadge(String status) {
+    final lower = status.toLowerCase();
+    if (lower.contains('refund')) return 'Refunded';
+    if (lower.contains('reschedule')) return 'Rescheduled';
+    return status;
+  }
+
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'booked':
-        return Colors.blue;
+      case 'confirmed':
+        return Colors.amber.shade800;
       case 'cancelled':
-        return Colors.red.shade700;
+      case 'cancelled (refunded)':
+      case 'refunded':
+        return Colors.amber.shade800;
       case 'completed':
         return Colors.green;
       default:
-        return Colors.orange;
+        return Colors.orange.shade800;
     }
   }
 
@@ -70,6 +91,359 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (match) => ',',
     )}';
+  }
+
+  bool _isDateExpired(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return false;
+    final todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    try {
+      final parsedDate = DateFormat("MMMM d, yyyy").parse(dateStr);
+      return parsedDate.isBefore(todayStart);
+    } catch (_) {
+      try {
+        final parsedDate = DateTime.parse(dateStr);
+        return parsedDate.isBefore(todayStart);
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  void _showRescheduleDatePicker(BuildContext context, Map<String, dynamic> invData) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+    );
+
+    if (pickedDate != null && context.mounted) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: const TimeOfDay(hour: 9, minute: 0),
+      );
+
+      if (pickedTime != null && context.mounted) {
+        final formattedDate = DateFormat("MMMM d, yyyy").format(pickedDate);
+        final formattedTime = pickedTime.format(context);
+
+        final success = await ScheduleCancellationService().resolveInvoiceByReschedule(
+          invoiceId: invData['id'] ?? '',
+          appointmentId: invData['appointmentId'] ?? '',
+          newDate: formattedDate,
+          newTime: formattedTime,
+        );
+
+        if (success && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Appointment successfully rescheduled to $formattedDate at $formattedTime!'),
+              backgroundColor: const Color(0xFF0EA5E9),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _showCancellationInvoiceModal(BuildContext context, String appointmentId, Map<String, dynamic> apptData) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: FutureBuilder<QuerySnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('invoices')
+                .where('appointmentId', isEqualTo: appointmentId)
+                .limit(1)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 250,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              Map<String, dynamic>? invData;
+              if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                invData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                invData['id'] = snapshot.data!.docs.first.id;
+              }
+
+              final invNum = invData?['invoiceNumber'] ?? 'INV-CANCELLED';
+              final actionType = invData?['actionType'] ?? 'Pending Patient Choice';
+              final isPendingChoice = actionType == 'Pending Patient Choice';
+              final remarks = invData?['remarks'] ?? 'Doctor schedule set to Off/Cancelled.';
+              final fee = invData?['consultationFee'] ?? apptData['consultationFee'] ?? 0;
+              final charges = invData?['hospitalCharges'] ?? apptData['hospitalCharges'] ?? 0;
+              final total = invData?['totalAmount'] ?? ((fee is num ? fee.toDouble() : 0) + (charges is num ? charges.toDouble() : 0));
+              final method = invData?['paymentMethod'] ?? apptData['paymentMethod'] ?? 'Online';
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.receipt_long_rounded, color: Colors.redAccent, size: 28),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Cancellation Invoice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                              Text('No: $invNum', style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isPendingChoice
+                                ? Colors.orange.withValues(alpha: 0.15)
+                                : (actionType == 'Refund' ? Colors.green.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            isPendingChoice
+                                ? 'Action Required'
+                                : (actionType == 'Refund' ? 'Refund Issued' : 'Rescheduled'),
+                            style: TextStyle(
+                              color: isPendingChoice
+                                  ? Colors.orange.shade900
+                                  : (actionType == 'Refund' ? Colors.green.shade800 : Colors.blue.shade800),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 28),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Doctor:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Dr. ${apptData['doctorName'] ?? 'Doctor'}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  textAlign: TextAlign.end,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Original Date:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${apptData['date']} (${apptData['time']})',
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  textAlign: TextAlign.end,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Hospital:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  apptData['hospitalName'] ?? 'N/A',
+                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                  textAlign: TextAlign.end,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Payment Method:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '$method',
+                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                  textAlign: TextAlign.end,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Financial Breakdown', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Consultation Fee', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                        Text(_formatCurrency(fee), style: const TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Hospital Service Charges', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                        Text(_formatCurrency(charges), style: const TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total Invoice Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87)),
+                        Text(_formatCurrency(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0EA5E9))),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Cancellation Reason / Note:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.brown)),
+                          const SizedBox(height: 4),
+                          Text(remarks, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ⚡ Interactive Resolution Buttons (if Pending Patient Choice)
+                    if (isPendingChoice && invData != null) ...[
+                      const Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                final success = await ScheduleCancellationService().resolveInvoiceByRefund(
+                                  invoiceId: invData!['id'] ?? '',
+                                  appointmentId: appointmentId,
+                                );
+                                if (success && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Refund claimed successfully! Amount will be returned.'),
+                                      backgroundColor: Colors.green,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.account_balance_wallet_rounded, size: 16),
+                              label: const Text('Claim Refund', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0EA5E9),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _showRescheduleDatePicker(context, invData!);
+                              },
+                              icon: const Icon(Icons.edit_calendar_rounded, size: 16),
+                              label: const Text('Reschedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close Invoice', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -238,9 +612,11 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                       child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
                                     ),
                                     title: Text(
-                                      'Dr. ${data['doctorName'] ?? 'Doctor'}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                                    ),
+                                       _formatDoctorName(data['doctorName']?.toString()),
+                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                                       maxLines: 2,
+                                       overflow: TextOverflow.ellipsis,
+                                     ),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -294,16 +670,16 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                       ],
                                     ),
                                     trailing: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: _statusColor(status),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        status,
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                      ),
-                                    ),
+                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                       decoration: BoxDecoration(
+                                         color: _statusColor(status),
+                                         borderRadius: BorderRadius.circular(12),
+                                       ),
+                                       child: Text(
+                                         _formatStatusBadge(status),
+                                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                       ),
+                                     ),
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -334,7 +710,19 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                     ),
                                                   ],
                                                 ),
-                                                if (status.toLowerCase() != 'cancelled' && status.toLowerCase() != 'completed')
+                                                if ((status.toLowerCase().contains('cancelled') || status.toLowerCase().contains('rescheduled')) && !_isDateExpired(data['date']))
+                                                   ElevatedButton.icon(
+                                                     onPressed: () => _showCancellationInvoiceModal(context, doc.id, data),
+                                                     style: ElevatedButton.styleFrom(
+                                                       backgroundColor: Colors.amber.shade100,
+                                                       foregroundColor: Colors.brown.shade900,
+                                                       elevation: 0,
+                                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                     ),
+                                                     icon: const Icon(Icons.receipt_long_rounded, size: 16),
+                                                     label: const Text('View Cancellation Invoice', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                   ),
+                                                 if (status.toLowerCase() != 'cancelled' && !status.toLowerCase().contains('cancelled') && status.toLowerCase() != 'completed')
                                                   ElevatedButton.icon(
                                                     onPressed: () async {
                                                       final confirm = await showDialog<bool>(

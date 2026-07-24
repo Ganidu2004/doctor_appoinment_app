@@ -25,6 +25,10 @@ class NotificationService {
     }
 
     try {
+      // 1. Initialize local notifications first so local alerts work reliably
+      _initLocalNotifications();
+
+      // 2. Request FCM permissions & token safely
       NotificationSettings settings = await _messaging.requestPermission(
         alert: true,
         badge: true,
@@ -35,13 +39,15 @@ class NotificationService {
         debugPrint('User granted permission');
       }
 
-      String? token = await _messaging.getToken().timeout(const Duration(seconds: 4));
-      debugPrint("FCM Token: $token");
+      try {
+        String? token = await _messaging.getToken().timeout(const Duration(seconds: 4));
+        debugPrint("FCM Token: $token");
+      } catch (tokenErr) {
+        debugPrint("FCM Token retrieval skipped/failed (Play Services/SHA-1 setup): $tokenErr");
+      }
 
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      _initLocalNotifications();
-      
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         RemoteNotification? notification = message.notification;
         AndroidNotification? android = message.notification?.android;

@@ -181,8 +181,9 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     final normalized = status.toString().toLowerCase();
     if (normalized.contains('cancel')) return 'cancelled';
     if (normalized.contains('complete')) return 'completed';
-    if (normalized.contains('pending') || normalized.contains('book'))
+    if (normalized.contains('pending') || normalized.contains('book')) {
       return 'pending';
+    }
     return status.toString();
   }
 

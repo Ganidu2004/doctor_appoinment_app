@@ -1,4 +1,4 @@
-﻿import 'package:appoinment_app/app_theme.dart';
+import 'package:appoinment_app/app_theme.dart';
 import 'package:appoinment_app/screens/splash_screen.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
@@ -9,16 +9,28 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("Firebase init error: $e");
+  }
 
-  await NotificationService().initNotifications();
+  // Initialize notifications asynchronously so it doesn't block app launch
+  NotificationService().initNotifications().catchError((e) {
+    debugPrint("Notification init error: $e");
+  });
 
-  await Supabase.initialize(
-    url: AppConfig.supabaseUrl,
-    publishableKey: AppConfig.supabaseKey,
-  );
+  try {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      publishableKey: AppConfig.supabaseKey,
+    );
+  } catch (e) {
+    debugPrint("Supabase init error: $e");
+  }
 
   runApp(const MyApp());
 }
