@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -43,7 +44,7 @@ class NotificationService {
         });
       }
     } catch (e) {
-      print("Error saving notification to Firestore: $e");
+      debugPrint("Error saving notification to Firestore: $e");
     }
   }
 

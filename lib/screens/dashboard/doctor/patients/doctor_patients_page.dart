@@ -31,9 +31,13 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     super.dispose();
   }
 
-  Future<void> _updateAppointmentStatus(String appointmentId, String status) async {
+  Future<void> _updateAppointmentStatus(
+      String appointmentId, String status) async {
     try {
-      await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).update({
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(appointmentId)
+          .update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -68,9 +72,15 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     }
   }
 
-  Future<void> _showPatientDetails(String patientUid, Map<String, dynamic> summaryData) async {
-    final patientDoc = await FirebaseFirestore.instance.collection('patients').doc(patientUid).get();
-    final patientData = patientDoc.exists && patientDoc.data() != null ? patientDoc.data() as Map<String, dynamic> : {};
+  Future<void> _showPatientDetails(
+      String patientUid, Map<String, dynamic> summaryData) async {
+    final patientDoc = await FirebaseFirestore.instance
+        .collection('patients')
+        .doc(patientUid)
+        .get();
+    final patientData = patientDoc.exists && patientDoc.data() != null
+        ? patientDoc.data() as Map<String, dynamic>
+        : {};
 
     final appointmentHistory = await FirebaseFirestore.instance
         .collection('appointments')
@@ -98,7 +108,9 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(patientData['name'] ?? summaryData['name'] ?? 'Patient', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(patientData['name'] ?? summaryData['name'] ?? 'Patient',
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Text('Phone: ${patientData['phone'] ?? 'Not available'}'),
                   const SizedBox(height: 4),
@@ -108,9 +120,12 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                   const SizedBox(height: 4),
                   Text('Gender: ${patientData['gender'] ?? 'N/A'}'),
                   const SizedBox(height: 12),
-                  Text('Medical Records', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Medical Records',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 6),
-                  if (patientData['medicalRecords'] is List && (patientData['medicalRecords'] as List).isNotEmpty)
+                  if (patientData['medicalRecords'] is List &&
+                      (patientData['medicalRecords'] as List).isNotEmpty)
                     ...((patientData['medicalRecords'] as List).map((record) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -118,12 +133,16 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                       );
                     }).toList())
                   else
-                    const Text('No medical records available.', style: TextStyle(color: Colors.grey)),
+                    const Text('No medical records available.',
+                        style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 16),
-                  const Text('Appointment History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Appointment History',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 8),
                   if (appointmentHistory.docs.isEmpty)
-                    const Text('No appointment history found for this patient.', style: TextStyle(color: Colors.grey))
+                    const Text('No appointment history found for this patient.',
+                        style: TextStyle(color: Colors.grey))
                   else
                     ...appointmentHistory.docs.map((doc) {
                       final data = doc.data();
@@ -137,14 +156,18 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${data['date'] ?? 'Date'} • ${data['time'] ?? 'Time'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                                '${data['date'] ?? 'Date'} • ${data['time'] ?? 'Time'}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Text('Status: ${data['status'] ?? 'N/A'}'),
-                            Text('Type: ${data['specialization'] ?? data['type'] ?? 'Consultation'}'),
+                            Text(
+                                'Type: ${data['specialization'] ?? data['type'] ?? 'Consultation'}'),
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                 ],
               ),
             );
@@ -158,7 +181,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     final normalized = status.toString().toLowerCase();
     if (normalized.contains('cancel')) return 'cancelled';
     if (normalized.contains('complete')) return 'completed';
-    if (normalized.contains('pending') || normalized.contains('book')) return 'pending';
+    if (normalized.contains('pending') || normalized.contains('book'))
+      return 'pending';
     return status.toString();
   }
 
@@ -168,14 +192,25 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     final patientName = data['patientName']?.toString().toLowerCase() ?? '';
     final status = data['status']?.toString().toLowerCase() ?? '';
     final type = data['type']?.toString().toLowerCase() ?? '';
-    final specialization = data['specialization']?.toString().toLowerCase() ?? '';
-    final notes = (data['notes'] ?? data['reason'] ?? data['description'] ?? '').toString().toLowerCase();
-    return patientName.contains(query) || status.contains(query) || type.contains(query) || specialization.contains(query) || notes.contains(query);
+    final specialization =
+        data['specialization']?.toString().toLowerCase() ?? '';
+    final notes = (data['notes'] ?? data['reason'] ?? data['description'] ?? '')
+        .toString()
+        .toLowerCase();
+    return patientName.contains(query) ||
+        status.contains(query) ||
+        type.contains(query) ||
+        specialization.contains(query) ||
+        notes.contains(query);
   }
 
   Widget _buildStatusBadge(String status) {
     final normalized = _normalizeStatus(status);
-    final color = normalized == 'completed' ? Colors.green : normalized == 'cancelled' ? Colors.red : Colors.orange;
+    final color = normalized == 'completed'
+        ? Colors.green
+        : normalized == 'cancelled'
+            ? Colors.red
+            : Colors.orange;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -184,7 +219,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       ),
       child: Text(
         normalized.toUpperCase(),
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -205,7 +241,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
             decoration: InputDecoration(
               hintText: 'Search appointments by patient, status or notes',
               prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
           const SizedBox(height: 12),
@@ -241,27 +278,38 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                         'dateTime': _parseAppointmentDateTime(data),
                       };
                     })
-                    .where((appointment) => _matchesSearch(appointment['data'] as Map<String, dynamic>))
+                    .where((appointment) => _matchesSearch(
+                        appointment['data'] as Map<String, dynamic>))
                     .toList();
 
-                final pendingAppointments = allAppointments.where((appointment) {
-                  final status = _normalizeStatus((appointment['data'] as Map<String, dynamic>)['status'] ?? 'pending');
+                final pendingAppointments =
+                    allAppointments.where((appointment) {
+                  final status = _normalizeStatus(
+                      (appointment['data'] as Map<String, dynamic>)['status'] ??
+                          'pending');
                   return status == 'pending';
                 }).toList();
 
-                final historyAppointments = allAppointments.where((appointment) {
-                  final status = _normalizeStatus((appointment['data'] as Map<String, dynamic>)['status'] ?? 'pending');
+                final historyAppointments =
+                    allAppointments.where((appointment) {
+                  final status = _normalizeStatus(
+                      (appointment['data'] as Map<String, dynamic>)['status'] ??
+                          'pending');
                   return status == 'completed' || status == 'cancelled';
                 }).toList();
 
-                pendingAppointments.sort((a, b) => (b['dateTime'] as DateTime).compareTo(a['dateTime'] as DateTime));
-                historyAppointments.sort((a, b) => (b['dateTime'] as DateTime).compareTo(a['dateTime'] as DateTime));
+                pendingAppointments.sort((a, b) => (b['dateTime'] as DateTime)
+                    .compareTo(a['dateTime'] as DateTime));
+                historyAppointments.sort((a, b) => (b['dateTime'] as DateTime)
+                    .compareTo(a['dateTime'] as DateTime));
 
                 return ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     const SizedBox(height: 8),
-                    const Text('Pending Appointments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('Pending Appointments',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     if (pendingAppointments.isEmpty)
                       Container(
@@ -271,19 +319,25 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text('No pending appointments at the moment.'),
+                        child: const Text(
+                            'No pending appointments at the moment.'),
                       )
                     else
                       ...pendingAppointments.map((appointment) {
-                        final data = appointment['data'] as Map<String, dynamic>;
+                        final data =
+                            appointment['data'] as Map<String, dynamic>;
                         final id = appointment['id'] as String;
-                        final patientName = data['patientName']?.toString() ?? 'Patient';
+                        final patientName =
+                            data['patientName']?.toString() ?? 'Patient';
                         final date = data['date']?.toString() ?? 'TBD';
                         final time = data['time']?.toString() ?? 'TBD';
                         final patientUid = data['patientUid']?.toString() ?? '';
-                        final notes = data['notes'] ?? data['reason'] ?? data['description'];
+                        final notes = data['notes'] ??
+                            data['reason'] ??
+                            data['description'];
                         return Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           margin: const EdgeInsets.only(bottom: 14),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
@@ -296,28 +350,42 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(patientName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      Text(patientName,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
                                       _buildStatusBadge('pending'),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
-                                  Text('$date • $time', style: TextStyle(color: Colors.grey.shade600)),
-                                  if (notes != null && notes.toString().trim().isNotEmpty) ...[
+                                  Text('$date • $time',
+                                      style: TextStyle(
+                                          color: Colors.grey.shade600)),
+                                  if (notes != null &&
+                                      notes.toString().trim().isNotEmpty) ...[
                                     const SizedBox(height: 10),
-                                    Text(notes.toString(), style: const TextStyle(color: Colors.black87)),
+                                    Text(notes.toString(),
+                                        style: const TextStyle(
+                                            color: Colors.black87)),
                                   ],
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
                                       Expanded(
                                         child: OutlinedButton(
-                                          onPressed: () => _updateAppointmentStatus(id, 'cancelled'),
+                                          onPressed: () =>
+                                              _updateAppointmentStatus(
+                                                  id, 'cancelled'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.red,
-                                            side: const BorderSide(color: Colors.red),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            side: const BorderSide(
+                                                color: Colors.red),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
                                           ),
                                           child: const Text('Cancel'),
                                         ),
@@ -325,10 +393,14 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: ElevatedButton(
-                                          onPressed: () => _updateAppointmentStatus(id, 'completed'),
+                                          onPressed: () =>
+                                              _updateAppointmentStatus(
+                                                  id, 'completed'),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.green,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
                                           ),
                                           child: const Text('Complete'),
                                         ),
@@ -340,9 +412,11 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     const SizedBox(height: 16),
-                    const Text('History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('History',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     if (historyAppointments.isEmpty)
                       Container(
@@ -352,19 +426,26 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text('No completed or cancelled appointments yet.'),
+                        child: const Text(
+                            'No completed or cancelled appointments yet.'),
                       )
                     else
                       ...historyAppointments.map((appointment) {
-                        final data = appointment['data'] as Map<String, dynamic>;
-                        final status = _normalizeStatus(data['status']?.toString() ?? 'completed');
-                        final patientName = data['patientName']?.toString() ?? 'Patient';
+                        final data =
+                            appointment['data'] as Map<String, dynamic>;
+                        final status = _normalizeStatus(
+                            data['status']?.toString() ?? 'completed');
+                        final patientName =
+                            data['patientName']?.toString() ?? 'Patient';
                         final date = data['date']?.toString() ?? 'TBD';
                         final time = data['time']?.toString() ?? 'TBD';
                         final patientUid = data['patientUid']?.toString() ?? '';
-                        final notes = data['notes'] ?? data['reason'] ?? data['description'];
+                        final notes = data['notes'] ??
+                            data['reason'] ??
+                            data['description'];
                         return Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           margin: const EdgeInsets.only(bottom: 14),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
@@ -377,24 +458,33 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(patientName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      Text(patientName,
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
                                       _buildStatusBadge(status),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
-                                  Text('$date • $time', style: TextStyle(color: Colors.grey.shade600)),
-                                  if (notes != null && notes.toString().trim().isNotEmpty) ...[
+                                  Text('$date • $time',
+                                      style: TextStyle(
+                                          color: Colors.grey.shade600)),
+                                  if (notes != null &&
+                                      notes.toString().trim().isNotEmpty) ...[
                                     const SizedBox(height: 10),
-                                    Text(notes.toString(), style: const TextStyle(color: Colors.black87)),
+                                    Text(notes.toString(),
+                                        style: const TextStyle(
+                                            color: Colors.black87)),
                                   ],
                                 ],
                               ),
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     const SizedBox(height: 16),
                   ],
                 );
@@ -414,7 +504,8 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         final date = DateTime.parse(dateString);
         if (timeString != null && timeString.isNotEmpty) {
           final parsedTime = DateFormat('hh:mm a').parseLoose(timeString);
-          return DateTime(date.year, date.month, date.day, parsedTime.hour, parsedTime.minute);
+          return DateTime(date.year, date.month, date.day, parsedTime.hour,
+              parsedTime.minute);
         }
         return date;
       }

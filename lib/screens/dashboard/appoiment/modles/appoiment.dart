@@ -43,7 +43,7 @@ class AppointmentModel {
   }
 
   factory AppointmentModel.fromMap(Map<String, dynamic> map, {String id = ''}) {
-    double _parseDouble(dynamic value) {
+    double parseDouble(dynamic value) {
       if (value is num) return value.toDouble();
       if (value is String) return double.tryParse(value) ?? 0;
       return 0;
@@ -56,8 +56,8 @@ class AppointmentModel {
       date: map['date'] ?? '',
       time: map['time'] ?? '',
       status: map['status'] ?? 'Booked',
-      consultationFee: _parseDouble(map['consultationFee']),
-      hospitalCharges: _parseDouble(map['hospitalCharges']),
+      consultationFee: parseDouble(map['consultationFee']),
+      hospitalCharges: parseDouble(map['hospitalCharges']),
       paymentId: map['paymentId'] ?? '',
       paymentMethod: map['paymentMethod'] ?? '',
       createdAt: map['createdAt'] as Timestamp? ?? Timestamp.now(),

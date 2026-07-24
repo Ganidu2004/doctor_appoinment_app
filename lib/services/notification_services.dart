@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Background Message handling: ${message.messageId}");
+  debugPrint("Background Message handling: ${message.messageId}");
 }
 
 class NotificationService {
@@ -20,7 +20,7 @@ class NotificationService {
     if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || 
                     defaultTargetPlatform == TargetPlatform.linux || 
                     defaultTargetPlatform == TargetPlatform.macOS)) {
-      print("FCM is not supported on desktop platforms. Skipping FCM initialization.");
+      debugPrint("FCM is not supported on desktop platforms. Skipping FCM initialization.");
       return;
     }
 
@@ -32,11 +32,11 @@ class NotificationService {
       );
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        print('User granted permission');
+        debugPrint('User granted permission');
       }
 
       String? token = await _messaging.getToken().timeout(const Duration(seconds: 4));
-      print("FCM Token: $token");
+      debugPrint("FCM Token: $token");
 
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -66,7 +66,7 @@ class NotificationService {
         }
       });
     } catch (e) {
-      print("FCM/Notification Init Error (continuing launch): $e");
+      debugPrint("FCM/Notification Init Error (continuing launch): $e");
     }
   }
 
@@ -105,7 +105,7 @@ class NotificationService {
         });
       }
     } catch (e) {
-      print("Error saving notification to Firestore: $e");
+      debugPrint("Error saving notification to Firestore: $e");
     }
   }
 

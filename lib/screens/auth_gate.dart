@@ -51,7 +51,7 @@ class _AuthGateState extends State<AuthGate> {
             try {
               NotificationService().showLoginNotification();
             } catch (e) {
-              print('Login notification error: $e');
+              debugPrint('Login notification error: $e');
             }
           });
 

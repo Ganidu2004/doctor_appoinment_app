@@ -1,4 +1,4 @@
-import 'package:appoinment_app/app_theme.dart';
+﻿import 'package:appoinment_app/app_theme.dart';
 import 'package:appoinment_app/screens/splash_screen.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +12,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   await NotificationService().initNotifications();
 
   await Supabase.initialize(
-    url: AppConfig.supabaseUrl, 
+    url: AppConfig.supabaseUrl,
     publishableKey: AppConfig.supabaseKey,
   );
 

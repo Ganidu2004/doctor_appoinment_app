@@ -169,6 +169,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         debugPrint('Notification error: $err');
       }
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Appointment booked successfully!'),

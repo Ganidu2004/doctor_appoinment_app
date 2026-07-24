@@ -70,9 +70,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       } catch (e) {
         // ignore notification errors to not block navigation
-        print('Notification error: $e');
+        debugPrint('Notification error: $e');
       }
       
+      if (!mounted) return;
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthGate()),
         (route) => false,

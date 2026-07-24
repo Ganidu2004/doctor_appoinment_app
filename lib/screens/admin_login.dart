@@ -119,7 +119,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -145,7 +145,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      color: darkTextColor.withOpacity(0.65),
+                      color: darkTextColor.withValues(alpha: 0.65),
                       height: 1.4,
                     ),
                   ),
@@ -177,7 +177,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: primaryColor.withOpacity(0.7),
+                          color: primaryColor.withValues(alpha: 0.7),
                         ),
                         onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                       ),
