@@ -230,50 +230,54 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 _buildSectionHeader('Account Management'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildListTile(
-                          icon: Icons.person_outline,
-                          title: 'Personal Information',
-                          subtitle: 'Manage your name, email and phone',
-                          isFirst: true,
-                          onTap: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => DoctorProfileEditPage(
-                                  doctorData: _allDoctorData,
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildListTile(
+                            icon: Icons.person_outline,
+                            title: 'Personal Information',
+                            subtitle: 'Manage your name, email and phone',
+                            isFirst: true,
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => DoctorProfileEditPage(
+                                    doctorData: _allDoctorData,
+                                  ),
                                 ),
-                              ),
-                            );
-                            _fetchDoctorData();
-                          },
-                        ),
-                        _buildListTile(
-                          icon: Icons.shield_outlined,
-                          title: 'Medical Credentials',
-                          subtitle: 'Verification status and certifications',
-                          onTap: () {},
-                        ),
-                        _buildListTile(
-                          icon: Icons.credit_card_outlined,
-                          title: 'Payment & Billing',
-                          subtitle: 'Bank accounts and transaction history',
-                          isLast: true,
-                          onTap: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const DoctorBillingPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                              );
+                              _fetchDoctorData();
+                            },
+                          ),
+                          _buildListTile(
+                            icon: Icons.shield_outlined,
+                            title: 'Medical Credentials',
+                            subtitle: 'Verification status and certifications',
+                            onTap: () {},
+                          ),
+                          _buildListTile(
+                            icon: Icons.credit_card_outlined,
+                            title: 'Payment & Billing',
+                            subtitle: 'Bank accounts and transaction history',
+                            isLast: true,
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const DoctorBillingPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -282,33 +286,37 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 _buildSectionHeader('Preferences'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSwitchTile(
-                          icon: Icons.notifications_none_outlined,
-                          title: 'Push Notifications',
-                          subtitle: 'Customize alerts and reminders',
-                          value: _pushNotifications,
-                          onChanged: (val) => setState(() => _pushNotifications = val),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 56.0, right: 16.0),
-                          child: Divider(color: Colors.grey.shade100, height: 1),
-                        ),
-                        _buildListTile(
-                          icon: Icons.language_outlined,
-                          title: 'Language',
-                          subtitle: 'English (United States)',
-                          isLast: true,
-                          onTap: () {},
-                        ),
-                      ],
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSwitchTile(
+                            icon: Icons.notifications_none_outlined,
+                            title: 'Push Notifications',
+                            subtitle: 'Customize alerts and reminders',
+                            value: _pushNotifications,
+                            onChanged: (val) => setState(() => _pushNotifications = val),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 56.0, right: 16.0),
+                            child: Divider(color: Colors.grey.shade100, height: 1),
+                          ),
+                          _buildListTile(
+                            icon: Icons.language_outlined,
+                            title: 'Language',
+                            subtitle: 'English (United States)',
+                            isLast: true,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -317,33 +325,37 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 _buildSectionHeader('Support & Legal'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildListTile(
-                          icon: Icons.help_outline_rounded,
-                          title: 'Help Center',
-                          subtitle: 'FAQs and live support',
-                          isFirst: true,
-                          onTap: () {},
-                        ),
-                        _buildListTile(
-                          icon: Icons.lock_outline_rounded,
-                          title: 'Privacy Policy',
-                          onTap: () {},
-                        ),
-                        _buildListTile(
-                          icon: Icons.description_outlined,
-                          title: 'Terms of Service',
-                          isLast: true,
-                          onTap: () {},
-                        ),
-                      ],
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildListTile(
+                            icon: Icons.help_outline_rounded,
+                            title: 'Help Center',
+                            subtitle: 'FAQs and live support',
+                            isFirst: true,
+                            onTap: () {},
+                          ),
+                          _buildListTile(
+                            icon: Icons.lock_outline_rounded,
+                            title: 'Privacy Policy',
+                            onTap: () {},
+                          ),
+                          _buildListTile(
+                            icon: Icons.description_outlined,
+                            title: 'Terms of Service',
+                            isLast: true,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -1,5 +1,5 @@
 import 'package:appoinment_app/app_theme.dart';
-import 'package:appoinment_app/screens/auth_gate.dart';
+import 'package:appoinment_app/screens/splash_screen.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       title: 'Appointment App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const AuthGate(),
+      home: const SplashScreen(),
     );
   }
 }

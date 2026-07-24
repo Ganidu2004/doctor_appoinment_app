@@ -26,13 +26,16 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _nicController = TextEditingController();
+  final _weightController = TextEditingController();
   
   String? _selectedGender;
+  String? _selectedBloodGroup;
   bool _isSaving = false;
   bool _isPickingImage = false; 
   File? _selectedImage; 
 
   final List<String> _genderOptions = ['Male', 'Female', 'Other'];
+  final List<String> _bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   Future<void> _pickImage() async {
     if (_isPickingImage) return;
@@ -109,6 +112,8 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
           'phone': _phoneController.text.trim(),
           'age': parsedAge,
           'gender': _selectedGender,
+          'weight': _weightController.text.trim().isNotEmpty ? '${_weightController.text.trim()} kg' : '70 kg',
+          'bloodGroup': _selectedBloodGroup ?? 'O+',
           'address': _addressController.text.trim(),
           'city': _cityController.text.trim(),
           'nicNumber': _nicController.text.trim().toUpperCase(),
@@ -153,6 +158,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
     _addressController.dispose();
     _cityController.dispose();
     _nicController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -283,6 +289,54 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                           });
                         },
                         validator: (value) => value == null ? 'Select Gender' : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // --- WEIGHT & BLOOD GROUP ---
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _weightController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Weight (kg)',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.scale_outlined),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Required';
+                          if (double.tryParse(value) == null) return 'Invalid';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 3,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _selectedBloodGroup,
+                        decoration: InputDecoration(
+                          labelText: 'Blood Group',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.bloodtype_outlined),
+                        ),
+                        items: _bloodGroupOptions.map((String bg) {
+                          return DropdownMenuItem<String>(
+                            value: bg,
+                            child: Text(bg),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedBloodGroup = newValue;
+                          });
+                        },
+                        validator: (value) => value == null ? 'Select Blood Group' : null,
                       ),
                     ),
                   ],

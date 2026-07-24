@@ -350,71 +350,75 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 _buildSectionHeader('Account settings'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildListTile(
-                          icon: Icons.person_outline_rounded,
-                          title: 'Personal Information',
-                          subtitle: 'Manage your name, age, city and contact details',
-                          isFirst: true,
-                          onTap: () async {
-                            User? currentUser = FirebaseAuth.instance.currentUser;
-                            if (currentUser != null) {
-                              final isUpdated = await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => PatientProfileEditPage(
-                                    userId: currentUser.uid,
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildListTile(
+                            icon: Icons.person_outline_rounded,
+                            title: 'Personal Information',
+                            subtitle: 'Manage your name, age, city and contact details',
+                            isFirst: true,
+                            onTap: () async {
+                              User? currentUser = FirebaseAuth.instance.currentUser;
+                              if (currentUser != null) {
+                                final isUpdated = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => PatientProfileEditPage(
+                                      userId: currentUser.uid,
+                                    ),
                                   ),
+                                );
+                                if (isUpdated == true) {
+                                  _fetchPatientData();
+                                }
+                              }
+                            },
+                          ),
+                          _buildListTile(
+                            icon: Icons.assignment_outlined,
+                            title: 'Medical Records',
+                            subtitle: 'View your prescriptions and test reports',
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Medical records are coming soon.')),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            icon: Icons.calendar_month_outlined,
+                            title: 'Appointments History',
+                            subtitle: 'Check your past and upcoming channelings',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PatientAppointmentsPage(showAppBar: true),
                                 ),
                               );
-                              if (isUpdated == true) {
-                                _fetchPatientData();
-                              }
-                            }
-                          },
-                        ),
-                        _buildListTile(
-                          icon: Icons.assignment_outlined,
-                          title: 'Medical Records',
-                          subtitle: 'View your prescriptions and test reports',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Medical records are coming soon.')),
-                            );
-                          },
-                        ),
-                        _buildListTile(
-                          icon: Icons.calendar_month_outlined,
-                          title: 'Appointments History',
-                          subtitle: 'Check your past and upcoming channelings',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PatientAppointmentsPage(showAppBar: true),
-                              ),
-                            );
-                          },
-                        ),
-                        _buildListTile(
-                          icon: Icons.payment_outlined,
-                          title: 'Payment History',
-                          subtitle: 'Review your past payments and charges',
-                          isLast: true,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PatientPaymentHistoryPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                            },
+                          ),
+                          _buildListTile(
+                            icon: Icons.payment_outlined,
+                            title: 'Payment History',
+                            subtitle: 'Review your past payments and charges',
+                            isLast: true,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PatientPaymentHistoryPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -422,18 +426,22 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 _buildSectionHeader('Preferences'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: _buildSwitchTile(
-                      icon: Icons.notifications_none_outlined,
-                      title: 'Push Notifications',
-                      subtitle: 'Customize alerts and reminders',
-                      value: _pushNotifications,
-                      onChanged: (val) => setState(() => _pushNotifications = val),
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: _buildSwitchTile(
+                        icon: Icons.notifications_none_outlined,
+                        title: 'Push Notifications',
+                        subtitle: 'Customize alerts and reminders',
+                        value: _pushNotifications,
+                        onChanged: (val) => setState(() => _pushNotifications = val),
+                      ),
                     ),
                   ),
                 ),
@@ -441,33 +449,37 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 _buildSectionHeader('Support & Legal'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildListTile(
-                          icon: Icons.help_outline_rounded,
-                          title: 'Help Center',
-                          subtitle: 'FAQs and live support',
-                          isFirst: true,
-                          onTap: () {},
-                        ),
-                        _buildListTile(
-                          icon: Icons.lock_outline_rounded,
-                          title: 'Privacy Policy',
-                          onTap: () {},
-                        ),
-                        _buildListTile(
-                          icon: Icons.description_outlined,
-                          title: 'Terms of Service',
-                          isLast: true,
-                          onTap: () {},
-                        ),
-                      ],
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildListTile(
+                            icon: Icons.help_outline_rounded,
+                            title: 'Help Center',
+                            subtitle: 'FAQs and live support',
+                            isFirst: true,
+                            onTap: () {},
+                          ),
+                          _buildListTile(
+                            icon: Icons.lock_outline_rounded,
+                            title: 'Privacy Policy',
+                            onTap: () {},
+                          ),
+                          _buildListTile(
+                            icon: Icons.description_outlined,
+                            title: 'Terms of Service',
+                            isLast: true,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

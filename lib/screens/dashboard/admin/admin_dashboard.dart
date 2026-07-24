@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:appoinment_app/screens/dashboard/admin/widgets/custom_charts.dart';
 import 'package:appoinment_app/screens/dashboard/admin/widgets/dialog_helpers.dart';
 import 'admin_support_chats_page.dart';
+import 'add_hospital_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -330,7 +331,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
                 child: ElevatedButton.icon(
-                  onPressed: () => AdminDialogHelpers.showAddHospital(context),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AddHospitalPage(),
+                    ),
+                  ),
                   icon: const Icon(Icons.local_hospital_rounded, size: 18),
                   label: const Text("Add Hospital"),
                   style: ElevatedButton.styleFrom(
@@ -1274,7 +1279,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(minimumSize: const Size(0, 40)),
-                onPressed: () => AdminDialogHelpers.showAddHospital(context),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AddHospitalPage(),
+                  ),
+                ),
                 icon: const Icon(Icons.local_hospital),
                 label: const Text("Add Hospital"),
               ),

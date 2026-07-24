@@ -27,14 +27,17 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _nicController = TextEditingController();
+  final _weightController = TextEditingController();
   
   String? _selectedGender;
+  String? _selectedBloodGroup;
   bool _isLoading = true; 
   bool _isSaving = false;
   File? _selectedImage; 
   String _existingProfileImageUrl = ""; 
 
   final List<String> _genderOptions = ['Male', 'Female', 'Other'];
+  final List<String> _bloodGroupOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   @override
   void initState() {
@@ -65,6 +68,17 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
           if (_genderOptions.contains(data['gender'])) {
             _selectedGender = data['gender'];
           }
+          
+          String weightStr = data['weight']?.toString() ?? '';
+          if (weightStr.endsWith(' kg')) {
+            weightStr = weightStr.substring(0, weightStr.length - 3);
+          }
+          _weightController.text = weightStr;
+
+          if (_bloodGroupOptions.contains(data['bloodGroup'])) {
+            _selectedBloodGroup = data['bloodGroup'];
+          }
+          
           _isLoading = false;
         });
       } else {
@@ -119,6 +133,8 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
         'phone': _phoneController.text.trim(),
         'age': parsedAge,
         'gender': _selectedGender,
+        'weight': _weightController.text.trim().isNotEmpty ? '${_weightController.text.trim()} kg' : '70 kg',
+        'bloodGroup': _selectedBloodGroup ?? 'O+',
         'address': _addressController.text.trim(),
         'city': _cityController.text.trim(),
         'nicNumber': _nicController.text.trim().toUpperCase(),
@@ -163,6 +179,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
     _addressController.dispose();
     _cityController.dispose();
     _nicController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -390,6 +407,90 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                                 setState(() { _selectedGender = newValue; });
                               },
                               validator: (value) => value == null ? 'Select Gender' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // --- WEIGHT & BLOOD GROUP ---
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _weightController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: 'Weight (kg)',
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                prefixIcon: Icon(Icons.scale_outlined, color: Colors.blue[400]),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Required';
+                                if (double.tryParse(value) == null) return 'Invalid';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 3,
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _selectedBloodGroup,
+                              decoration: InputDecoration(
+                                labelText: 'Blood Group',
+                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                prefixIcon: Icon(Icons.bloodtype_outlined, color: Colors.blue[400]),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+                                ),
+                              ),
+                              items: _bloodGroupOptions.map((String bg) {
+                                return DropdownMenuItem<String>(
+                                  value: bg,
+                                  child: Text(bg),
+                                );
+                              }).toList(),
+                              onChanged: (newValue) {
+                                setState(() {
+                                  _selectedBloodGroup = newValue;
+                                });
+                              },
+                              validator: (value) => value == null ? 'Select Blood Group' : null,
                             ),
                           ),
                         ],
