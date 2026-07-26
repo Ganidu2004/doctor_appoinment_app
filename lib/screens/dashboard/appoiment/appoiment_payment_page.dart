@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:appoinment_app/services/notification_services.dart';
+import 'hospital_booking_pass_page.dart';
 
 class ConfirmBookingScreen extends StatefulWidget {
   final String doctorId;
@@ -123,7 +124,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         throw Exception('Patient must be logged in to book an appointment.');
       }
 
+      final String generatedBookingNo = 'DOC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+
       final appointmentRef = await FirebaseFirestore.instance.collection('appointments').add({
+        'bookingNo': generatedBookingNo,
         'doctorId': widget.doctorId,
         'patientUid': widget.patientUid,
         'scheduleId': widget.scheduleId,
@@ -163,7 +167,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         await NotificationService().showNotification(
           id: 501,
           title: 'Appointment Booked Successfully',
-          body: 'Your appointment booking was completed.',
+          body: 'Your booking ($generatedBookingNo) was confirmed.',
         );
       } catch (err) {
         debugPrint('Notification error: $err');
@@ -172,8 +176,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Appointment booked successfully!'),
+        SnackBar(
+          content: Text('Appointment $generatedBookingNo booked successfully!'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
@@ -184,10 +188,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
       if (!mounted) return;
 
-      // 3. Navigate to SuccessPage
+      // 3. Navigate to SuccessPage with appointmentId
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SuccessPage()),
+        MaterialPageRoute(builder: (context) => SuccessPage(appointmentId: appointmentRef.id)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -715,7 +719,9 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 }
 
 class SuccessPage extends StatelessWidget {
-  const SuccessPage({super.key});
+  final String? appointmentId;
+
+  const SuccessPage({super.key, this.appointmentId});
 
   @override
   Widget build(BuildContext context) {
@@ -759,7 +765,7 @@ class SuccessPage extends StatelessWidget {
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    "Your appointment has been successfully scheduled. We've sent a notification and saved the booking details.",
+                    "Your appointment has been successfully scheduled. We've issued an official Hospital Verification Pass for your visit.",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 13.5, color: Color(0xFF64748B), height: 1.45),
                   ),
@@ -790,14 +796,14 @@ class SuccessPage extends StatelessWidget {
                           Icon(Icons.verified_rounded, color: Color(0xFF0EA5E9), size: 18),
                           SizedBox(width: 6),
                           Text(
-                            "Appointment Booking Ticket",
+                            "Hospital Verification Pass Issued",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 14),
                       const Text(
-                        "You can manage, track, or view receipts for this appointment anytime in your Appointments tab.",
+                        "Present your digital pass or reference number at the hospital reception counter upon arrival.",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12.5, color: Color(0xFF475569)),
                       ),
@@ -806,44 +812,66 @@ class SuccessPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Action Buttons
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                // Primary Button: View Official Hospital Pass
+                if (appointmentId != null && appointmentId!.isNotEmpty) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.home_rounded, color: Colors.white, size: 18),
-                          SizedBox(width: 8),
-                          Text(
-                            "Back to Home",
-                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HospitalBookingPassPage(appointmentId: appointmentId),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 20),
+                        label: const Text(
+                          "View Hospital Pass 🎟️",
+                          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+
+                // Secondary Button: Back to Home
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    icon: const Icon(Icons.home_rounded, color: Color(0xFF0F172A), size: 18),
+                    label: const Text(
+                      "Back to Home",
+                      style: TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

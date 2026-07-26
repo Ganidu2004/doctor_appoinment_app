@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../doctor_find_page/find_doctor.dart';
 import '../support/patient_chat_page.dart';
 import '../home_page.dart';
+import '../../appoiment/hospital_booking_pass_page.dart';
 
 class PatientAppointmentsPage extends StatefulWidget {
   final bool showAppBar;
@@ -844,6 +845,31 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                               Row(
                                                 children: [
                                                   Expanded(
+                                                    child: ElevatedButton.icon(
+                                                      onPressed: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) => HospitalBookingPassPage(
+                                                              appointmentId: doc.id,
+                                                              appointmentData: data,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
+                                                      style: ElevatedButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                        backgroundColor: const Color(0xFF0EA5E9),
+                                                        foregroundColor: Colors.white,
+                                                        elevation: 0,
+                                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                      ),
+                                                      icon: const Icon(Icons.qr_code_2_rounded, size: 15),
+                                                      label: const Text('Pass 🎟️', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
                                                     child: OutlinedButton.icon(
                                                       onPressed: () {
                                                         Navigator.push(
@@ -860,7 +886,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                       ),
                                                       icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Color(0xFF0284C7)),
-                                                      label: const Text('Live Support', style: TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 12)),
+                                                      label: const Text('Support', style: TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 12)),
                                                     ),
                                                   ),
                                                   if ((status.toLowerCase().contains('cancelled') || status.toLowerCase().contains('rescheduled')) && !_isDateExpired(data['date'])) ...[
