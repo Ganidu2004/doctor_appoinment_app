@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FindDoctorScreen extends StatefulWidget {
-  const FindDoctorScreen({super.key});
+  final String? initialSpecialty;
+  const FindDoctorScreen({super.key, this.initialSpecialty});
 
   @override
   State<FindDoctorScreen> createState() => _FindDoctorScreenState();
 }
 
 class _FindDoctorScreenState extends State<FindDoctorScreen> {
-  String _selectedFilter = "All";
+  late String _selectedFilter;
 
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
@@ -24,7 +25,15 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
     "General Practitioner",
     "Psychiatrist",
     "Orthopedic Surgeon",
+    "Dentist",
+    "Ophthalmologist",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFilter = widget.initialSpecialty ?? "All";
+  }
 
   @override
   void dispose() {

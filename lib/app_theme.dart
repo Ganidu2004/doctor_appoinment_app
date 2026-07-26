@@ -106,4 +106,101 @@ class AppTheme {
       dividerColor: border,
     );
   }
+
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF1E293B);
+  static const Color darkOnSurface = Color(0xFFF8FAFC);
+  static const Color darkOnBackground = Color(0xFFCBD5E1);
+  static const Color darkBorder = Color(0xFF334155);
+
+  static ThemeData get darkTheme {
+    return ThemeData.dark().copyWith(
+      colorScheme: const ColorScheme.dark(
+        primary: primary,
+        onPrimary: Colors.white,
+        secondary: secondary,
+        onSecondary: Colors.white,
+        surface: darkSurface,
+        onSurface: darkOnSurface,
+        error: error,
+        onError: Colors.white,
+      ),
+      scaffoldBackgroundColor: darkBackground,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: darkBackground,
+        elevation: 0,
+        iconTheme: IconThemeData(color: darkOnSurface),
+        centerTitle: true,
+        titleTextStyle: TextStyle(color: darkOnSurface, fontSize: 20, fontWeight: FontWeight.w700),
+        surfaceTintColor: Colors.transparent,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        elevation: 8,
+        selectedItemColor: primary,
+        unselectedItemColor: Color(0xFF64748B),
+        showUnselectedLabels: true,
+      ),
+      cardTheme: const CardThemeData(
+        color: darkSurface,
+        elevation: 2,
+        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          minimumSize: const Size(88, 50),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primary,
+          side: const BorderSide(color: primary),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          minimumSize: const Size(88, 50),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: primary),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkBorder,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+      ),
+      dividerTheme: const DividerThemeData(color: darkBorder, thickness: 1),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: darkSurface,
+        contentTextStyle: TextStyle(color: Colors.white),
+        behavior: SnackBarBehavior.floating,
+      ),
+      dialogTheme: DialogThemeData(
+        elevation: 12,
+        backgroundColor: darkSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titleTextStyle: const TextStyle(color: darkOnSurface, fontSize: 18, fontWeight: FontWeight.w700),
+        contentTextStyle: const TextStyle(color: darkOnBackground),
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: darkOnSurface),
+        bodyMedium: TextStyle(color: darkOnBackground),
+        titleLarge: TextStyle(color: darkOnSurface, fontWeight: FontWeight.w700),
+        titleMedium: TextStyle(color: darkOnSurface, fontWeight: FontWeight.w600),
+        titleSmall: TextStyle(color: darkOnBackground),
+      ),
+      iconTheme: const IconThemeData(color: primary),
+      cardColor: darkSurface,
+      dividerColor: darkBorder,
+    );
+  }
 }

@@ -209,34 +209,64 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedPaymentMethod = title),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: selected ? Colors.blue.shade50 : Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: selected ? Colors.blue : Colors.grey.shade300, width: selected ? 2 : 1),
+            color: selected ? const Color(0xFFF0F9FF) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+              width: selected ? 1.8 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  if (leading != null)
-                    leading
-                  else if (icon != null)
-                    Icon(icon, color: selected ? Colors.blue : Colors.grey.shade700),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: selected ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: leading ?? Icon(icon, size: 18, color: selected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B)),
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       title,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontWeight: FontWeight.bold, color: selected ? Colors.blue : Colors.black87),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.5,
+                        color: selected ? const Color(0xFF0369A1) : const Color(0xFF0F172A),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(subtitle, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5, height: 1.3),
+              ),
             ],
           ),
         ),
@@ -247,173 +277,438 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF0EA5E9)),
+              const SizedBox(height: 16),
+              Text(
+                'Loading booking summary...',
+                style: TextStyle(color: Color(0xFF475569), fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      );
     }
+
+    final double consultationFee = _parseFee(_scheduleData?['consultationFee']);
+    final double totalFee = consultationFee + _hospitalCharges;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        leading: const BackButton(),
-        title: const Text('Confirm Booking', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
           children: [
-            const Text('Review Appointment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 10),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundImage: _doctorData?['profileImageUrl'] != null && (_doctorData?['profileImageUrl'] as String).isNotEmpty
-                              ? NetworkImage(_doctorData!['profileImageUrl'] as String)
-                              : null,
-                          backgroundColor: Colors.grey.shade200,
-                          child: _doctorData?['profileImageUrl'] == null || (_doctorData?['profileImageUrl'] as String).isEmpty
-                              ? const Icon(Icons.person, color: Colors.grey)
-                              : null,
+            const Text(
+              'Confirm & Checkout',
+              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              'Step 2 of 2 • Final Review',
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section 1: Appointment & Doctor Review Card
+                  const Text('Consultation Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(
                             children: [
-                              Text('Dr. ${_doctorData?['name'] ?? 'Doctor'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text(_doctorData?['specialization'] ?? 'Specialist', style: const TextStyle(color: Colors.blue)),
-                              Text(_scheduleData?['hospitalName'] ?? 'Hospital/Clinic', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: const Color(0xFFE0F2FE),
+                                backgroundImage: _doctorData?['profileImageUrl'] != null && (_doctorData?['profileImageUrl'] as String).isNotEmpty
+                                    ? NetworkImage(_doctorData!['profileImageUrl'] as String)
+                                    : null,
+                                child: _doctorData?['profileImageUrl'] == null || (_doctorData?['profileImageUrl'] as String).isEmpty
+                                    ? const Icon(Icons.person_rounded, color: Color(0xFF0EA5E9), size: 26)
+                                    : null,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Dr. ${_doctorData?['name'] ?? 'Doctor'}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: Color(0xFF0F172A)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _doctorData?['specialization'] ?? 'Specialist',
+                                      style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 12.5),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _scheduleData?['hospitalName'] ?? 'Hospital/Clinic',
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F9FF),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFFBAE6FD)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.calendar_month_rounded, size: 16, color: Color(0xFF0284C7)),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      widget.appointmentDate,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A)),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF0284C7)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        widget.appointmentTime,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0284C7)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Section 2: Patient Information Inputs
+                  const Text('Patient Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _patientNameController,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                          decoration: InputDecoration(
+                            labelText: 'Patient Full Name',
+                            labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                            prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF0EA5E9), size: 20),
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAFC),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _reasonController,
+                          style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: 'Reason for Visit / Symptoms (Optional)',
+                            alignLabelWithHint: true,
+                            labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.only(bottom: 24),
+                              child: Icon(Icons.medical_information_outlined, color: Color(0xFF0EA5E9), size: 20),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAFC),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
                           ),
                         ),
                       ],
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(children: [const Icon(Icons.calendar_today, size: 16), const SizedBox(width: 5), Text(widget.appointmentDate)]),
-                        Row(children: [const Icon(Icons.access_time, size: 16), const SizedBox(width: 5), Text(widget.appointmentTime)]),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Charges Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 10),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Doctor Charges (Consultation Fee)', style: TextStyle(color: Colors.grey)),
-                        Text(_formatCurrency(_parseFee(_scheduleData?['consultationFee']))),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Hospital Charges', style: TextStyle(color: Colors.grey)),
-                        Text(_formatCurrency(_hospitalCharges)),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text(
-                          _formatCurrency(_parseFee(_scheduleData?['consultationFee']) + _hospitalCharges),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Section 3: Payment Options
+                  const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildPaymentOption(
+                        title: 'Card Payment',
+                        subtitle: 'Debit / Credit card online',
+                        icon: Icons.credit_card_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildPaymentOption(
+                        title: 'Direct Payment',
+                        subtitle: 'Pay at hospital counter',
+                        icon: Icons.payments_rounded,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Section 4: Charges Receipt Card
+                  const Text('Charges Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Patient Details', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _patientNameController,
-              decoration: const InputDecoration(hintText: 'Patient Name', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _reasonController,
-              decoration: const InputDecoration(hintText: 'Reason for Visit', border: OutlineInputBorder()),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 20),
-            const Text('Payment Options', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _buildPaymentOption(
-                  title: 'Card Payment',
-                  subtitle: 'Pay using debit or credit card information',
-                  icon: Icons.credit_card,
-                ),
-                const SizedBox(width: 12),
-                _buildPaymentOption(
-                  title: 'Direct Payment',
-                  subtitle: 'Pay at the hospital or clinic after your visit',
-                  leading: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _selectedPaymentMethod == 'Direct Payment' ? Colors.blue.shade100 : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'LKR.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _selectedPaymentMethod == 'Direct Payment' ? Colors.blue : Colors.grey.shade700,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Doctor Consultation Fee', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              Text(_formatCurrency(consultationFee), style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A), fontSize: 13.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Hospital / Clinic Charges', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              Text(_formatCurrency(_hospitalCharges), style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A), fontSize: 13.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Platform Service Fee', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              Text('FREE ✨', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 12)),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Total Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: Color(0xFF0F172A))),
+                              Text(
+                                _formatCurrency(totalFee),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0284C7)),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Refund Guarantee Pill
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.shield_outlined, color: Color(0xFF047857), size: 18),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "100% Free Cancellation up to 24 hours prior to appointment slot.",
+                            style: TextStyle(fontSize: 12, color: Color(0xFF047857), fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom Action Bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, -4),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.payment, color: Colors.blue),
-                title: Text(_selectedPaymentMethod),
-                subtitle: const Text('Appointment will be recorded with this payment method.'),
-                trailing: Text('Total ${_formatCurrency(_parseFee(_scheduleData?['consultationFee']) + _hospitalCharges)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Total Amount', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatCurrency(totalFee),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F9FF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFBAE6FD)),
+                        ),
+                        child: Text(
+                          _selectedPaymentMethod,
+                          style: const TextStyle(color: Color(0xFF0369A1), fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _confirmBooking,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Confirm & Book Appointment',
+                                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _confirmBooking,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
-                child: _isSaving
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Confirm Appointment'),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -425,25 +720,135 @@ class SuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 100),
-              const SizedBox(height: 20),
-              const Text(
-                "Booking Successful!",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-                child: const Text("Back to Home"),
-              ),
-            ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Success Animated Circle Icon
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFA7F3D0), width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 72),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Booking Confirmed! 🎉",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "Your appointment has been successfully scheduled. We've sent a notification and saved the booking details.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13.5, color: Color(0xFF64748B), height: 1.45),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Success Actions Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.verified_rounded, color: Color(0xFF0EA5E9), size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            "Appointment Booking Ticket",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        "You can manage, track, or view receipts for this appointment anytime in your Appointments tab.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12.5, color: Color(0xFF475569)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Action Buttons
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.home_rounded, color: Colors.white, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            "Back to Home",
+                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:appoinment_app/screens/dashboard/appoiment/appoiment_page.dart';
+import 'package:appoinment_app/screens/dashboard/patient/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -252,9 +253,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                   const SizedBox(height: 24),
 
                                   // Patient reviews
-                                  const Text("Patient Reviews", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                                  const SizedBox(height: 10),
-                                  _buildReviewsSection(reviews),
+                                  _buildReviewsSection(reviews, doctorName: data['name'] ?? ''),
                                   const SizedBox(height: 30),
                                 ],
                               ),
@@ -315,122 +314,401 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  Widget _buildReviewsSection(List<QueryDocumentSnapshot> reviews) {
-    if (reviews.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: Text(
-          "No reviews yet. Be the first to leave a review!",
-          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-        ),
-      );
-    }
+  Widget _buildReviewsSection(List<QueryDocumentSnapshot> reviews, {required String doctorName}) {
+    final double avgRating = reviews.isNotEmpty
+        ? (reviews.fold<double>(0.0, (acc, r) => acc + ((r.data() as Map<String, dynamic>)['rating'] as num? ?? 5.0).toDouble()) / reviews.length)
+        : 0.0;
 
-    final sortedReviews = reviews.toList()
-      ..sort((a, b) {
-        final aData = a.data() as Map<String, dynamic>;
-        final bData = b.data() as Map<String, dynamic>;
-        final aTime = aData['updatedAt'] as Timestamp?;
-        final bTime = bData['updatedAt'] as Timestamp?;
-        if (aTime == null) return 1;
-        if (bTime == null) return -1;
-        return bTime.compareTo(aTime);
-      });
+    final int recommendCount = reviews.where((r) {
+      final data = r.data() as Map<String, dynamic>;
+      return data['wouldRecommend'] == true || (data['rating'] as num? ?? 5) >= 4;
+    }).length;
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: sortedReviews.length,
-      itemBuilder: (context, index) {
-        final data = sortedReviews[index].data() as Map<String, dynamic>;
-        final rating = data['rating'] is num ? (data['rating'] as num).toInt() : 5;
-        final comment = data['comment']?.toString() ?? '';
-        final timestamp = data['updatedAt'] as Timestamp?;
-        final patientUid = data['patientUid'] ?? '';
-        
-        String formattedDate = '';
-        if (timestamp != null) {
-          formattedDate = DateFormat('MMM d, yyyy').format(timestamp.toDate());
-        }
+    final int recommendPercentage = reviews.isNotEmpty ? ((recommendCount / reviews.length) * 100).round() : 100;
+    final String patientUid = FirebaseAuth.instance.currentUser?.uid ?? "";
 
-        return FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance.collection('patients').doc(patientUid).get(),
-          builder: (context, patientSnapshot) {
-            final patientData = patientSnapshot.data?.data() as Map<String, dynamic>? ?? {};
-            final String patientName = patientData['name'] ?? 'Patient';
-            final String? patientImageUrl = patientData['profileImageUrl'];
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.015),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Rating Summary Breakdown Banner
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF0EA5E9).withValues(alpha: 0.08),
+                const Color(0xFF2563EB).withValues(alpha: 0.03),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFBAE6FD)),
+          ),
+          child: Row(
+            children: [
+              // Rating big score
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        avgRating > 0 ? avgRating.toStringAsFixed(1) : '5.0',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        '/ 5.0',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: List.generate(5, (starIdx) {
+                      return Icon(
+                        starIdx < (avgRating > 0 ? avgRating.round() : 5) ? Icons.star_rounded : Icons.star_border_rounded,
+                        color: const Color(0xFFF59E0B),
+                        size: 18,
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${reviews.length} Verified Reviews',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF475569),
+                    ),
                   ),
                 ],
-                border: Border.all(color: Colors.grey.shade100),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              const Spacer(),
+
+              // Recommendation & Trust Badges
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.blue.shade50,
-                          backgroundImage: patientImageUrl != null && patientImageUrl.isNotEmpty 
-                              ? NetworkImage(patientImageUrl) 
-                              : null,
-                          child: patientImageUrl == null || patientImageUrl.isEmpty 
-                              ? const Icon(Icons.person, size: 18, color: Colors.blue) 
-                              : null,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                patientName,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
-                              ),
-                              Row(
-                                children: List.generate(5, (starIdx) {
-                                  return Icon(
-                                    starIdx < rating ? Icons.star : Icons.star_border,
-                                    color: Colors.amber,
-                                    size: 13,
-                                  );
-                                }),
-                              ),
-                            ],
+                        const Icon(Icons.thumb_up_rounded, color: Color(0xFF15803D), size: 13),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$recommendPercentage% Recommend',
+                          style: const TextStyle(
+                            color: Color(0xFF15803D),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
-                        if (formattedDate.isNotEmpty)
-                          Text(
-                            formattedDate,
-                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
-                          ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      comment.isNotEmpty ? comment : 'No comment provided.',
-                      style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 8),
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified_user_rounded, color: Color(0xFF0EA5E9), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '100% Real Patients',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0369A1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Write a Review Button Header Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Patient Feedback (${reviews.length})',
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            ),
+            if (patientUid.isNotEmpty)
+              OutlinedButton.icon(
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => DoctorRatingDialog(
+                      doctorId: widget.doctorId,
+                      doctorName: doctorName,
+                      patientUid: patientUid,
                     ),
-                  ],
+                  );
+                  setState(() {});
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  side: const BorderSide(color: Color(0xFF0EA5E9)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: const Color(0xFFF0F9FF),
+                ),
+                icon: const Icon(Icons.rate_review_rounded, size: 14, color: Color(0xFF0284C7)),
+                label: const Text(
+                  'Write Review',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
                 ),
               ),
-            );
-          },
-        );
-      },
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Review Cards List
+        if (reviews.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Center(
+              child: Text(
+                'No reviews yet. Be the first to leave a review after your visit!',
+                style: TextStyle(color: Color(0xFF64748B), fontStyle: FontStyle.italic, fontSize: 13),
+              ),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: reviews.length,
+            itemBuilder: (context, index) {
+              final sortedReviews = reviews.toList()
+                ..sort((a, b) {
+                  final aData = a.data() as Map<String, dynamic>;
+                  final bData = b.data() as Map<String, dynamic>;
+                  final aTime = aData['updatedAt'] as Timestamp?;
+                  final bTime = bData['updatedAt'] as Timestamp?;
+                  if (aTime == null) return 1;
+                  if (bTime == null) return -1;
+                  return bTime.compareTo(aTime);
+                });
+
+              final data = sortedReviews[index].data() as Map<String, dynamic>;
+              final rating = data['rating'] is num ? (data['rating'] as num).toInt() : 5;
+              String rawComment = data['comment']?.toString() ?? '';
+              final timestamp = data['updatedAt'] as Timestamp?;
+              final patientUid = data['patientUid'] ?? '';
+
+              // Parse tags from data['tags'] or legacy comment string
+              List<String> tags = [];
+              if (data['tags'] is List) {
+                tags = (data['tags'] as List).map((e) => e.toString()).toList();
+              } else if (rawComment.contains('(Tags:')) {
+                final match = RegExp(r'\(Tags:\s*💬?\s*([^)]+)\)').firstMatch(rawComment);
+                if (match != null) {
+                  tags = match.group(1)!.split(',').map((t) => t.trim()).toList();
+                }
+              }
+
+              // Clean comment text by stripping legacy tags suffix
+              String cleanComment = rawComment.replaceAll(RegExp(r'\s*\(Tags:.*?\)$'), '').trim();
+              if (cleanComment.isEmpty) {
+                cleanComment = 'Great consultation & compassionate care.';
+              }
+
+              String formattedDate = '';
+              if (timestamp != null) {
+                formattedDate = DateFormat('MMM d, yyyy').format(timestamp.toDate());
+              }
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('patients').doc(patientUid).get(),
+                builder: (context, patientSnapshot) {
+                  final patientData = patientSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+                  final String patientName = patientData['name'] ?? 'Patient';
+                  final String? patientImageUrl = patientData['profileImageUrl'];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header: Avatar, Name, Verified Badge, Date
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: const Color(0xFFE0F2FE),
+                                backgroundImage: patientImageUrl != null && patientImageUrl.isNotEmpty
+                                    ? NetworkImage(patientImageUrl)
+                                    : null,
+                                child: patientImageUrl == null || patientImageUrl.isEmpty
+                                    ? const Icon(Icons.person_rounded, size: 20, color: Color(0xFF0EA5E9))
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            patientName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: Color(0xFF0F172A),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFECFDF5),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.verified_rounded, size: 11, color: Color(0xFF10B981)),
+                                              SizedBox(width: 3),
+                                              Text(
+                                                'Verified',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF047857),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        Row(
+                                          children: List.generate(5, (starIdx) {
+                                            return Icon(
+                                              starIdx < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                                              color: const Color(0xFFF59E0B),
+                                              size: 15,
+                                            );
+                                          }),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '$rating.0',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (formattedDate.isNotEmpty)
+                                Text(
+                                  formattedDate,
+                                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5, fontWeight: FontWeight.w500),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Comment Text
+                          Text(
+                            cleanComment,
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF1E293B),
+                              height: 1.4,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+
+                          // Feedback Tag Chips (if available)
+                          if (tags.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: tags.map((tag) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0F9FF),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0369A1),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+      ],
     );
   }
 

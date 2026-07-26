@@ -2,6 +2,7 @@ import 'package:appoinment_app/const.dart';
 import 'package:appoinment_app/screens/auth_gate.dart';
 import 'package:appoinment_app/screens/auth_notification_banner.dart';
 import 'package:appoinment_app/services/notification_services.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -116,24 +117,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.admin_panel_settings_rounded,
-                      size: 72,
-                      color: primaryColor,
-                    ),
+                  const DocTimeLogo(
+                    variant: DocTimeLogoVariant.vertical,
+                    iconSize: 56,
+                    fontSize: 28,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   Text(
-                    'Admin Login',
+                    'Admin Portal',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 26,
                       fontWeight: FontWeight.w900,
                       color: darkTextColor,
                       letterSpacing: 0.5,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:appoinment_app/screens/login.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -41,25 +42,13 @@ class WelcomeScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const Spacer(flex: 2),
-                  // App Logo (Unified with Splash Screen)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                        )
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.local_hospital_rounded,
-                      color: Colors.white,
-                      size: 60,
-                    ),
+                  // App Brand Logo (DOC Time)
+                  const DocTimeLogo(
+                    variant: DocTimeLogoVariant.vertical,
+                    iconSize: 68,
+                    fontSize: 34,
+                    textColor: Colors.white,
+                    showTagline: true,
                   ),
                   const Spacer(flex: 3),
                   
@@ -76,7 +65,7 @@ class WelcomeScreen extends StatelessWidget {
                           border: Border.all(color: const Color(0xFF0EA5E9).withValues(alpha: 0.4), width: 1),
                         ),
                         child: const Text(
-                          "Welcome to DOC APP",
+                          "Welcome to DOC Time",
                           style: TextStyle(
                             color: Color(0xFF38BDF8), 
                             fontWeight: FontWeight.bold, 

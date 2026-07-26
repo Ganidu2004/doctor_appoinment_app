@@ -2,6 +2,7 @@ import 'package:appoinment_app/const.dart';
 import 'package:appoinment_app/screens/auth_gate.dart';
 import 'package:appoinment_app/screens/auth_notification_banner.dart';
 import 'package:appoinment_app/services/notification_services.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -138,24 +139,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // --- Brand Header Logo & Text ---
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person_add_alt_1_rounded, 
-                      size: 64, 
-                      color: primaryColor
-                    ),
+                  const DocTimeLogo(
+                    variant: DocTimeLogoVariant.vertical,
+                    iconSize: 56,
+                    fontSize: 28,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   const Text(
                     'Create Account', 
                     textAlign: TextAlign.center, 
                     style: TextStyle(
-                      fontSize: 32, 
+                      fontSize: 26, 
                       fontWeight: FontWeight.w900, 
                       color: darkTextColor,
                       letterSpacing: 0.5,

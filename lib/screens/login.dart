@@ -4,6 +4,7 @@ import 'package:appoinment_app/screens/auth_gate.dart';
 import 'package:appoinment_app/screens/auth_notification_banner.dart';
 import 'package:appoinment_app/screens/forgot_pass.dart';
 import 'package:appoinment_app/services/notification_services.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'signup.dart';
@@ -109,28 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // --- Brand Identity & Welcome Header ---
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.local_hospital_rounded, 
-                      size: 72, 
-                      color: primaryColor
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'DOC TIME', 
-                    textAlign: TextAlign.center, 
-                    style: TextStyle(
-                      fontSize: 32, 
-                      fontWeight: FontWeight.w900, 
-                      color: darkTextColor,
-                      letterSpacing: 0.5,
-                    ),
+                  const DocTimeLogo(
+                    variant: DocTimeLogoVariant.vertical,
+                    iconSize: 64,
+                    fontSize: 32,
                   ),
                   const SizedBox(height: 8),
                   Text(

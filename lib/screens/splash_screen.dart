@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:appoinment_app/screens/auth_gate.dart';
 import 'package:appoinment_app/screens/welcome_screen.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -102,42 +103,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       opacity: _opacityAnimation.value,
                       child: Transform.scale(
                         scale: _scaleAnimation.value,
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              )
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.local_hospital_rounded,
-                            color: Colors.white,
-                            size: 72,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Title
-                    Opacity(
-                      opacity: _opacityAnimation.value,
-                      child: const Text(
-                        "DOC APP",
-                        style: TextStyle(
+                        child: const DocTimeLogo(
+                          variant: DocTimeLogoVariant.vertical,
+                          iconSize: 72,
                           fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.5,
-                          shadows: [
-                            Shadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
-                          ],
+                          textColor: Colors.white,
+                          showTagline: true,
                         ),
                       ),
                     ),

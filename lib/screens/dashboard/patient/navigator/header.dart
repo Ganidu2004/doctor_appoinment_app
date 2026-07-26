@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:appoinment_app/screens/notifications_page.dart';
+import 'package:appoinment_app/widgets/doc_time_logo.dart';
 
 
 class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -10,37 +11,14 @@ class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       automaticallyImplyLeading: false,
       titleSpacing: 16,
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.blue, Colors.blueAccent],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.local_hospital_rounded,
-              size: 20,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 10),
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: 'Doc', style: TextStyle(color: Colors.blue)),
-                TextSpan(text: 'Time', style: TextStyle(color: Colors.black87)),
-              ],
-            ),
-          ),
-        ],
+      title: const DocTimeLogo(
+        variant: DocTimeLogoVariant.horizontal,
+        iconSize: 32,
+        fontSize: 18,
       ),
       actions: [
         GestureDetector(
@@ -54,26 +32,28 @@ class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 const Icon(
                   Icons.notifications_none_rounded,
-                  color: Colors.black87,
+                  color: Color(0xFF0EA5E9),
                   size: 22,
                 ),
                 Positioned(
                   right: -2,
                   top: -2,
                   child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.redAccent,
+                    width: 9,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
                     ),
                   ),
                 ),
@@ -105,13 +85,13 @@ class PatientGreetingHeader extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
-          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+          colors: [Color(0xFF0EA5E9), Color(0xFF500CA4)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+            color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),

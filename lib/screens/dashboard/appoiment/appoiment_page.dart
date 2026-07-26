@@ -258,72 +258,192 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (loading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF0EA5E9)),
+              const SizedBox(height: 16),
+              Text(
+                'Checking slot availability...',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text("Select Appointment", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
           children: [
-            Expanded(
-              child: ListView(
-                children: [
-                  if (doctorData != null) _buildDoctorCard(doctorData!),
-                  const SizedBox(height: 20),
-                  _buildHospitalDetails(),
-                  _buildDateSelector(),
-                  const SizedBox(height: 20),
-                  _buildGeneratedSlotSection(),
-                  const SizedBox(height: 20),
-                  _buildInfoBox(),
-                ],
-              ),
+            const Text(
+              "Select Appointment Slot",
+              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            _buildConfirmButton(),
+            const SizedBox(height: 2),
+            Text(
+              "Step 1 of 2 • Date & Time",
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500),
+            ),
           ],
         ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              children: [
+                if (doctorData != null) _buildDoctorCard(doctorData!),
+                const SizedBox(height: 16),
+                _buildHospitalDetails(),
+                _buildDateSelector(),
+                const SizedBox(height: 20),
+                _buildGeneratedSlotSection(),
+                const SizedBox(height: 20),
+                _buildInfoBox(),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+          _buildConfirmBottomBar(),
+        ],
       ),
     );
   }
 
-  Widget _buildDoctorCard(Map<String, dynamic> data) => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(16)),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: data['profileImageUrl'] != null ? NetworkImage(data['profileImageUrl']) : null,
-              child: data['profileImageUrl'] == null ? const Icon(Icons.person) : null,
-            ),
-            const SizedBox(width: 15),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text("Dr. ${data['name'] ?? 'Doctor'}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text("${data['specialization'] ?? 'Specialist'} • ${data['experience'] ?? '0'} yrs exp"),
-              const SizedBox(height: 4),
-              Text(
-                'Consultation fee: ${_formatCurrency(_getSelectedScheduleFee())}',
-                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 12),
-              ),
-            ]),
-          ],
+  Widget _buildDoctorCard(Map<String, dynamic> data) {
+    final fee = _getSelectedScheduleFee();
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEFF6FF), Color(0xFFF0F9FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      );
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFBAE6FD)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0EA5E9).withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF0EA5E9), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundImage: data['profileImageUrl'] != null && data['profileImageUrl'].toString().isNotEmpty
+                      ? NetworkImage(data['profileImageUrl'])
+                      : null,
+                  child: data['profileImageUrl'] == null || data['profileImageUrl'].toString().isEmpty
+                      ? const Icon(Icons.person_rounded, size: 32, color: Color(0xFF0EA5E9))
+                      : null,
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF10B981)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Dr. ${data['name'] ?? 'Doctor'}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  "${data['specialization'] ?? 'Specialist'} • ${data['experience'] ?? '0'} yrs exp",
+                  style: const TextStyle(
+                    color: Color(0xFF0284C7),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.payments_rounded, size: 13, color: Color(0xFF047857)),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Fee: ${_formatCurrency(fee)}',
+                        style: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildHospitalDetails() {
     if (selectedDate == null) return const SizedBox.shrink();
-    
-    // Find active schedule for selectedDate
+
     final weekdayFull = DateFormat('EEEE').format(selectedDate!).toLowerCase();
     final weekdayShort = DateFormat('EEE').format(selectedDate!).toLowerCase();
-    
+
     final daySchedule = schedules.firstWhere(
       (s) {
         final d = s.day.toLowerCase();
@@ -342,69 +462,120 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         isActive: false,
       ),
     );
-    
+
     if (daySchedule.id.isEmpty) return const SizedBox.shrink();
-    
-    // Try to get details from loaded hospitals map
+
     Map<String, dynamic>? hospitalData = _hospitalsMap[daySchedule.hospitalId];
-    
+
     final name = hospitalData?['name'] ?? daySchedule.hospitalName;
     final address = hospitalData?['address'] ?? '';
     final district = hospitalData?['district'] ?? '';
     final contact = hospitalData?['contact'] ?? daySchedule.hospitalPhone;
     final charges = hospitalData?['charges'];
-    
+
     if (name.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.shade50.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red.shade100),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_hospital, color: Colors.red.shade600, size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                "Hospital Details",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black87,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE4E6),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.local_hospital_rounded, color: Color(0xFFE11D48), size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Consultation Center",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      "Hospital / Clinic location",
+                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const Divider(height: 12),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          ),
           Text(
             name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
           ),
-          const SizedBox(height: 4),
           if (address.isNotEmpty || district.isNotEmpty) ...[
-            Text(
-              [address, district].where((s) => s.isNotEmpty).join(', '),
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF64748B)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    [address, district].where((s) => s.isNotEmpty).join(', '),
+                    style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
           if (contact.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(
-              "📞 Contact: $contact",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            Row(
+              children: [
+                const Icon(Icons.phone_outlined, size: 14, color: Color(0xFF64748B)),
+                const SizedBox(width: 4),
+                Text(
+                  contact,
+                  style: const TextStyle(color: Color(0xFF0284C7), fontSize: 12.5, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ],
           if (charges != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              "Hospital Charges: LKR ${charges.toString()}",
-              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 12),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1F2),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFECDD3)),
+              ),
+              child: Text(
+                "Hospital Fee: LKR ${charges.toString()}",
+                style: const TextStyle(color: Color(0xFFBE123C), fontWeight: FontWeight.bold, fontSize: 11),
+              ),
             ),
           ],
         ],
@@ -414,56 +585,149 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   Widget _buildDateSelector() {
     if (dateOptions.isEmpty) {
-      return const Text('No availability in the next 2 weeks', style: TextStyle(color: Colors.grey));
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(
+          child: Text('No doctor availability found in the next 2 weeks', style: TextStyle(color: Color(0xFF64748B))),
+        ),
+      );
     }
     String monthYear = DateFormat('MMMM yyyy').format(selectedDate ?? dateOptions.first);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("Select Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text(monthYear, style: const TextStyle(fontSize: 14, color: Colors.blue, fontWeight: FontWeight.w600)),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Select Date",
+              style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFBAE6FD)),
+              ),
+              child: Text(
+                monthYear,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF0369A1), fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 90,
+          height: 94,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: dateOptions.length,
             itemBuilder: (ctx, i) {
               DateTime date = dateOptions[i];
               String dateKey = _dateKey(date);
-              bool isSelected = selectedDate != null && selectedDate!.year == date.year && selectedDate!.month == date.month && selectedDate!.day == date.day;
+              bool isSelected = selectedDate != null &&
+                  selectedDate!.year == date.year &&
+                  selectedDate!.month == date.month &&
+                  selectedDate!.day == date.day;
               bool isDayFullyBooked = fullyBookedMap[dateKey] ?? false;
 
               return GestureDetector(
                 onTap: isDayFullyBooked
                     ? null
-                    : () => setState(() { selectedDate = date; selectedTime = null; }),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  width: 60,
+                    : () => setState(() {
+                          selectedDate = date;
+                          selectedTime = null;
+                        }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 68,
                   decoration: BoxDecoration(
-                    color: isDayFullyBooked ? Colors.grey.shade200 : (isSelected ? Colors.blue : Colors.white),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade300),
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          )
+                        : null,
+                    color: isSelected
+                        ? null
+                        : (isDayFullyBooked ? const Color(0xFFF1F5F9) : Colors.white),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.transparent
+                          : (isDayFullyBooked ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),
+                      width: 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                   ),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(DateFormat('E').format(date).toUpperCase(), style: TextStyle(color: isDayFullyBooked ? Colors.grey : (isSelected ? Colors.white : Colors.grey), fontSize: 10, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    Text("${date.day}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDayFullyBooked ? Colors.grey : (isSelected ? Colors.white : Colors.black))),
-                    if (isDayFullyBooked) ...[
-                      const SizedBox(height: 6),
-                      const Text('FULL', style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat('EEE').format(date).toUpperCase(),
+                        style: TextStyle(
+                          color: isDayFullyBooked
+                              ? const Color(0xFF94A3B8)
+                              : (isSelected ? Colors.white70 : const Color(0xFF64748B)),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${date.day}",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: isDayFullyBooked
+                              ? const Color(0xFF94A3B8)
+                              : (isSelected ? Colors.white : const Color(0xFF0F172A)),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (isDayFullyBooked)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'FULL',
+                            style: TextStyle(fontSize: 9, color: Color(0xFFB91C1C), fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.circle,
+                          size: 6,
+                          color: isSelected ? Colors.white : const Color(0xFF10B981),
+                        ),
                     ],
-                  ]),
+                  ),
                 ),
               );
             },
@@ -475,54 +739,83 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   Widget _buildGeneratedSlotSection() {
     if (selectedDate == null) return const SizedBox.shrink();
-    String formattedDate = DateFormat('MMMM d, yyyy').format(selectedDate!);
+    String formattedDate = DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!);
     List<String> slots = _generateTimeSlotsForDate(selectedDate!);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.blue.shade100)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F9FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFBAE6FD)),
+          ),
           child: Row(
             children: [
-              Icon(Icons.calendar_today_outlined, color: Colors.blue.shade700, size: 20),
+              const Icon(Icons.event_available_rounded, color: Color(0xFF0284C7), size: 18),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("AVAILABILITY FOR", style: TextStyle(fontSize: 10, color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
-                  Text(formattedDate, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("SELECTED DATE", style: TextStyle(fontSize: 10, color: Color(0xFF0369A1), fontWeight: FontWeight.bold)),
+                    Text(formattedDate, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
         if (fullyBookedMap[_dateKey(selectedDate!)] ?? false)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('This day is fully booked.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text('Please select another date to book an appointment.', style: TextStyle(color: Colors.grey)),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFCA5A5)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.block_rounded, color: Color(0xFFB91C1C), size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('All slots are fully booked for this date.', style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      SizedBox(height: 2),
+                      Text('Please pick another date from the carousel above.', style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 12)),
+                    ],
+                  ),
+                ),
               ],
             ),
           )
         else if (slots.isEmpty)
-          const Padding(padding: EdgeInsets.all(12), child: Text('No time slots for selected date', style: TextStyle(color: Colors.grey)))
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Center(
+              child: Text('No time slots scheduled for selected date', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+            ),
+          )
         else ...[
-          _buildSlotSection("MORNING", Icons.wb_sunny_outlined, slots.where((s) => DateFormat('hh:mm a').parseLoose(s).hour < 12).toList()),
-          _buildSlotSection("AFTERNOON", Icons.wb_twilight_outlined, slots.where((s) { final h = DateFormat('hh:mm a').parseLoose(s).hour; return h >= 12 && h < 17; }).toList()),
-          _buildSlotSection("EVENING", Icons.nights_stay_outlined, slots.where((s) => DateFormat('hh:mm a').parseLoose(s).hour >= 17).toList()),
+          _buildSlotSection("Morning Slots", Icons.wb_sunny_rounded, const Color(0xFFF59E0B), slots.where((s) => DateFormat('hh:mm a').parseLoose(s).hour < 12).toList()),
+          _buildSlotSection("Afternoon Slots", Icons.wb_twilight_rounded, const Color(0xFF0EA5E9), slots.where((s) { final h = DateFormat('hh:mm a').parseLoose(s).hour; return h >= 12 && h < 17; }).toList()),
+          _buildSlotSection("Evening Slots", Icons.nights_stay_rounded, const Color(0xFF6366F1), slots.where((s) => DateFormat('hh:mm a').parseLoose(s).hour >= 17).toList()),
         ],
       ],
     );
   }
 
-  Widget _buildSlotSection(String title, IconData icon, List<String> slots) {
+  Widget _buildSlotSection(String title, IconData icon, Color iconColor, List<String> slots) {
     if (slots.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -531,22 +824,30 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(10),
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, size: 18, color: Colors.blue.shade700),
+              child: Icon(icon, size: 16, color: iconColor),
             ),
             const SizedBox(width: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '(${slots.length})',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth;
-            final crossAxisCount = availableWidth > 720 ? 3 : 2;
+            final crossAxisCount = availableWidth > 600 ? 3 : 2;
             final spacing = 10.0;
             final totalSpacing = spacing * (crossAxisCount - 1);
             final cardWidth = (availableWidth - totalSpacing) / crossAxisCount;
@@ -566,107 +867,106 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                   child: GestureDetector(
                     onTap: isFull ? null : () => setState(() => selectedTime = time),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
+                      duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                      width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF1D4ED8)
-                            : _statusSurfaceColor(status),
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: isSelected ? null : _statusSurfaceColor(status),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFF1D4ED8)
-                              : _statusBorderColor(status),
-                          width: isSelected ? 1.6 : 1,
+                          color: isSelected ? Colors.transparent : _statusBorderColor(status),
+                          width: isSelected ? 1.5 : 1,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: Colors.blue.shade100,
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
+                                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ]
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                       ),
                       child: Opacity(
-                        opacity: isFull ? 0.75 : 1,
+                        opacity: isFull ? 0.7 : 1.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(5),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white.withValues(alpha: 0.16) : _statusIconBackground(status),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: isSelected ? Colors.white.withValues(alpha: 0.2) : _statusIconBackground(status),
+                                    borderRadius: BorderRadius.circular(7),
                                   ),
                                   child: Icon(
-                                    _statusIcon(status),
-                                    size: 15,
+                                    isSelected ? Icons.check_rounded : _statusIcon(status),
+                                    size: 14,
                                     color: isSelected ? Colors.white : _statusLabelColor(status),
                                   ),
                                 ),
                                 const Spacer(),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white.withValues(alpha: 0.16) : _statusChipBackground(status),
-                                    borderRadius: BorderRadius.circular(999),
+                                    color: isSelected ? Colors.white.withValues(alpha: 0.2) : _statusChipBackground(status),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     _statusLabel(status),
                                     style: TextStyle(
                                       color: isSelected ? Colors.white : _statusLabelColor(status),
-                                      fontSize: 10,
+                                      fontSize: 9.5,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 8),
                             Text(
                               time,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
+                                color: isSelected ? Colors.white : const Color(0xFF0F172A),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 13.5,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${info.bookedCount}/${info.capacity} booked',
-                              style: TextStyle(
-                                color: isSelected ? Colors.white70 : Colors.grey.shade700,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${info.bookedCount}/${info.capacity} booked',
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white70 : const Color(0xFF475569),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Max ${info.capacity} patients',
-                              style: TextStyle(
-                                color: isSelected ? Colors.white70 : Colors.grey.shade600,
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
                                 value: info.capacity > 0 ? (info.bookedCount / info.capacity).clamp(0.0, 1.0) : 0.0,
-                                minHeight: 6,
-                                backgroundColor: isSelected ? Colors.white24 : Colors.grey.shade200,
+                                minHeight: 4,
+                                backgroundColor: isSelected ? Colors.white24 : const Color(0xFFE2E8F0),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   isSelected ? Colors.white : _statusProgressColor(status),
                                 ),
@@ -682,7 +982,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             );
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
       ],
     );
   }
@@ -709,24 +1009,138 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   Widget _buildInfoBox() => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFF),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.blue.shade100),
+          color: const Color(0xFFEFF6FF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFBAE6FD)),
         ),
-        child: Row(
+        child: const Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.info_outline_rounded, color: Colors.blue.shade700, size: 18),
-            const SizedBox(width: 10),
+            Icon(Icons.info_rounded, color: Color(0xFF0284C7), size: 18),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
-                "Appointments usually take 30–45 minutes. Please arrive 10 minutes early to help everything run smoothly.",
-                style: TextStyle(fontSize: 12.5, color: Colors.grey.shade700, height: 1.4),
+                "Consultations usually take 20–30 minutes. Please arrive 10 minutes prior to your slot time for check-in.",
+                style: TextStyle(fontSize: 12, color: Color(0xFF0369A1), height: 1.4, fontWeight: FontWeight.w500),
               ),
             ),
           ],
         ),
       );
+
+  Widget _buildConfirmBottomBar() {
+    final bool canProceed = selectedDate != null && selectedTime != null;
+    final fee = _getSelectedScheduleFee();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canProceed) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${DateFormat('EEE, MMM d').format(selectedDate!)} at $selectedTime',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Consultation Fee: ${_formatCurrency(fee)}',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
+                        SizedBox(width: 4),
+                        Text('Slot Selected', style: TextStyle(color: Color(0xFF047857), fontWeight: FontWeight.bold, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: canProceed
+                      ? const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: canProceed
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: ElevatedButton(
+                  onPressed: canProceed ? _navigateToPaymentPage : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: canProceed ? Colors.transparent : const Color(0xFFE2E8F0),
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        canProceed ? "Proceed to Booking" : "Select Date & Time Slot",
+                        style: TextStyle(
+                          color: canProceed ? Colors.white : const Color(0xFF94A3B8),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (canProceed) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   SlotStatus _getSlotStatus(_SlotInfo info) {
     if (info.capacity <= 0 || info.isFullyBooked) return SlotStatus.fullyBooked;
@@ -824,13 +1238,4 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         return 'Fully Booked';
     }
   }
-
-  Widget _buildConfirmButton() => SizedBox(
-        width: double.infinity, height: 55,
-        child: ElevatedButton(
-          onPressed: (selectedTime == null || selectedDate == null) ? null : _navigateToPaymentPage,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          child: const Text("Confirm Appointment", style: TextStyle(color: Colors.white, fontSize: 16)),
-        ),
-      );
 }
