@@ -1,10 +1,10 @@
-import 'package:appoinment_app/app_theme.dart';
-import 'package:appoinment_app/screens/splash_screen.dart';
+import 'package:appoinment_app/core/theme.dart';
+import 'package:appoinment_app/features/auth/screens/splash_screen.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:appoinment_app/config.dart';
+import 'package:appoinment_app/core/config.dart';
 import 'firebase_options.dart';
 
 void main() async {

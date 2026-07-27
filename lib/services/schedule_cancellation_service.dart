@@ -3,7 +3,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:appoinment_app/screens/dashboard/appoiment/modles/cancellation_invoice.dart';
+import 'package:appoinment_app/models/cancellation_invoice.dart';
 import 'package:appoinment_app/services/notification_services.dart';
 
 class ScheduleCancellationService {

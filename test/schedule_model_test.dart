@@ -1,4 +1,4 @@
-import 'package:appoinment_app/screens/dashboard/doctor/modles/shedul.dart';
+import 'package:appoinment_app/models/schedule.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

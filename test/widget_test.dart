@@ -1,4 +1,4 @@
-import 'package:appoinment_app/screens/dashboard/patient/navigator/footer.dart';
+import 'package:appoinment_app/features/patient/navigator/footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
