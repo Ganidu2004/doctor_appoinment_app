@@ -1,6 +1,7 @@
 import 'package:appoinment_app/screens/dashboard/patient/account/edite_patient_account.dart';
 import 'package:appoinment_app/screens/dashboard/patient/appointments/patient_appointments_page.dart';
 import 'package:appoinment_app/screens/dashboard/patient/payments/patient_payment_history_page.dart';
+import 'package:appoinment_app/screens/dashboard/patient/prescriptions/patient_prescriptions_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -383,12 +384,14 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                             },
                           ),
                           _buildListTile(
-                            icon: Icons.assignment_outlined,
-                            title: 'Medical Records',
-                            subtitle: 'View your prescriptions and test reports',
+                            icon: Icons.history_edu_rounded,
+                            title: 'My E-Prescriptions (Rx)',
+                            subtitle: 'View digital prescriptions issued by your doctors',
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Medical records are coming soon.')),
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PatientPrescriptionsPage(),
+                                ),
                               );
                             },
                           ),

@@ -1,5 +1,11 @@
 import 'package:appoinment_app/screens/dashboard/doctor/widgets/appoinment_card.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/widgets/summary_mini_card.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/history/doctor_appointment_history_page.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/widgets/doctor_write_rx_modal.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/widgets/doctor_patient_analytics_modal.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/reviews/doctor_reviews_page.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/schedule/doctor_calendar_schedule_page.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/widgets/doctor_consultation_queue_modal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -508,28 +514,63 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                   child: Row(
                     children: [
                       _buildQuickAction(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Schedule',
-                        color: Colors.blue,
-                        onTap: () {},
+                        icon: Icons.calendar_month_rounded,
+                        label: 'Calendar 📅',
+                        color: const Color(0xFF0EA5E9),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const DoctorCalendarSchedulePage()),
+                          );
+                        },
+                      ),
+                      _buildQuickAction(
+                        icon: Icons.people_alt_rounded,
+                        label: 'Live Queue ⚡',
+                        color: const Color(0xFF10B981),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const DoctorConsultationQueueModal(),
+                          );
+                        },
+                      ),
+                      _buildQuickAction(
+                        icon: Icons.analytics_rounded,
+                        label: 'Analytics 📊',
+                        color: const Color(0xFF0EA5E9),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const DoctorPatientAnalyticsModal(),
+                          );
+                        },
+                      ),
+                      _buildQuickAction(
+                        icon: Icons.star_rounded,
+                        label: 'Reviews ⭐',
+                        color: const Color(0xFFF59E0B),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const DoctorReviewsPage()),
+                          );
+                        },
                       ),
                       _buildQuickAction(
                         icon: Icons.history_edu_rounded,
                         label: 'Write Rx',
                         color: Colors.teal,
-                        onTap: () {},
-                      ),
-                      _buildQuickAction(
-                        icon: Icons.people_outline_rounded,
-                        label: 'Patients',
-                        color: Colors.indigo,
-                        onTap: () {},
-                      ),
-                      _buildQuickAction(
-                        icon: Icons.analytics_outlined,
-                        label: 'Reports',
-                        color: Colors.purple,
-                        onTap: () {},
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const DoctorWriteRxModal(),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -639,32 +680,161 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                   ],
                 ),
 
+                const SizedBox(height: 20),
+
+                /// 🔵 PATIENT INSIGHTS & REVIEWS QUICK BANNER CARDS
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const DoctorPatientAnalyticsModal(),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F9FF),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFBAE6FD)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF0EA5E9),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 18),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF0284C7)),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Text('Patient Insights 📊', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              const SizedBox(height: 2),
+                              const Text('New vs Returning & Peak hours', style: TextStyle(fontSize: 10.5, color: Color(0xFF0369A1))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const DoctorReviewsPage()),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFBEB),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFFDE68A)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFB45309),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.star_rounded, color: Colors.white, size: 18),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFB45309)),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Text('Ratings & Reviews ⭐', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              const SizedBox(height: 2),
+                              const Text('Patient feedback & quality', style: TextStyle(fontSize: 10.5, color: Color(0xFF92400E))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 24),
 
-                /// 🔵 TODAY'S STATUS PILLS
-                const Text(
-                  "Today's Overview",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
+                /// 🔵 TODAY'S OVERVIEW METRICS
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Text(
+                          "Today's Overview",
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.insights_rounded, color: Color(0xFF0EA5E9), size: 18),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F9FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.bolt_rounded, size: 12, color: Color(0xFF0284C7)),
+                          SizedBox(width: 3),
+                          Text(
+                            'Live Stats',
+                            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
                   children: [
                     SummaryMiniCard(
-                        icon: Icons.check_circle_outline,
-                        count: completedCount.toString(),
-                        label: 'COMPLETED',
-                        color: const Color(0xFF10B981)),
+                      icon: Icons.check_circle_rounded,
+                      count: completedCount.toString(),
+                      label: 'COMPLETED',
+                      color: const Color(0xFF10B981),
+                      subtitle: 'Visits Done',
+                    ),
+                    const SizedBox(width: 10),
                     SummaryMiniCard(
-                        icon: Icons.watch_later_outlined,
-                        count: pendingCount.toString(),
-                        label: 'PENDING',
-                        color: Colors.orange),
+                      icon: Icons.schedule_rounded,
+                      count: pendingCount.toString(),
+                      label: 'PENDING',
+                      color: const Color(0xFFF59E0B),
+                      subtitle: 'Awaiting',
+                    ),
+                    const SizedBox(width: 10),
                     SummaryMiniCard(
-                        icon: Icons.cancel_outlined,
-                        count: cancelledCount.toString(),
-                        label: 'CANCELLED',
-                        color: Colors.red),
+                      icon: Icons.cancel_rounded,
+                      count: cancelledCount.toString(),
+                      label: 'CANCELLED',
+                      color: const Color(0xFFEF4444),
+                      subtitle: 'Dismissed',
+                    ),
                   ],
                 ),
 
@@ -674,16 +844,38 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Upcoming Timeline',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    const Row(
+                      children: [
+                        Text(
+                          'Upcoming Timeline',
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.timeline_rounded, color: Color(0xFF0EA5E9), size: 20),
+                      ],
                     ),
-                    Text(
-                      'Today ($todayCount)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.teal.shade700,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0EA5E9).withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'Today ($todayCount Scheduled)',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -694,19 +886,39 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 if (upcoming.isEmpty)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(30),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade100),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.calendar_month_outlined, size: 36, color: Colors.grey.shade400),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No upcoming appointments today',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF0F9FF),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.event_available_rounded, size: 36, color: Color(0xFF0EA5E9)),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'No Upcoming Consultations',
+                          style: TextStyle(color: Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'You have no scheduled patient appointments remaining for today.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -727,10 +939,27 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         time: data['time']?.toString() ?? '10:00 AM',
                         child: AppointmentCard(
                           name: data['patientName'] ?? 'Patient',
-                          type: data['type'] ?? 'Consultation',
+                          type: data['hospitalName'] ?? (data['reason']?.toString().isNotEmpty == true ? data['reason'].toString() : 'District General Hospital Hambantota'),
                           time: '${data['date']} • ${data['time']}',
                           status: status,
-                          reason: data['notes']?.toString(),
+                          amount: data['amount'] != null ? 'LKR ${data['amount']}' : 'LKR 1,200',
+                          reason: data['reason']?.toString(),
+                          onReceipt: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const DoctorAppointmentHistoryPage()),
+                            );
+                          },
+                          onRx: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => DoctorWriteRxModal(
+                                patientUid: data['patientUid'] ?? '',
+                                patientName: data['patientName'] ?? 'Patient',
+                                appointmentId: doc.id,
+                              ),
+                            );
+                          },
                           onAccept: status != 'CONFIRMED'
                               ? () => _confirmAndUpdate(doc.id, 'CONFIRMED')
                               : null,
@@ -852,57 +1081,97 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
     required String time,
     required bool isLast,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            const SizedBox(height: 22),
-            Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0D9488),
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    spreadRadius: 1.5,
-                  )
-                ],
-              ),
-            ),
-            if (!isLast)
-              Container(
-                width: 2,
-                height: 150,
-                color: Colors.grey.shade200,
-              ),
-          ],
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left Timeline Pulse Node & Connecting Line
+          Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 20, bottom: 6),
-                child: Text(
-                  time,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                    color: Color(0xFF475569),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE0F2FE),
+                  border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF0EA5E9),
                   ),
                 ),
               ),
-              child,
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF0EA5E9).withValues(alpha: 0.6),
+                          const Color(0xFFCBD5E1).withValues(alpha: 0.3),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          // Right Content with Styled Time Pill Badge
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F9FF),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.access_time_filled_rounded, size: 13, color: Color(0xFF0284C7)),
+                          const SizedBox(width: 5),
+                          Text(
+                            time,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: Color(0xFF0369A1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                child,
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

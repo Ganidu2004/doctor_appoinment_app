@@ -1,0 +1,453 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class DoctorCalendarSchedulePage extends StatefulWidget {
+  const DoctorCalendarSchedulePage({super.key});
+
+  @override
+  State<DoctorCalendarSchedulePage> createState() => _DoctorCalendarSchedulePageState();
+}
+
+class _DoctorCalendarSchedulePageState extends State<DoctorCalendarSchedulePage> {
+  String _currentViewMode = 'Daily'; // 'Daily', 'Weekly', 'Monthly'
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Schedule & Calendar')),
+        body: const Center(child: Text('Please sign in as a doctor.')),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Calendar & Schedule View',
+          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.today_rounded, color: Color(0xFF0EA5E9)),
+            onPressed: () => setState(() => _selectedDate = DateTime.now()),
+            tooltip: 'Today',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // View Mode Selector (Daily, Weekly, Monthly)
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: ['Daily', 'Weekly', 'Monthly'].map((mode) {
+                  final isSelected = _currentViewMode == mode;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _currentViewMode = mode),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          mode == 'Daily'
+                              ? 'Daily 📅'
+                              : mode == 'Weekly'
+                                  ? 'Weekly 🗓️'
+                                  : 'Monthly 📆',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+
+          // Date Navigator Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF334155)),
+                  onPressed: () {
+                    setState(() {
+                      if (_currentViewMode == 'Daily') {
+                        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                      } else if (_currentViewMode == 'Weekly') {
+                        _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+                      } else {
+                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+                      }
+                    });
+                  },
+                ),
+                Text(
+                  _currentViewMode == 'Daily'
+                      ? DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate)
+                      : _currentViewMode == 'Weekly'
+                          ? 'Week of ${DateFormat('MMM d').format(_selectedDate.subtract(Duration(days: _selectedDate.weekday - 1)))} - ${DateFormat('MMM d, yyyy').format(_selectedDate.add(Duration(days: 7 - _selectedDate.weekday)))}'
+                          : DateFormat('MMMM yyyy').format(_selectedDate),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF334155)),
+                  onPressed: () {
+                    setState(() {
+                      if (_currentViewMode == 'Daily') {
+                        _selectedDate = _selectedDate.add(const Duration(days: 1));
+                      } else if (_currentViewMode == 'Weekly') {
+                        _selectedDate = _selectedDate.add(const Duration(days: 7));
+                      } else {
+                        _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Appointments Stream Body
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('appointments')
+                  .where('doctorId', isEqualTo: user.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9)));
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+
+                if (_currentViewMode == 'Daily') {
+                  return _buildDailyView(docs);
+                } else if (_currentViewMode == 'Weekly') {
+                  return _buildWeeklyView(docs);
+                } else {
+                  return _buildMonthlyView(docs);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyView(List<QueryDocumentSnapshot> docs) {
+    final targetDateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+    final dayAppointments = docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final dateVal = (data['date'] ?? '').toString();
+      return dateVal.contains(targetDateStr) || dateVal.contains(DateFormat('MM/dd/yyyy').format(_selectedDate));
+    }).toList();
+
+    if (dayAppointments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.event_available_rounded, size: 36, color: Color(0xFF94A3B8)),
+            ),
+            const SizedBox(height: 12),
+            const Text('No Appointments Scheduled', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF334155))),
+            const SizedBox(height: 4),
+            Text(
+              'No patient bookings found for ${DateFormat('MMM d, yyyy').format(_selectedDate)}.',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: dayAppointments.length,
+      itemBuilder: (context, index) {
+        final data = dayAppointments[index].data() as Map<String, dynamic>;
+        final String patientName = (data['patientName'] ?? 'Patient').toString();
+        final String time = (data['time'] ?? '09:00 AM').toString();
+        final String status = (data['status'] ?? 'Scheduled').toString();
+        final String hospital = (data['hospitalName'] ?? data['hospital'] ?? 'Clinic').toString();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.access_time_filled_rounded, color: Color(0xFF0284C7), size: 18),
+                    const SizedBox(height: 4),
+                    Text(
+                      time,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Color(0xFF0369A1)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(patientName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.local_hospital_rounded, size: 13, color: Color(0xFF64748B)),
+                        const SizedBox(width: 4),
+                        Text(hospital, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: status.toLowerCase() == 'confirmed'
+                      ? const Color(0xFFECFDF5)
+                      : const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: status.toLowerCase() == 'confirmed'
+                        ? const Color(0xFFA7F3D0)
+                        : const Color(0xFFFDE68A),
+                  ),
+                ),
+                child: Text(
+                  status.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: status.toLowerCase() == 'confirmed'
+                        ? const Color(0xFF047857)
+                        : const Color(0xFFB45309),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWeeklyView(List<QueryDocumentSnapshot> docs) {
+    final startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 7,
+      itemBuilder: (context, index) {
+        final day = startOfWeek.add(Duration(days: index));
+        final dayStr = DateFormat('yyyy-MM-dd').format(day);
+        final dayTitle = DateFormat('EEEE, MMM d').format(day);
+
+        final dayAppts = docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final d = (data['date'] ?? '').toString();
+          return d.contains(dayStr);
+        }).toList();
+
+        final isToday = DateFormat('yyyy-MM-dd').format(DateTime.now()) == dayStr;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: isToday ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0), width: isToday ? 2 : 1),
+          ),
+          child: ExpansionTile(
+            shape: const Border(),
+            leading: CircleAvatar(
+              backgroundColor: isToday ? const Color(0xFF0EA5E9) : const Color(0xFFF1F5F9),
+              child: Text(
+                DateFormat('E').format(day)[0],
+                style: TextStyle(color: isToday ? Colors.white : const Color(0xFF475569), fontWeight: FontWeight.bold),
+              ),
+            ),
+            title: Text(dayTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+            subtitle: Text('${dayAppts.length} Scheduled Appointment${dayAppts.length == 1 ? '' : 's'}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            children: dayAppts.isEmpty
+                ? [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 16),
+                      child: Text('No bookings for this day.', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                    ),
+                  ]
+                : dayAppts.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.person_rounded, color: Color(0xFF0EA5E9)),
+                      title: Text((data['patientName'] ?? 'Patient').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('${data['time'] ?? '09:00 AM'} • ${data['hospitalName'] ?? 'Clinic'}'),
+                    );
+                  }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMonthlyView(List<QueryDocumentSnapshot> docs) {
+    final daysInMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0).day;
+    final firstWeekday = DateTime(_selectedDate.year, _selectedDate.month, 1).weekday;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Days of week header
+          Row(
+            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) {
+              return Expanded(
+                child: Center(
+                  child: Text(day, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B))),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+
+          // Calendar Days Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: daysInMonth + (firstWeekday - 1),
+            itemBuilder: (context, index) {
+              if (index < firstWeekday - 1) {
+                return const SizedBox.shrink();
+              }
+
+              final dayNum = index - (firstWeekday - 1) + 1;
+              final currentDayDate = DateTime(_selectedDate.year, _selectedDate.month, dayNum);
+              final dayStr = DateFormat('yyyy-MM-dd').format(currentDayDate);
+
+              final count = docs.where((doc) {
+                final d = ((doc.data() as Map<String, dynamic>)['date'] ?? '').toString();
+                return d.contains(dayStr);
+              }).length;
+
+              final isToday = DateFormat('yyyy-MM-dd').format(DateTime.now()) == dayStr;
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: isToday ? const Color(0xFFE0F2FE) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isToday ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$dayNum',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: isToday ? const Color(0xFF0284C7) : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    if (count > 0) ...[
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0EA5E9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:appoinment_app/screens/dashboard/doctor/account/create_doctor_account.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/account/doctor_account.dart';
-import 'package:appoinment_app/screens/dashboard/doctor/messages/doctor_messages_page.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/history/doctor_appointment_history_page.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/navigator/header.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/home_page.dart';
 import 'package:appoinment_app/screens/dashboard/doctor/navigator/footer.dart';
@@ -28,7 +28,7 @@ class _MainLayoutState extends State<MainLayout> {
     'Doctor Dashboard',
     'Doctor Schedule',
     'Patients List',
-    'Messages',
+    'Appointment History',
     'Settings'
   ];
 
@@ -90,7 +90,7 @@ class _MainLayoutState extends State<MainLayout> {
       DoctorHomePage(doctorData: _allDoctorData), 
       const MySchedulePage(),
       const DoctorPatientsPage(),
-      const DoctorMessagesPage(),
+      const DoctorAppointmentHistoryPage(),
       const SettingsProfilePage(), 
     ];
 

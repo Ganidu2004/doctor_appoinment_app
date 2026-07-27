@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:appoinment_app/services/notification_services.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/patients/doctor_patient_ehr_modal.dart';
 
 class DoctorPatientsPage extends StatefulWidget {
   const DoctorPatientsPage({super.key});
@@ -14,6 +14,7 @@ class DoctorPatientsPage extends StatefulWidget {
 class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _selectedFilter = 'All';
 
   @override
   void initState() {
@@ -31,149 +32,36 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     super.dispose();
   }
 
-  Future<void> _updateAppointmentStatus(
-      String appointmentId, String status) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('appointments')
-          .doc(appointmentId)
-          .update({
-        'status': status,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      try {
-        if (status == 'completed') {
-          await NotificationService().showNotification(
-            id: 601,
-            title: 'Appointment Completed',
-            body: 'The appointment has been marked as completed.',
-          );
-        } else if (status == 'cancelled') {
-          await NotificationService().showNotification(
-            id: 602,
-            title: 'Appointment Cancelled',
-            body: 'The appointment has been marked as cancelled.',
-          );
-        }
-      } catch (err) {
-        debugPrint('Notification error: $err');
-      }
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Appointment marked ${status.toLowerCase()}')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update appointment: $e')),
-      );
-    }
+  String _formatName(String? rawName) {
+    if (rawName == null || rawName.trim().isEmpty) return 'Patient';
+    final words = rawName.trim().split(' ').where((w) => w.isNotEmpty).map((word) {
+      if (word.length <= 1) return word.toUpperCase();
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+    return words;
   }
 
-  Future<void> _showPatientDetails(
-      String patientUid, Map<String, dynamic> summaryData) async {
-    final patientDoc = await FirebaseFirestore.instance
-        .collection('patients')
-        .doc(patientUid)
-        .get();
-    final patientData = patientDoc.exists && patientDoc.data() != null
-        ? patientDoc.data() as Map<String, dynamic>
-        : {};
+  Future<void> _showPatientDetails(String patientUid, Map<String, dynamic> patientGroup) async {
+    Map<String, dynamic> patientData = {};
+    if (patientUid.isNotEmpty) {
+      final patientDoc = await FirebaseFirestore.instance.collection('patients').doc(patientUid).get();
+      if (patientDoc.exists && patientDoc.data() != null) {
+        patientData = patientDoc.data() as Map<String, dynamic>;
+      }
+    }
 
-    final appointmentHistory = await FirebaseFirestore.instance
-        .collection('appointments')
-        .where('doctorId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-        .where('patientUid', isEqualTo: patientUid)
-        .orderBy('date', descending: true)
-        .get();
+    final String patientName = patientGroup['patientName'] ?? 'Patient';
 
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      backgroundColor: Colors.transparent,
+      builder: (context) => DoctorPatientEhrModal(
+        patientUid: patientUid,
+        patientName: patientName,
+        initialPatientData: patientData,
       ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          minChildSize: 0.4,
-          maxChildSize: 0.95,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(patientData['name'] ?? summaryData['name'] ?? 'Patient',
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('Phone: ${patientData['phone'] ?? 'Not available'}'),
-                  const SizedBox(height: 4),
-                  Text('Email: ${patientData['email'] ?? 'Not available'}'),
-                  const SizedBox(height: 4),
-                  Text('Age: ${patientData['age'] ?? 'N/A'}'),
-                  const SizedBox(height: 4),
-                  Text('Gender: ${patientData['gender'] ?? 'N/A'}'),
-                  const SizedBox(height: 12),
-                  Text('Medical Records',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 6),
-                  if (patientData['medicalRecords'] is List &&
-                      (patientData['medicalRecords'] as List).isNotEmpty)
-                    ...((patientData['medicalRecords'] as List).map((record) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Text('- ${record.toString()}'),
-                      );
-                    }).toList())
-                  else
-                    const Text('No medical records available.',
-                        style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 16),
-                  const Text('Appointment History',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 8),
-                  if (appointmentHistory.docs.isEmpty)
-                    const Text('No appointment history found for this patient.',
-                        style: TextStyle(color: Colors.grey))
-                  else
-                    ...appointmentHistory.docs.map((doc) {
-                      final data = doc.data();
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                '${data['date'] ?? 'Date'} • ${data['time'] ?? 'Time'}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text('Status: ${data['status'] ?? 'N/A'}'),
-                            Text(
-                                'Type: ${data['specialization'] ?? data['type'] ?? 'Consultation'}'),
-                          ],
-                        ),
-                      );
-                    }),
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -187,41 +75,67 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     return status.toString();
   }
 
-  bool _matchesSearch(Map<String, dynamic> data) {
+  bool _matchesPatientSearch(Map<String, dynamic> patientGroup) {
     final query = _searchQuery.trim().toLowerCase();
     if (query.isEmpty) return true;
-    final patientName = data['patientName']?.toString().toLowerCase() ?? '';
-    final status = data['status']?.toString().toLowerCase() ?? '';
-    final type = data['type']?.toString().toLowerCase() ?? '';
-    final specialization =
-        data['specialization']?.toString().toLowerCase() ?? '';
-    final notes = (data['notes'] ?? data['reason'] ?? data['description'] ?? '')
-        .toString()
-        .toLowerCase();
-    return patientName.contains(query) ||
-        status.contains(query) ||
-        type.contains(query) ||
-        specialization.contains(query) ||
-        notes.contains(query);
+    final patientName = (patientGroup['patientName'] ?? '').toString().toLowerCase();
+    final appointments = patientGroup['appointments'] as List? ?? [];
+    bool notesMatch = false;
+    for (var appt in appointments) {
+      final notes = (appt['notes'] ?? appt['reason'] ?? appt['description'] ?? '').toString().toLowerCase();
+      if (notes.contains(query)) {
+        notesMatch = true;
+        break;
+      }
+    }
+    return patientName.contains(query) || notesMatch;
   }
 
   Widget _buildStatusBadge(String status) {
     final normalized = _normalizeStatus(status);
-    final color = normalized == 'completed'
-        ? Colors.green
-        : normalized == 'cancelled'
-            ? Colors.red
-            : Colors.orange;
+    Color color;
+    Color bg;
+    Color border;
+    String label;
+    IconData icon;
+
+    if (normalized == 'completed') {
+      color = const Color(0xFF047857);
+      bg = const Color(0xFFECFDF5);
+      border = const Color(0xFFA7F3D0);
+      label = 'COMPLETED';
+      icon = Icons.check_circle_rounded;
+    } else if (normalized == 'cancelled') {
+      color = const Color(0xFFB91C1C);
+      bg = const Color(0xFFFEF2F2);
+      border = const Color(0xFFFECACA);
+      label = 'CANCELLED';
+      icon = Icons.cancel_rounded;
+    } else {
+      color = const Color(0xFFB45309);
+      bg = const Color(0xFFFFFBEB);
+      border = const Color(0xFFFDE68A);
+      label = 'PENDING';
+      icon = Icons.bolt_rounded;
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border),
       ),
-      child: Text(
-        normalized.toUpperCase(),
-        style:
-            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 10.5, letterSpacing: 0.3),
+          ),
+        ],
       ),
     );
   }
@@ -233,266 +147,386 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
       return const Center(child: Text('Please sign in to view patients.'));
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search appointments by patient, status or notes',
-              prefixIcon: const Icon(Icons.search),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('appointments')
-                  .where('doctorId', isEqualTo: user.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Column(
+            children: [
+              // Search Input Box
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search patients by name or notes...',
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0EA5E9)),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, color: Color(0xFF64748B), size: 18),
+                            onPressed: () => _searchController.clear(),
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: Text(
-                        'No appointments found yet. Once your appointments are booked, the list will appear here.',
-                        textAlign: TextAlign.center,
+              // Filter Chips Carousel
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: ['All', 'With Pending', 'Completed'].map((filter) {
+                    final isSelected = _selectedFilter == filter;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = filter;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: isSelected
+                              ? const LinearGradient(
+                                  colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                                )
+                              : null,
+                          color: isSelected ? null : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Text(
+                          filter == 'All' ? 'All Patients' : filter,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Stream Builder Unique Patients List
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('appointments')
+                      .where('doctorId', isEqualTo: user.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9)));
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return _buildEmptyPatientsState();
+                    }
+
+                    // Group appointments by unique patient
+                    final Map<String, Map<String, dynamic>> uniquePatientsMap = {};
+
+                    for (var doc in snapshot.data!.docs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final patientUid = (data['patientUid'] ?? '').toString();
+                      final patientName = (data['patientName'] ?? 'Patient').toString();
+                      final key = patientUid.isNotEmpty ? patientUid : patientName.toLowerCase().trim();
+
+                      if (!uniquePatientsMap.containsKey(key)) {
+                        uniquePatientsMap[key] = {
+                          'patientUid': patientUid,
+                          'patientName': patientName,
+                          'appointments': [data],
+                          'appointmentIds': [doc.id],
+                          'latestAppointment': data,
+                          'latestDateTime': _parseAppointmentDateTime(data),
+                        };
+                      } else {
+                        final existing = uniquePatientsMap[key]!;
+                        (existing['appointments'] as List).add(data);
+                        (existing['appointmentIds'] as List).add(doc.id);
+                        final dt = _parseAppointmentDateTime(data);
+                        if (dt.isAfter(existing['latestDateTime'] as DateTime)) {
+                          existing['latestDateTime'] = dt;
+                          existing['latestAppointment'] = data;
+                        }
+                      }
+                    }
+
+                    var uniquePatientsList = uniquePatientsMap.values
+                        .where((patientGroup) => _matchesPatientSearch(patientGroup))
+                        .toList();
+
+                    // Apply filter
+                    if (_selectedFilter == 'With Pending') {
+                      uniquePatientsList = uniquePatientsList.where((pGroup) {
+                        final appts = pGroup['appointments'] as List;
+                        return appts.any((a) => _normalizeStatus((a['status'] ?? '').toString()) == 'pending');
+                      }).toList();
+                    } else if (_selectedFilter == 'Completed') {
+                      uniquePatientsList = uniquePatientsList.where((pGroup) {
+                        final appts = pGroup['appointments'] as List;
+                        return appts.any((a) => _normalizeStatus((a['status'] ?? '').toString()) == 'completed');
+                      }).toList();
+                    }
+
+                    // Sort newest visit patient first
+                    uniquePatientsList.sort((a, b) => (b['latestDateTime'] as DateTime).compareTo(a['latestDateTime'] as DateTime));
+
+                    if (uniquePatientsList.isEmpty) {
+                      return _buildEmptyPatientsState();
+                    }
+
+                    return ListView.builder(
+                      itemCount: uniquePatientsList.length,
+                      padding: const EdgeInsets.only(bottom: 24),
+                      itemBuilder: (context, index) {
+                        final patientGroup = uniquePatientsList[index];
+                        final patientName = _formatName(patientGroup['patientName']?.toString());
+                        final patientUid = patientGroup['patientUid']?.toString() ?? '';
+                        final appointments = patientGroup['appointments'] as List;
+                        final latestData = patientGroup['latestAppointment'] as Map<String, dynamic>;
+                        final latestStatus = (latestData['status'] ?? 'pending').toString();
+                        final latestDate = latestData['date']?.toString() ?? 'TBD';
+                        final latestTime = latestData['time']?.toString() ?? 'TBD';
+
+                        return _buildUniquePatientCard(
+                          context: context,
+                          patientUid: patientUid,
+                          patientName: patientName,
+                          totalAppointments: appointments.length,
+                          latestDate: latestDate,
+                          latestTime: latestTime,
+                          latestStatus: latestStatus,
+                          patientGroup: patientGroup,
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUniquePatientCard({
+    required BuildContext context,
+    required String patientUid,
+    required String patientName,
+    required int totalAppointments,
+    required String latestDate,
+    required String latestTime,
+    required String latestStatus,
+    required Map<String, dynamic> patientGroup,
+  }) {
+    final String initial = patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P';
+    final normalized = _normalizeStatus(latestStatus);
+    Color statusColor = normalized == 'completed'
+        ? const Color(0xFF047857)
+        : normalized == 'cancelled'
+            ? const Color(0xFFB91C1C)
+            : const Color(0xFFB45309);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          children: [
+            // Left Status Accent Indicator Strip
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 5,
+                color: statusColor,
+              ),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(22),
+              onTap: () => _showPatientDetails(patientUid, patientGroup),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        // Patient Initial Avatar Box
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFE0F2FE),
+                            border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            initial,
+                            style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                patientName,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '$totalAppointments Visit${totalAppointments == 1 ? '' : 's'}',
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildStatusBadge(latestStatus),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Latest Visit Date Surface
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF0EA5E9)),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Latest: $latestDate • $latestTime',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                }
+                    const SizedBox(height: 14),
 
-                final allAppointments = snapshot.data!.docs
-                    .map((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      return {
-                        'id': doc.id,
-                        'data': data,
-                        'dateTime': _parseAppointmentDateTime(data),
-                      };
-                    })
-                    .where((appointment) => _matchesSearch(
-                        appointment['data'] as Map<String, dynamic>))
-                    .toList();
-
-                final pendingAppointments =
-                    allAppointments.where((appointment) {
-                  final status = _normalizeStatus(
-                      (appointment['data'] as Map<String, dynamic>)['status'] ??
-                          'pending');
-                  return status == 'pending';
-                }).toList();
-
-                final historyAppointments =
-                    allAppointments.where((appointment) {
-                  final status = _normalizeStatus(
-                      (appointment['data'] as Map<String, dynamic>)['status'] ??
-                          'pending');
-                  return status == 'completed' || status == 'cancelled';
-                }).toList();
-
-                pendingAppointments.sort((a, b) => (b['dateTime'] as DateTime)
-                    .compareTo(a['dateTime'] as DateTime));
-                historyAppointments.sort((a, b) => (b['dateTime'] as DateTime)
-                    .compareTo(a['dateTime'] as DateTime));
-
-                return ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    const SizedBox(height: 8),
-                    const Text('Pending Appointments',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    if (pendingAppointments.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(16),
+                    // Action Button Row
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showPatientDetails(patientUid, patientGroup),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          side: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text(
-                            'No pending appointments at the moment.'),
-                      )
-                    else
-                      ...pendingAppointments.map((appointment) {
-                        final data =
-                            appointment['data'] as Map<String, dynamic>;
-                        final id = appointment['id'] as String;
-                        final patientName =
-                            data['patientName']?.toString() ?? 'Patient';
-                        final date = data['date']?.toString() ?? 'TBD';
-                        final time = data['time']?.toString() ?? 'TBD';
-                        final patientUid = data['patientUid']?.toString() ?? '';
-                        final notes = data['notes'] ??
-                            data['reason'] ??
-                            data['description'];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          margin: const EdgeInsets.only(bottom: 14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: patientUid.isNotEmpty
-                                ? () => _showPatientDetails(patientUid, data)
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(patientName,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold)),
-                                      _buildStatusBadge('pending'),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text('$date • $time',
-                                      style: TextStyle(
-                                          color: Colors.grey.shade600)),
-                                  if (notes != null &&
-                                      notes.toString().trim().isNotEmpty) ...[
-                                    const SizedBox(height: 10),
-                                    Text(notes.toString(),
-                                        style: const TextStyle(
-                                            color: Colors.black87)),
-                                  ],
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () =>
-                                              _updateAppointmentStatus(
-                                                  id, 'cancelled'),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.red,
-                                            side: const BorderSide(
-                                                color: Colors.red),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                          ),
-                                          child: const Text('Cancel'),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () =>
-                                              _updateAppointmentStatus(
-                                                  id, 'completed'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                          ),
-                                          child: const Text('Complete'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 16),
-                    const Text('History',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    if (historyAppointments.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(16),
+                        icon: const Icon(Icons.description_outlined, size: 18, color: Color(0xFF0EA5E9)),
+                        label: const Text(
+                          'Patient Record 📄',
+                          style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 13),
                         ),
-                        child: const Text(
-                            'No completed or cancelled appointments yet.'),
-                      )
-                    else
-                      ...historyAppointments.map((appointment) {
-                        final data =
-                            appointment['data'] as Map<String, dynamic>;
-                        final status = _normalizeStatus(
-                            data['status']?.toString() ?? 'completed');
-                        final patientName =
-                            data['patientName']?.toString() ?? 'Patient';
-                        final date = data['date']?.toString() ?? 'TBD';
-                        final time = data['time']?.toString() ?? 'TBD';
-                        final patientUid = data['patientUid']?.toString() ?? '';
-                        final notes = data['notes'] ??
-                            data['reason'] ??
-                            data['description'];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          margin: const EdgeInsets.only(bottom: 14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: patientUid.isNotEmpty
-                                ? () => _showPatientDetails(patientUid, data)
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(patientName,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold)),
-                                      _buildStatusBadge(status),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text('$date • $time',
-                                      style: TextStyle(
-                                          color: Colors.grey.shade600)),
-                                  if (notes != null &&
-                                      notes.toString().trim().isNotEmpty) ...[
-                                    const SizedBox(height: 10),
-                                    Text(notes.toString(),
-                                        style: const TextStyle(
-                                            color: Colors.black87)),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 16),
+                      ),
+                    ),
                   ],
-                );
-              },
+                ),
+              ),
             ),
-          )
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyPatientsState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF0F9FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.people_outline_rounded, size: 48, color: Color(0xFF0EA5E9)),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No Patients Found for This Doctor',
+              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Only patients who have scheduled appointments with you will be listed here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -505,8 +539,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
         final date = DateTime.parse(dateString);
         if (timeString != null && timeString.isNotEmpty) {
           final parsedTime = DateFormat('hh:mm a').parseLoose(timeString);
-          return DateTime(date.year, date.month, date.day, parsedTime.hour,
-              parsedTime.minute);
+          return DateTime(date.year, date.month, date.day, parsedTime.hour, parsedTime.minute);
         }
         return date;
       }

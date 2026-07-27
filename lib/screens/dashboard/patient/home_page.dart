@@ -4,6 +4,7 @@ import 'package:appoinment_app/screens/dashboard/patient/appointments/patient_ap
 import 'package:appoinment_app/screens/dashboard/patient/doctor_find_page/find_doctor.dart';
 import 'package:appoinment_app/screens/dashboard/patient/support/patient_support_page.dart';
 import 'package:flutter/material.dart';
+import 'package:appoinment_app/screens/dashboard/patient/prescriptions/patient_prescriptions_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:appoinment_app/screens/dashboard/patient/navigator/header.dart';
@@ -289,6 +290,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                           );
                         },
                       ),
+                      const SizedBox(height: 24),
+                      const _MyPrescriptionsSection(),
                       const SizedBox(height: 24),
                       Row(
                         children: [
@@ -2478,6 +2481,106 @@ class _MedicalSpecialtiesGrid extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MyPrescriptionsSection extends StatelessWidget {
+  const _MyPrescriptionsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox.shrink();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('prescriptions')
+          .where('patientUid', isEqualTo: user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final docs = snapshot.data?.docs ?? [];
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PatientPrescriptionsPage()),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.history_edu_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'My E-Prescriptions (Rx)',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        docs.isNotEmpty
+                            ? '${docs.length} Digital Rx Record${docs.length == 1 ? '' : 's'} Issued'
+                            : 'Access all digital prescriptions issued by your doctors',
+                        style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View All',
+                        style: TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF0284C7)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

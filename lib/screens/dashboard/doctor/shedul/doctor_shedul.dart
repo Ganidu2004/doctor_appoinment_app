@@ -6,6 +6,8 @@ import 'package:appoinment_app/services/schedule_cancellation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/schedule/doctor_calendar_schedule_page.dart';
+import 'package:appoinment_app/screens/dashboard/doctor/widgets/doctor_slot_management_modal.dart';
 
 class MySchedulePage extends StatefulWidget {
   const MySchedulePage({super.key});
@@ -458,6 +460,28 @@ class _MySchedulePageState extends State<MySchedulePage> {
         centerTitle: false,
         actions: [
           IconButton(
+            icon: const Icon(Icons.calendar_month_rounded, color: Color(0xFF0EA5E9)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DoctorCalendarSchedulePage()),
+              );
+            },
+            tooltip: 'Calendar & Schedule View',
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune_rounded, color: Color(0xFFF97316)),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const DoctorSlotManagementModal(),
+              );
+            },
+            tooltip: 'Slot & Availability Manager',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded, color: primaryColor),
             onPressed: () {
               setState(() => _isFetching = true);
@@ -477,16 +501,16 @@ class _MySchedulePageState extends State<MySchedulePage> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                  colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -496,23 +520,24 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                     ),
-                    child: const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 32),
+                    child: const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 30),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Schedule Manager',
-                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.3),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$_totalActiveSlots Active Working Shifts Configured',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -523,7 +548,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
             // 📅 Day Selector Pill Carousel
             Container(
-              height: 72,
+              height: 76,
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -541,25 +566,39 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         _selectedDayTab = day;
                       });
                     },
-                    child: Container(
-                      width: 66,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 68,
                       margin: const EdgeInsets.only(right: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? primaryColor : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.white,
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: isSelected ? primaryColor : Colors.grey.shade200,
-                          width: 1.5,
+                          color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                          width: isSelected ? 1.5 : 1,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: primaryColor.withValues(alpha: 0.3),
-                                  blurRadius: 8,
+                                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                                  blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
                               ]
-                            : [],
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -569,12 +608,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black87,
+                              color: isSelected ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(height: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
                               color: isSelected ? Colors.white.withValues(alpha: 0.25) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(8),
@@ -583,8 +622,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               '$slotCount slots',
                               style: TextStyle(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.white : Colors.grey.shade600,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : const Color(0xFF64748B),
                               ),
                             ),
                           ),
@@ -891,54 +930,79 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Shifts for $_selectedDayTab',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        'Shifts for $_selectedDayTab 🗓️',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor.withValues(alpha: 0.1),
-                          foregroundColor: primaryColor,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0EA5E9).withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        onPressed: () => _initInlineForm(_selectedDayTab, null),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Add Shift', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                          onPressed: () => _initInlineForm(_selectedDayTab, null),
+                          icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                          label: const Text('Add Shift', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
                   Builder(builder: (context) {
                     List<ScheduleModel> slots = _doctorSchedules[_selectedDayTab] ?? [];
 
                     if (slots.isEmpty) {
-                      return Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        color: Colors.white,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Icon(Icons.event_busy_rounded, size: 48, color: Colors.grey.shade300),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'No schedules added for $_selectedDayTab',
-                                  style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600, fontSize: 14),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Tap "+ Add Shift" above to configure your hours.',
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                                ),
-                              ],
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
                             ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF0F9FF),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.event_busy_rounded, size: 36, color: Color(0xFF0EA5E9)),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No schedules added for $_selectedDayTab',
+                                style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Tap "+ Add Shift" above to configure working hours.',
+                                style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -951,117 +1015,168 @@ class _MySchedulePageState extends State<MySchedulePage> {
                       itemBuilder: (context, slotIndex) {
                         final slot = slots[slotIndex];
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(
-                              color: slot.isActive ? primaryColor.withValues(alpha: 0.2) : Colors.grey.shade200,
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            color: slot.isActive ? Colors.white : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          color: slot.isActive ? Colors.white : Colors.grey.shade50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(22),
+                            child: Stack(
                               children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: slot.isActive ? primaryColor.withValues(alpha: 0.1) : Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        Icons.local_hospital_rounded,
-                                        color: slot.isActive ? primaryColor : Colors.grey.shade600,
-                                        size: 24,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
+                                // Left Status Accent Bar Indicator
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 5,
+                                    color: slot.isActive ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            slot.hospitalName,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: slot.isActive ? Colors.black87 : Colors.grey.shade600,
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: slot.isActive ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Icon(
+                                              Icons.local_hospital_rounded,
+                                              color: slot.isActive ? const Color(0xFF0284C7) : const Color(0xFF64748B),
+                                              size: 24,
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  slot.hospitalName,
+                                                  style: TextStyle(
+                                                    fontSize: 15.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: slot.isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFF0F9FF),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0284C7)),
+                                                      const SizedBox(width: 5),
+                                                      Text(
+                                                        "${slot.startTime} - ${slot.endTime}",
+                                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Switch(
+                                            value: slot.isActive,
+                                            activeThumbColor: const Color(0xFF0EA5E9),
+                                            activeTrackColor: const Color(0xFFBAE6FD),
+                                            onChanged: (value) => _toggleSlotStatus(slot),
+                                          ),
+                                        ],
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 12),
+                                        child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
                                           Row(
                                             children: [
-                                              Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade600),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "${slot.startTime} - ${slot.endTime}",
-                                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFF1F5F9),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  "👥 Max: ${slot.maxPatients} Patients",
+                                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFECFDF5),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                                                ),
+                                                child: Text(
+                                                  "LKR ${(slot.consultationFee ?? 0.0).toStringAsFixed(0)}",
+                                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () => _initInlineForm(_selectedDayTab, slot),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFFFFBEB),
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                  ),
+                                                  child: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFFB45309)),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              GestureDetector(
+                                                onTap: () => _deleteSlot(slot),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFFEF2F2),
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: const Color(0xFFFECACA)),
+                                                  ),
+                                                  child: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    Switch(
-                                      value: slot.isActive,
-                                      activeThumbColor: primaryColor,
-                                      activeTrackColor: primaryColor.withValues(alpha: 0.4),
-                                      onChanged: (value) => _toggleSlotStatus(slot),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFF1F5F9),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            "Max: ${slot.maxPatients} Patients",
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: primaryColor.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            "LKR ${(slot.consultationFee ?? 0.0).toStringAsFixed(0)}",
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryColor),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.orangeAccent),
-                                          onPressed: () => _initInlineForm(_selectedDayTab, slot),
-                                          tooltip: 'Edit Shift',
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent),
-                                          onPressed: () => _deleteSlot(slot),
-                                          tooltip: 'Delete Shift',
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
