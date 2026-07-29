@@ -42,25 +42,42 @@ class _MySchedulePageState extends State<MySchedulePage> {
     try {
       String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
-        // Fetch the doctor's profile to get their selected hospitals
+        // Fetch the doctor's profile to get any pre-selected hospital IDs or names
         final doctorDoc = await FirebaseFirestore.instance.collection('doctors').doc(uid).get();
-        final List<String> profileHospitalIds = [];
-        final List<String> profileHospitalNames = [];
+        final Set<String> profileHospitalIds = {};
+        final Set<String> profileHospitalNames = {};
+        List<Map<String, dynamic>> profileHospitals = [];
+
         if (doctorDoc.exists && doctorDoc.data() != null) {
           final data = doctorDoc.data()!;
           if (data['hospitalsList'] != null && data['hospitalsList'] is List) {
             for (var item in data['hospitalsList']) {
               if (item is Map) {
-                final id = item['hospitalId']?.toString() ?? '';
-                final name = item['hospitalName']?.toString() ?? '';
+                final id = item['hospitalId']?.toString() ?? item['id']?.toString() ?? '';
+                final name = item['hospitalName']?.toString() ?? item['name']?.toString() ?? '';
+                final district = item['hospitalDistrict']?.toString() ?? item['district']?.toString() ?? '';
+                final phone = item['hospitalPhone']?.toString() ?? item['phone']?.toString() ?? item['contact']?.toString() ?? '';
+
                 if (id.isNotEmpty) profileHospitalIds.add(id);
-                if (name.isNotEmpty) profileHospitalNames.add(name.toLowerCase());
+                if (name.isNotEmpty) profileHospitalNames.add(name.trim().toLowerCase());
+
+                if (id.isNotEmpty || name.isNotEmpty) {
+                  profileHospitals.add({
+                    'id': id.isNotEmpty ? id : name,
+                    'hospitalName': name.isNotEmpty ? name : 'Unknown Hospital',
+                    'address': item['address']?.toString() ?? '',
+                    'district': district,
+                    'hospitalPhone': phone,
+                    'charges': 0.0,
+                    'isAssigned': true,
+                  });
+                }
               }
             }
           }
         }
 
-        // Fetch hospitals from the admin-managed 'hospital' collection
+        // Fetch hospitals dynamically from the admin-managed 'hospital' collection
         final hospitalSnapshot = await FirebaseFirestore.instance.collection('hospital').get();
         final seenIds = <String>{};
         final seenNames = <String>{};
@@ -68,26 +85,48 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
         for (var doc in hospitalSnapshot.docs) {
           final data = doc.data();
-          final name = (data['name'] ?? 'Unknown Hospital').trim();
+          final name = (data['name'] ?? 'Unknown Hospital').toString().trim();
           final id = doc.id;
 
-          // Check if this hospital was selected in the doctor's profile
-          final isSelectedInProfile = profileHospitalIds.contains(id) ||
+          final isAssigned = profileHospitalIds.contains(id) ||
               profileHospitalNames.contains(name.toLowerCase());
 
-          if (isSelectedInProfile && seenIds.add(id)) {
-            if (seenNames.add(name.toLowerCase())) {
-              loadedHospitals.add({
-                'id': id,
-                'hospitalName': name,
-                'address': data['address'] ?? '',
-                'district': data['district'] ?? '',
-                'hospitalPhone': data['contact'] ?? '',
-                'charges': data['charges'] is num ? (data['charges'] as num).toDouble() : 0.0,
-              });
+          if (seenIds.add(id)) {
+            seenNames.add(name.toLowerCase());
+            loadedHospitals.add({
+              'id': id,
+              'hospitalName': name,
+              'address': data['address']?.toString() ?? '',
+              'district': data['district']?.toString() ?? '',
+              'hospitalPhone': data['contact']?.toString() ?? '',
+              'charges': data['charges'] is num ? (data['charges'] as num).toDouble() : 0.0,
+              'isAssigned': isAssigned,
+            });
+          }
+        }
+
+        // Merge profile hospitals not found in 'hospital' collection
+        for (var pHospital in profileHospitals) {
+          final id = pHospital['id']?.toString() ?? '';
+          final name = pHospital['hospitalName']?.toString().trim() ?? '';
+          if (name.isNotEmpty) {
+            final lowerName = name.toLowerCase();
+            if (!seenNames.contains(lowerName) && (id.isEmpty || !seenIds.contains(id))) {
+              if (id.isNotEmpty) seenIds.add(id);
+              seenNames.add(lowerName);
+              loadedHospitals.add(pHospital);
             }
           }
         }
+
+        // Sort: Doctor's assigned profile hospitals first, followed by remaining database hospitals alphabetically
+        loadedHospitals.sort((a, b) {
+          final aAssigned = a['isAssigned'] == true;
+          final bAssigned = b['isAssigned'] == true;
+          if (aAssigned && !bAssigned) return -1;
+          if (!aAssigned && bAssigned) return 1;
+          return (a['hospitalName'] as String).toLowerCase().compareTo((b['hospitalName'] as String).toLowerCase());
+        });
 
         final snapshot = await FirebaseFirestore.instance
             .collection('doctors')
@@ -134,14 +173,20 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
       if (slot != null) {
         _selectedHospital = _doctorHospitals.firstWhere(
-          (h) => h['id'] == slot.hospitalId,
-          orElse: () => _doctorHospitals.isNotEmpty
-              ? _doctorHospitals.first
-              : {
-                  'id': slot.hospitalId,
-                  'hospitalName': slot.hospitalName,
-                  'hospitalPhone': slot.hospitalPhone,
-                },
+          (h) => h['id'] == slot.hospitalId || (h['hospitalName']?.toString().toLowerCase() == slot.hospitalName.toLowerCase()),
+          orElse: () {
+            final fallback = {
+              'id': slot.hospitalId,
+              'hospitalName': slot.hospitalName,
+              'hospitalPhone': slot.hospitalPhone,
+              'address': '',
+              'district': '',
+              'charges': 0.0,
+              'isAssigned': false,
+            };
+            _doctorHospitals.add(fallback);
+            return fallback;
+          },
         );
       } else {
         _selectedHospital = _doctorHospitals.isNotEmpty ? _doctorHospitals.first : null;
@@ -164,6 +209,34 @@ class _MySchedulePageState extends State<MySchedulePage> {
       _maxPatients = 15;
       _consultationFee = 0;
     });
+  }
+
+  TimeOfDay _parseTimeOfDay(String timeString) {
+    if (timeString.contains("Select") || timeString.trim().isEmpty) {
+      return TimeOfDay.now();
+    }
+    try {
+      final clean = timeString.trim();
+      final isPm = clean.toUpperCase().contains("PM");
+      final isAm = clean.toUpperCase().contains("AM");
+      final parts = clean.replaceAll(RegExp(r'[^\d:]'), '').split(':');
+
+      if (parts.length >= 2) {
+        int hour = int.parse(parts[0]);
+        int minute = int.parse(parts[1]);
+
+        if (isPm && hour < 12) {
+          hour += 12;
+        } else if (isAm && hour == 12) {
+          hour = 0;
+        }
+
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    } catch (e) {
+      debugPrint("Error parsing TimeOfDay from string '$timeString': $e");
+    }
+    return TimeOfDay.now();
   }
 
   void _applyShiftPreset(String startTime, String endTime, int capacity, double fee) {
@@ -210,6 +283,54 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
       await docRef.set(newSlot.toMap());
 
+      // Update doctor's profile document hospitalsList in Firestore if this hospital isn't in it yet
+      final doctorDocRef = FirebaseFirestore.instance.collection('doctors').doc(uid);
+      final doctorDoc = await doctorDocRef.get();
+
+      if (doctorDoc.exists) {
+        final data = doctorDoc.data() ?? {};
+        List<dynamic> currentHospitalsList = List.from(data['hospitalsList'] ?? []);
+
+        final selectedId = (_selectedHospital!['id'] ?? '').toString();
+        final selectedName = (_selectedHospital!['hospitalName'] ?? '').toString().trim().toLowerCase();
+
+        bool alreadyAssigned = currentHospitalsList.any((item) {
+          if (item is Map) {
+            final id = (item['hospitalId'] ?? item['id'] ?? '').toString();
+            final name = (item['hospitalName'] ?? item['name'] ?? '').toString().trim().toLowerCase();
+            return (selectedId.isNotEmpty && id == selectedId) || (selectedName.isNotEmpty && name == selectedName);
+          }
+          return false;
+        });
+
+        if (!alreadyAssigned) {
+          final newHospitalEntry = {
+            'hospitalId': _selectedHospital!['id'] ?? '',
+            'hospitalName': _selectedHospital!['hospitalName'] ?? '',
+            'hospitalPhone': _selectedHospital!['hospitalPhone'] ?? '',
+            'hospitalDistrict': _selectedHospital!['district'] ?? '',
+            'hospitalAddresses': [
+              if ((_selectedHospital!['address'] ?? '').toString().isNotEmpty)
+                _selectedHospital!['address'].toString()
+            ],
+          };
+
+          await doctorDocRef.update({
+            'hospitalsList': FieldValue.arrayUnion([newHospitalEntry]),
+          });
+        }
+      }
+
+      // Update in-memory assigned state instantly
+      if (mounted) {
+        _selectedHospital!['isAssigned'] = true;
+        for (var h in _doctorHospitals) {
+          if (h['id'] == _selectedHospital!['id'] || h['hospitalName'] == _selectedHospital!['hospitalName']) {
+            h['isAssigned'] = true;
+          }
+        }
+      }
+
       try {
         await NotificationService().showNotification(
           id: 201,
@@ -223,7 +344,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
       }
 
       _closeInlineForm();
-      _loadInitialData();
+      await _loadInitialData();
     } catch (e) {
       debugPrint("Error saving slot: $e");
       if (mounted) setState(() => _isFetching = false);
@@ -495,7 +616,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ðŸŒŸ Header Summary Hero Banner
+            // Header Summary Hero Banner
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
@@ -546,7 +667,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
               ),
             ),
 
-            // ðŸ“… Day Selector Pill Carousel
+            // Day Selector Pill Carousel
             Container(
               height: 76,
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -637,7 +758,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
             const SizedBox(height: 12),
 
-            // âœï¸ Configure / Edit Form (if active)
+            // Configure / Edit Form (if active)
             if (_activeDayForForm != null) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -681,7 +802,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         ),
                         const Divider(height: 24),
 
-                        // âš¡ Quick Shift Presets
+                        // Quick Shift Presets
                         const Text(
                           "Quick Shift Presets",
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -716,7 +837,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // ðŸ¥ Hospital Selection
+                        // Hospital Selection
                         const Text(
                           "Hospital / Clinic",
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -726,13 +847,21 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             ? Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.05),
+                                  color: Colors.amber.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                                  border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                                 ),
-                                child: const Text(
-                                  "âš ï¸ No hospitals found in your doctor profile. Contact admin.",
-                                  style: TextStyle(color: Colors.redAccent, fontSize: 13),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        "No hospitals available in database. Contact admin.",
+                                        style: TextStyle(color: Colors.black87, fontSize: 13),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : Container(
@@ -744,24 +873,50 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<Map<String, dynamic>>(
-                                    value: _doctorHospitals.any((h) => h['id'] == _selectedHospital?['id'])
-                                        ? _selectedHospital
-                                        : null,
+                                    value: _doctorHospitals.firstWhere(
+                                      (h) => h['id'] == _selectedHospital?['id'] || (h['hospitalName']?.toString().toLowerCase() == _selectedHospital?['hospitalName']?.toString().toLowerCase()),
+                                      orElse: () => _doctorHospitals.first,
+                                    ),
                                     isExpanded: true,
                                     hint: const Text("Select Hospital / Clinic"),
                                     icon: const Icon(Icons.keyboard_arrow_down_rounded, color: primaryColor),
                                     items: _doctorHospitals.map((hospital) {
-                                      final district = hospital['district'] ?? '';
-                                      final displayName = district.isNotEmpty
-                                          ? "${hospital['hospitalName']} â€” $district"
-                                          : hospital['hospitalName'] ?? 'Unknown Hospital';
+                                      final district = (hospital['district'] ?? '').toString();
+                                      final isAssigned = hospital['isAssigned'] == true;
+                                      final name = hospital['hospitalName'] ?? 'Unknown Hospital';
+                                      
+                                      String displayName = name;
+                                      if (district.isNotEmpty) {
+                                        displayName += " — $district";
+                                      }
+
                                       return DropdownMenuItem<Map<String, dynamic>>(
                                         value: hospital,
                                         child: Row(
                                           children: [
                                             const Icon(Icons.local_hospital_rounded, color: primaryColor, size: 20),
                                             const SizedBox(width: 10),
-                                            Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14))),
+                                            Expanded(
+                                              child: Text(
+                                                displayName,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                              ),
+                                            ),
+                                            if (isAssigned) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: primaryColor.withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Text(
+                                                  'Assigned',
+                                                  style: TextStyle(fontSize: 10, color: primaryColor, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
                                           ],
                                         ),
                                       );
@@ -776,7 +931,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               ),
                         const SizedBox(height: 16),
 
-                        // â° Time Selectors
+                        // ⏲ Time Selectors
                         const Text(
                           "Working Hours",
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -787,7 +942,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () async {
-                                  TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                  TimeOfDay initial = _parseTimeOfDay(_startTime);
+                                  TimeOfDay? picked = await showTimePicker(context: context, initialTime: initial);
                                   if (picked != null) setState(() => _startTime = picked.format(context));
                                 },
                                 icon: const Icon(Icons.access_time_rounded, color: primaryColor, size: 18),
@@ -803,7 +959,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () async {
-                                  TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                  TimeOfDay initial = _parseTimeOfDay(_endTime);
+                                  TimeOfDay? picked = await showTimePicker(context: context, initialTime: initial);
                                   if (picked != null) setState(() => _endTime = picked.format(context));
                                 },
                                 icon: const Icon(Icons.access_time_filled_rounded, color: primaryColor, size: 18),
@@ -819,7 +976,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // ðŸ’° Consultation Fee & Capacity
+                        // Consultation Fee & Capacity
                         Row(
                           children: [
                             Expanded(
@@ -920,7 +1077,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
               const SizedBox(height: 16),
             ],
 
-            // ðŸ“‹ Schedule Slot Cards for Selected Day
+            // Schedule Slot Cards for Selected Day
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -930,7 +1087,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Shifts for $_selectedDayTab ðŸ—“ï¸',
+                        'Shifts for $_selectedDayTab',
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                       ),
                       Container(
@@ -1125,7 +1282,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
-                                                  "ðŸ‘¥ Max: ${slot.maxPatients} Patients",
+                                                  "Max: ${slot.maxPatients} Patients",
                                                   style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
                                                 ),
                                               ),
