@@ -1,6 +1,6 @@
 import 'package:appoinment_app/core/theme.dart';
-import 'package:appoinment_app/features/auth/screens/splash_screen.dart';
-import 'package:appoinment_app/services/notification_services.dart';
+import 'package:appoinment_app/features/auth/presentation/screens/splash_screen.dart';
+import 'package:appoinment_app/core/services/notification_services.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

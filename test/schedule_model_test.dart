@@ -1,4 +1,4 @@
-import 'package:appoinment_app/models/schedule.dart';
+import 'package:appoinment_app/features/doctor/data/models/schedule_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
