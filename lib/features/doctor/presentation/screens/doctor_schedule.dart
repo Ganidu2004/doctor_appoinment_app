@@ -6,6 +6,7 @@ import 'package:appoinment_app/core/services/schedule_cancellation_service.dart'
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:appoinment_app/features/doctor/presentation/screens/doctor_calendar_schedule_page.dart';
 import 'package:appoinment_app/features/doctor/presentation/widgets/doctor_slot_management_modal.dart';
 
@@ -353,6 +354,169 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
 
 
+  DateTime _getUpcomingDateForDay(String dayName) {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    const daysMap = {
+      'monday': DateTime.monday,
+      'tuesday': DateTime.tuesday,
+      'wednesday': DateTime.wednesday,
+      'thursday': DateTime.thursday,
+      'friday': DateTime.friday,
+      'saturday': DateTime.saturday,
+      'sunday': DateTime.sunday,
+    };
+    int targetWeekday = daysMap[dayName.trim().toLowerCase()] ?? DateTime.monday;
+    int daysAhead = targetWeekday - today.weekday;
+    if (daysAhead < 0) {
+      daysAhead += 7;
+    }
+    return today.add(Duration(days: daysAhead));
+  }
+
+  Future<String?> _promptDisableOption(
+    BuildContext context,
+    ScheduleModel slot,
+    String upcomingDateDisplay,
+  ) async {
+    String selectedOption = 'upcoming';
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.toggle_off_rounded, color: Colors.orange, size: 24),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text('Disable Schedule', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Choose how you want to disable this shift (${slot.day}, ${slot.startTime} - ${slot.endTime}):',
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 14),
+                  InkWell(
+                    onTap: () => setDialogState(() => selectedOption = 'upcoming'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: selectedOption == 'upcoming' ? const Color(0xFFF0F9FF) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : Colors.grey.shade300,
+                          width: selectedOption == 'upcoming' ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            selectedOption == 'upcoming' ? Icons.radio_button_checked : Icons.radio_button_off,
+                            color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : Colors.grey,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Disable for Upcoming Week Only', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Temporarily disables shift on $upcomingDateDisplay. Patient invoicing will cancel appointments for this date only. Resumes automatically next week.',
+                                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () => setDialogState(() => selectedOption = 'permanent'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: selectedOption == 'permanent' ? const Color(0xFFFEF2F2) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selectedOption == 'permanent' ? Colors.redAccent : Colors.grey.shade300,
+                          width: selectedOption == 'permanent' ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            selectedOption == 'permanent' ? Icons.radio_button_checked : Icons.radio_button_off,
+                            color: selectedOption == 'permanent' ? Colors.redAccent : Colors.grey,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Disable Permanently', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Disables this recurring shift indefinitely. Patient invoicing will cancel all current and future booked appointments under this shift.',
+                                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, null),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0EA5E9),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, selectedOption),
+                  child: const Text('Proceed', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<String?> _promptCancellationReason(
     BuildContext context,
     ScheduleModel slot,
@@ -436,51 +600,135 @@ class _MySchedulePageState extends State<MySchedulePage> {
   Future<void> _toggleSlotStatus(ScheduleModel slot) async {
     try {
       String uid = FirebaseAuth.instance.currentUser!.uid;
-      final newStatus = !slot.isActive;
+      final upcomingDate = _getUpcomingDateForDay(slot.day);
+      final upcomingDateKey = DateFormat('yyyy-MM-dd').format(upcomingDate);
+      final upcomingDateDisplay = DateFormat('EEEE, MMM d').format(upcomingDate);
 
-      // If turning off an active slot, check for affected appointments
-      if (!newStatus) {
+      final bool isCurrentlyActiveForUpcoming = slot.isActive && !slot.disabledDates.contains(upcomingDateKey);
+
+      if (isCurrentlyActiveForUpcoming) {
+        final option = await _promptDisableOption(context, slot, upcomingDateDisplay);
+        if (option == null) return;
+
         final cancellationService = ScheduleCancellationService();
-        final affected = await cancellationService.getAffectedAppointments(
-          doctorId: uid,
-          day: slot.day,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        );
 
-        if (affected.isNotEmpty) {
-          if (!mounted) return;
-          final customReason = await _promptCancellationReason(context, slot, affected.length);
-          if (customReason == null) return; // Doctor cancelled prompt
+        if (option == 'upcoming') {
+          final affected = await cancellationService.getAffectedAppointments(
+            doctorId: uid,
+            day: slot.day,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            targetDate: upcomingDateKey,
+          );
+
+          String? customReason;
+          if (affected.isNotEmpty) {
+            if (!mounted) return;
+            customReason = await _promptCancellationReason(context, slot, affected.length);
+            if (customReason == null) return;
+          }
 
           setState(() => _isFetching = true);
 
-          final count = await cancellationService.processScheduleCancellation(
-            doctorId: uid,
-            day: slot.day,
-            actionType: 'Pending Patient Choice',
-            affectedAppointments: affected,
-            reason: customReason,
-          );
+          int count = 0;
+          if (affected.isNotEmpty) {
+            count = await cancellationService.processScheduleCancellation(
+              doctorId: uid,
+              day: slot.day,
+              actionType: 'Pending Patient Choice',
+              affectedAppointments: affected,
+              reason: customReason ?? 'Doctor schedule set to Off for $upcomingDateDisplay.',
+            );
+          }
+
+          await FirebaseFirestore.instance
+              .collection('doctors')
+              .doc(uid)
+              .collection('schedules')
+              .doc(slot.id)
+              .update({
+            'disabledDates': FieldValue.arrayUnion([upcomingDateKey]),
+          });
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Schedule set to Off. Generated $count cancellation invoice(s) for affected patients.'),
+                content: Text('Schedule disabled for $upcomingDateDisplay. Generated $count cancellation invoice(s).'),
+                backgroundColor: Colors.orange.shade800,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } else if (option == 'permanent') {
+          final affected = await cancellationService.getAffectedAppointments(
+            doctorId: uid,
+            day: slot.day,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          );
+
+          String? customReason;
+          if (affected.isNotEmpty) {
+            if (!mounted) return;
+            customReason = await _promptCancellationReason(context, slot, affected.length);
+            if (customReason == null) return;
+          }
+
+          setState(() => _isFetching = true);
+
+          int count = 0;
+          if (affected.isNotEmpty) {
+            count = await cancellationService.processScheduleCancellation(
+              doctorId: uid,
+              day: slot.day,
+              actionType: 'Pending Patient Choice',
+              affectedAppointments: affected,
+              reason: customReason ?? 'Doctor schedule permanently set to Off.',
+            );
+          }
+
+          await FirebaseFirestore.instance
+              .collection('doctors')
+              .doc(uid)
+              .collection('schedules')
+              .doc(slot.id)
+              .update({
+            'isActive': false,
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Schedule permanently set to Off. Generated $count cancellation invoice(s).'),
                 backgroundColor: Colors.orange.shade800,
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
         }
-      }
+      } else {
+        setState(() => _isFetching = true);
 
-      await FirebaseFirestore.instance
-          .collection('doctors')
-          .doc(uid)
-          .collection('schedules')
-          .doc(slot.id)
-          .update({'isActive': newStatus});
+        await FirebaseFirestore.instance
+            .collection('doctors')
+            .doc(uid)
+            .collection('schedules')
+            .doc(slot.id)
+            .update({
+          'isActive': true,
+          'disabledDates': FieldValue.arrayRemove([upcomingDateKey]),
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Schedule re-enabled for ${slot.day}.'),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
 
       try {
         await NotificationService().showNotification(
@@ -1171,11 +1419,16 @@ class _MySchedulePageState extends State<MySchedulePage> {
                       itemCount: slots.length,
                       itemBuilder: (context, slotIndex) {
                         final slot = slots[slotIndex];
+                        final upcomingDate = _getUpcomingDateForDay(slot.day);
+                        final upcomingDateKey = DateFormat('yyyy-MM-dd').format(upcomingDate);
+                        final upcomingDateDisplay = DateFormat('MMM d').format(upcomingDate);
+                        final bool isTemporarilyDisabled = slot.disabledDates.contains(upcomingDateKey);
+                        final bool isSlotActiveForUpcoming = slot.isActive && !isTemporarilyDisabled;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 14),
                           decoration: BoxDecoration(
-                            color: slot.isActive ? Colors.white : const Color(0xFFF8FAFC),
+                            color: isSlotActiveForUpcoming ? Colors.white : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: const Color(0xFFE2E8F0),
@@ -1199,7 +1452,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                   bottom: 0,
                                   child: Container(
                                     width: 5,
-                                    color: slot.isActive ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                                    color: isSlotActiveForUpcoming
+                                        ? const Color(0xFF10B981)
+                                        : (isTemporarilyDisabled ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1)),
                                   ),
                                 ),
                                 Padding(
@@ -1213,12 +1468,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                           Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: slot.isActive ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                                              color: isSlotActiveForUpcoming ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
                                               borderRadius: BorderRadius.circular(14),
                                             ),
                                             child: Icon(
                                               Icons.local_hospital_rounded,
-                                              color: slot.isActive ? const Color(0xFF0284C7) : const Color(0xFF64748B),
+                                              color: isSlotActiveForUpcoming ? const Color(0xFF0284C7) : const Color(0xFF64748B),
                                               size: 24,
                                             ),
                                           ),
@@ -1232,34 +1487,67 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                   style: TextStyle(
                                                     fontSize: 15.5,
                                                     fontWeight: FontWeight.bold,
-                                                    color: slot.isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                                                    color: isSlotActiveForUpcoming ? const Color(0xFF0F172A) : const Color(0xFF64748B),
                                                   ),
                                                 ),
                                                 const SizedBox(height: 6),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(0xFFF0F9FF),
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: const Color(0xFFBAE6FD)),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0284C7)),
-                                                      const SizedBox(width: 5),
-                                                      Text(
-                                                        "${slot.startTime} - ${slot.endTime}",
-                                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                                                Wrap(
+                                                  spacing: 6,
+                                                  runSpacing: 4,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFFF0F9FF),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0284C7)),
+                                                          const SizedBox(width: 5),
+                                                          Text(
+                                                            "${slot.startTime} - ${slot.endTime}",
+                                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    if (!slot.isActive) ...[
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.red.withValues(alpha: 0.1),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                                                        ),
+                                                        child: const Text(
+                                                          'Permanently Off',
+                                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                                                        ),
+                                                      ),
+                                                    ] else if (isTemporarilyDisabled) ...[
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.amber.withValues(alpha: 0.12),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                                                        ),
+                                                        child: Text(
+                                                          'Off on $upcomingDateDisplay',
+                                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
+                                                        ),
                                                       ),
                                                     ],
-                                                  ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                           ),
                                           Switch(
-                                            value: slot.isActive,
+                                            value: isSlotActiveForUpcoming,
                                             activeThumbColor: const Color(0xFF0EA5E9),
                                             activeTrackColor: const Color(0xFFBAE6FD),
                                             onChanged: (value) => _toggleSlotStatus(slot),

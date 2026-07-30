@@ -9,6 +9,7 @@ class ScheduleEntity {
   final String hospitalName;
   final String hospitalPhone;
   final bool isActive;
+  final List<String> disabledDates;
 
   const ScheduleEntity({
     required this.id,
@@ -21,5 +22,6 @@ class ScheduleEntity {
     required this.hospitalName,
     required this.hospitalPhone,
     required this.isActive,
+    this.disabledDates = const [],
   });
 }

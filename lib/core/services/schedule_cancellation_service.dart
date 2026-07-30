@@ -12,6 +12,7 @@ class ScheduleCancellationService {
     required String day,
     String? startTime,
     String? endTime,
+    String? targetDate,
   }) async {
     try {
       final querySnapshot = await _firestore
@@ -26,11 +27,16 @@ class ScheduleCancellationService {
         final data = doc.data();
         data['id'] = doc.id;
         final apptTime = (data['time'] ?? '').toString();
+        final apptDate = (data['date'] ?? '').toString();
+
+        if (targetDate != null && targetDate.isNotEmpty) {
+          if (apptDate != targetDate) {
+            continue;
+          }
+        }
 
         if (startTime != null && endTime != null && apptTime.isNotEmpty) {
           if (apptTime == startTime || apptTime == "$startTime - $endTime" || apptTime.contains(startTime)) {
-            affected.add(data);
-          } else {
             affected.add(data);
           }
         } else {

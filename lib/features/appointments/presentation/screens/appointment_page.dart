@@ -103,15 +103,15 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
       DateTime date = DateTime(today.year, today.month, today.day).add(Duration(days: i));
       String weekdayFull = DateFormat('EEEE').format(date).toLowerCase();
       String weekdayShort = DateFormat('EEE').format(date).toLowerCase();
+      String dateKey = _dateKey(date);
 
       List<ScheduleModel> daySchedules = schedules.where((s) {
         final d = s.day.toLowerCase();
         return d.contains(weekdayFull) || d.contains(weekdayShort);
-      }).where((s) => s.isActive).toList();
+      }).where((s) => s.isActive && !s.disabledDates.contains(dateKey)).toList();
 
       if (daySchedules.isEmpty) continue;
 
-      String dateKey = _dateKey(date);
       Map<String, int> slotCapacities = {};
       Set<String> allSlots = {};
 
@@ -166,11 +166,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
     if (schedules.isEmpty) return [];
     String weekdayFull = DateFormat('EEEE').format(date).toLowerCase();
     String weekdayShort = DateFormat('EEE').format(date).toLowerCase();
+    String dateKey = _dateKey(date);
 
     List<ScheduleModel> daySchedules = schedules.where((s) {
       final d = s.day.toLowerCase();
       return d.contains(weekdayFull) || d.contains(weekdayShort);
-    }).where((s) => s.isActive).toList();
+    }).where((s) => s.isActive && !s.disabledDates.contains(dateKey)).toList();
 
     Set<String> slots = {};
     DateFormat ampm = DateFormat('hh:mm a');
@@ -211,12 +212,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   ScheduleModel? _getSelectedSchedule() {
     if (selectedDate == null) return null;
+    String dateKey = _dateKey(selectedDate!);
 
     return schedules.firstWhere(
       (schedule) {
         final dayMatches = schedule.day.toLowerCase().contains(DateFormat('EEEE').format(selectedDate!).toLowerCase()) ||
             schedule.day.toLowerCase().contains(DateFormat('EEE').format(selectedDate!).toLowerCase());
-        return dayMatches && schedule.isActive;
+        return dayMatches && schedule.isActive && !schedule.disabledDates.contains(dateKey);
       },
       orElse: () => schedules.isNotEmpty ? schedules.first : ScheduleModel(
         id: '',

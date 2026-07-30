@@ -12,6 +12,7 @@ class ScheduleModel extends ScheduleEntity {
     required super.hospitalName,
     required super.hospitalPhone,
     required super.isActive,
+    super.disabledDates = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -26,10 +27,16 @@ class ScheduleModel extends ScheduleEntity {
       'hospitalName': hospitalName,
       'hospitalPhone': hospitalPhone,
       'isActive': isActive,
+      'disabledDates': disabledDates,
     };
   }
 
   factory ScheduleModel.fromMap(Map<String, dynamic> map) {
+    List<String> parsedDisabledDates = [];
+    if (map['disabledDates'] != null && map['disabledDates'] is List) {
+      parsedDisabledDates = List<String>.from(map['disabledDates'].map((e) => e.toString()));
+    }
+
     return ScheduleModel(
       id: map['id'] ?? '',
       day: map['day'] ?? '',
@@ -43,6 +50,7 @@ class ScheduleModel extends ScheduleEntity {
       hospitalName: map['hospitalName'] ?? '',
       hospitalPhone: map['hospitalPhone'] ?? '',
       isActive: map['isActive'] ?? true,
+      disabledDates: parsedDisabledDates,
     );
   }
 
@@ -58,6 +66,7 @@ class ScheduleModel extends ScheduleEntity {
       hospitalName: entity.hospitalName,
       hospitalPhone: entity.hospitalPhone,
       isActive: entity.isActive,
+      disabledDates: entity.disabledDates,
     );
   }
 
