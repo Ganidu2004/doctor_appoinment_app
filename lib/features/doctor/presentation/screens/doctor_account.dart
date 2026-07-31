@@ -211,7 +211,7 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _hospital.isNotEmpty ? '$_doctorTitle â€¢ $_hospital' : _doctorTitle,
+                            _hospital.isNotEmpty ? '$_doctorTitle • $_hospital' : _doctorTitle,
                             style: TextStyle(
                               fontSize: 12, 
                               color: Colors.white.withValues(alpha: 0.9),

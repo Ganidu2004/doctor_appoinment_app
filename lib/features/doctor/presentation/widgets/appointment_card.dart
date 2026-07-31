@@ -8,6 +8,7 @@ class AppointmentCard extends StatelessWidget {
   final String? amount;
   final String? reason;
   final String? imageUrl;
+  final String? queueToken;
   final VoidCallback? onAccept;
   final VoidCallback? onDecline;
   final VoidCallback? onReceipt;
@@ -23,6 +24,7 @@ class AppointmentCard extends StatelessWidget {
     this.amount,
     this.reason,
     this.imageUrl,
+    this.queueToken,
     this.onAccept,
     this.onDecline,
     this.onReceipt,
@@ -174,6 +176,26 @@ class AppointmentCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
+                      if (queueToken != null && queueToken!.trim().isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE0F2FE),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFBAE6FD)),
+                          ),
+                          child: Text(
+                            queueToken!.startsWith('#') ? queueToken! : '#$queueToken',
+                            style: const TextStyle(
+                              color: Color(0xFF0284C7),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
                       // Status Badge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

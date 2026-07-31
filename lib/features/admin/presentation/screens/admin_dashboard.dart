@@ -710,7 +710,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
-                                                    "Dr. $doctorName â€¢ $specialization",
+                                                    "Dr. $doctorName • $specialization",
                                                     style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,

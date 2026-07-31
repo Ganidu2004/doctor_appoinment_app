@@ -12,6 +12,7 @@ import 'package:appoinment_app/features/patient/presentation/screens/recommend_d
 import 'package:appoinment_app/core/services/schedule_cancellation_service.dart';
 import 'package:appoinment_app/features/appointments/presentation/screens/hospital_booking_pass_page.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/core/utils/text_sanitizer.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -812,11 +813,11 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
   final TextEditingController _commentCtrl = TextEditingController();
 
   final List<String> _availableTags = [
-    'âš¡ Fast Care',
-    'ðŸ©º Detailed Exam',
-    'ðŸ’¬ Great Advice',
-    'ðŸ˜Š Friendly',
-    'â° On Time',
+    'Fast Care',
+    'Detailed Exam',
+    'Great Advice',
+    'Friendly',
+    'On Time',
   ];
 
   @override
@@ -835,15 +836,15 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
   String _getSentimentText(int rating) {
     switch (rating) {
       case 1:
-        return 'Poor ðŸ˜¡';
+        return 'Poor';
       case 2:
-        return 'Fair ðŸ˜';
+        return 'Fair';
       case 3:
-        return 'Good ðŸ™‚';
+        return 'Good';
       case 4:
-        return 'Very Good ðŸ˜Š';
+        return 'Very Good';
       case 5:
-        return 'Exceptional! ðŸŒŸ';
+        return 'Exceptional!';
       default:
         return '';
     }
@@ -860,8 +861,11 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
 
       String commentText = _commentCtrl.text.trim();
       if (_selectedTags.isNotEmpty) {
-        final tagsStr = 'Tags: ${_selectedTags.join(', ')}';
-        commentText = commentText.isEmpty ? tagsStr : '$commentText ($tagsStr)';
+        final cleanTags = _selectedTags.map((t) => cleanGarbledText(t)).where((t) => t.isNotEmpty).toList();
+        if (cleanTags.isNotEmpty) {
+          final tagsStr = 'Tags: ${cleanTags.join(', ')}';
+          commentText = commentText.isEmpty ? tagsStr : '$commentText ($tagsStr)';
+        }
       }
 
       final data = {
@@ -1290,12 +1294,12 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
   bool _wouldRecommend = true;
 
   final List<String> _availableTags = [
-    'ðŸ‘¨â€âš•ï¸ Great Advice',
-    'â±ï¸ Minimal Wait',
-    'ðŸ©º Thorough Care',
-    'ðŸ¤ Friendly Staff',
-    'âœ¨ Clean Clinic',
-    'ðŸ’Š Clear Plan',
+    'Great Advice',
+    'Minimal Wait',
+    'Thorough Care',
+    'Friendly Staff',
+    'Clean Clinic',
+    'Clear Plan',
   ];
 
   @override
@@ -1353,7 +1357,7 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
         'patientUid': widget.patientUid,
         'rating': _rating,
         'comment': _commentController.text.trim(),
-        'tags': _selectedTags.toList(),
+        'tags': _selectedTags.map((t) => cleanGarbledText(t)).where((t) => t.isNotEmpty).toList(),
         'wouldRecommend': _wouldRecommend,
         'updatedAt': FieldValue.serverTimestamp(),
       };
@@ -1388,15 +1392,15 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
   Widget _buildSentimentBadge() {
     switch (_rating) {
       case 5:
-        return _badgePill('ðŸŒŸ Exceptional Consultation!', const Color(0xFFECFDF5), const Color(0xFF047857), const Color(0xFFA7F3D0));
+        return _badgePill('Exceptional Consultation!', const Color(0xFFECFDF5), const Color(0xFF047857), const Color(0xFFA7F3D0));
       case 4:
-        return _badgePill('ðŸ˜Š Very Satisfied!', const Color(0xFFEFF6FF), const Color(0xFF1D4ED8), const Color(0xFFBFDBFE));
+        return _badgePill('Very Satisfied!', const Color(0xFFEFF6FF), const Color(0xFF1D4ED8), const Color(0xFFBFDBFE));
       case 3:
-        return _badgePill('ðŸ™‚ Good Experience', const Color(0xFFF0F9FF), const Color(0xFF0369A1), const Color(0xFFBAE6FD));
+        return _badgePill('Good Experience', const Color(0xFFF0F9FF), const Color(0xFF0369A1), const Color(0xFFBAE6FD));
       case 2:
-        return _badgePill('ðŸ˜ Could Be Better', const Color(0xFFFEF3C7), const Color(0xFFB45309), const Color(0xFFFDE68A));
+        return _badgePill('Could Be Better', const Color(0xFFFEF3C7), const Color(0xFFB45309), const Color(0xFFFDE68A));
       case 1:
-        return _badgePill('ðŸ˜¡ Disappointed', const Color(0xFFFEE2E2), const Color(0xFFB91C1C), const Color(0xFFFCA5A5));
+        return _badgePill('Disappointed', const Color(0xFFFEE2E2), const Color(0xFFB91C1C), const Color(0xFFFCA5A5));
       default:
         return const SizedBox.shrink();
     }
@@ -1622,7 +1626,7 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                                   ),
                                 ),
                                 child: Text(
-                                  'ðŸ‘ Yes',
+                                  'Yes',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -1644,7 +1648,7 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                                   ),
                                 ),
                                 child: Text(
-                                  'ðŸ‘Ž No',
+                                  'No',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -1993,7 +1997,7 @@ class _CancellationInvoicesSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // âš¡ Interactive Patient Resolution Buttons (if Pending Patient Choice)
+                // Interactive Patient Resolution Buttons (if Pending Patient Choice)
                 if (isPendingChoice) ...[
                   const Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
                   const SizedBox(height: 10),

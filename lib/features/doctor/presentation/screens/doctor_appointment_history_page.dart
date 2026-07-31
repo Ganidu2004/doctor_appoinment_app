@@ -352,7 +352,7 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                                 const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF0EA5E9)),
                                                 const SizedBox(width: 6),
                                                 Text(
-                                                  '$date â€¢ $time',
+                                                  '$date • $time',
                                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                                                 ),
                                               ],
@@ -378,7 +378,7 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                             ),
                                             icon: const Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF475569)),
-                                            label: const Text('Receipt ðŸ“„', style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 12)),
+                                            label: const Text('Receipt', style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 12)),
                                           ),
                                         ],
                                       ),

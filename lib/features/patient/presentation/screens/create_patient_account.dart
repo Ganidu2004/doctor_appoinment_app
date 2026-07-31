@@ -186,7 +186,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                 ),
                 const SizedBox(height: 32),
 
-                // ðŸ“¸ --- IMAGE PICKER UI SECTION ---
+                // --- IMAGE PICKER UI SECTION ---
                 Center(
                   child: Stack(
                     children: [
@@ -343,7 +343,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                 ),
                 const SizedBox(height: 20),
 
-                // ðŸªª --- NIC NUMBER FIELD (with Validation) ---
+                // --- NIC NUMBER FIELD (with Validation) ---
                 TextModelField(
                   controller: _nicController,
                   labelText: 'NIC Number',
@@ -365,7 +365,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                 ),
                 const SizedBox(height: 20),
 
-                // ðŸ“ž --- PHONE NUMBER FIELD (with Validation) ---
+                // --- PHONE NUMBER FIELD (with Validation) ---
                 TextModelField(
                   controller: _phoneController,
                   labelText: 'Phone Number',

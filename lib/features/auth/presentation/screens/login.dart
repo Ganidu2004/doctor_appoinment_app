@@ -66,13 +66,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return; // ðŸ‘ˆ Safety return check
+      if (!mounted) return; // Safety return check
       setState(() {
         _notificationMessage = e.message ?? 'Login failed. Please check credentials.';
         _isSuccessNotification = false;
       });
     } catch (e) {
-      if (!mounted) return; // ðŸ‘ˆ Safety return check
+      if (!mounted) return; // Safety return check
       setState(() {
         _notificationMessage = e.toString().contains('TimeoutException')
             ? 'Connection timed out. Please check your internet connection.'

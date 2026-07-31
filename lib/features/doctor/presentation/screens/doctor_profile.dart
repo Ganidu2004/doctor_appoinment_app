@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/core/utils/text_sanitizer.dart';
 
 class DoctorDetailPage extends StatefulWidget {
   final String doctorId;
@@ -526,16 +527,16 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               // Parse tags from data['tags'] or legacy comment string
               List<String> tags = [];
               if (data['tags'] is List) {
-                tags = (data['tags'] as List).map((e) => e.toString()).toList();
+                tags = (data['tags'] as List).map((e) => cleanGarbledText(e.toString())).where((t) => t.isNotEmpty).toList();
               } else if (rawComment.contains('(Tags:')) {
-                final match = RegExp(r'\(Tags:\s*ðŸ’¬?\s*([^)]+)\)').firstMatch(rawComment);
+                final match = RegExp(r'\(Tags:\s*([^)]+)\)').firstMatch(rawComment);
                 if (match != null) {
-                  tags = match.group(1)!.split(',').map((t) => t.trim()).toList();
+                  tags = match.group(1)!.split(',').map((t) => cleanGarbledText(t.trim())).where((t) => t.isNotEmpty).toList();
                 }
               }
 
-              // Clean comment text by stripping legacy tags suffix
-              String cleanComment = rawComment.replaceAll(RegExp(r'\s*\(Tags:.*?\)$'), '').trim();
+              // Clean comment text by stripping legacy tags suffix & garbled characters
+              String cleanComment = cleanGarbledText(rawComment.replaceAll(RegExp(r'\s*\(Tags:.*?\)$'), '').trim());
               if (cleanComment.isEmpty) {
                 cleanComment = 'Great consultation & compassionate care.';
               }

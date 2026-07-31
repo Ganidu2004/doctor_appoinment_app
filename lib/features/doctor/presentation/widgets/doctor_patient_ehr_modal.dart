@@ -20,8 +20,8 @@ class DoctorPatientEhrModal extends StatefulWidget {
 
 class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final TextEditingController _allergyController = TextEditingController();
-  final TextEditingController _diagnosisController = TextEditingController();
+  final TextEditingController _itemController = TextEditingController();
+  String _selectedCategory = 'Allergies';
 
   @override
   void initState() {
@@ -32,8 +32,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   @override
   void dispose() {
     _tabController.dispose();
-    _allergyController.dispose();
-    _diagnosisController.dispose();
+    _itemController.dispose();
     super.dispose();
   }
 
@@ -69,15 +68,20 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.folder_shared_rounded, color: Color(0xFF0EA5E9), size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${_formatName(widget.patientName)}\'s EHR Record',
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.folder_shared_rounded, color: Color(0xFF0EA5E9), size: 24),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${_formatName(widget.patientName)}\'s EHR Record',
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
@@ -105,12 +109,12 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             ),
           ),
 
-          // StreamBuilder to sync patient doc in real-time
+          // Real-time Stream of Patient Record from Firestore
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance.collection('patients').doc(widget.patientUid).snapshots(),
               builder: (context, snapshot) {
-                Map<String, dynamic> pData = widget.initialPatientData;
+                Map<String, dynamic> pData = Map<String, dynamic>.from(widget.initialPatientData);
                 if (snapshot.hasData && snapshot.data!.exists && snapshot.data!.data() != null) {
                   pData = {...pData, ...(snapshot.data!.data() as Map<String, dynamic>)};
                 }
@@ -118,13 +122,13 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                 return TabBarView(
                   controller: _tabController,
                   children: [
-                    // Tab 1: Patient Profile & Demographics
+                    // Tab 1: Dynamic Patient Profile & Demographics
                     _buildPatientProfileTab(pData),
 
-                    // Tab 2: Medical History (EMR / EHR)
+                    // Tab 2: Dynamic EMR / Medical History
                     _buildMedicalHistoryTab(pData),
 
-                    // Tab 3: Visit History & Clinical Notes Logs
+                    // Tab 3: Dynamic Visit History & Clinical Notes Logs
                     _buildVisitHistoryTab(doctorUser?.uid),
                   ],
                 );
@@ -137,18 +141,20 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   }
 
   // -------------------------------------------------------------
-  // TAB 1: PATIENT PROFILE & DEMOGRAPHICS
+  // TAB 1: PATIENT PROFILE & DEMOGRAPHICS (DYNAMIC FROM DATABASE)
   // -------------------------------------------------------------
   Widget _buildPatientProfileTab(Map<String, dynamic> data) {
-    final String age = (data['age'] ?? '26').toString();
-    final String gender = (data['gender'] ?? 'Male').toString();
-    final String bloodGroup = (data['bloodGroup'] ?? data['blood'] ?? 'O+').toString();
-    final String phone = (data['phone'] ?? '+94 77 123 4567').toString();
-    final String email = (data['email'] ?? 'patient@gmail.com').toString();
-    final String address = (data['address'] ?? 'Colombo, Sri Lanka').toString();
-    final String emergencyContactName = (data['emergencyContactName'] ?? data['emergencyName'] ?? 'Nimal Chalinda').toString();
-    final String emergencyContactPhone = (data['emergencyContactPhone'] ?? data['emergencyPhone'] ?? '+94 71 987 6543').toString();
-    final String emergencyRelation = (data['emergencyRelation'] ?? 'Father / Guardian').toString();
+    final String name = (data['name'] ?? widget.patientName).toString();
+    final String age = (data['age'] ?? 'N/A').toString();
+    final String gender = (data['gender'] ?? 'N/A').toString();
+    final String bloodGroup = (data['bloodGroup'] ?? data['blood'] ?? 'Not Specified').toString();
+    final String phone = (data['phone'] ?? data['phoneNumber'] ?? data['contact'] ?? 'Not Provided').toString();
+    final String email = (data['email'] ?? data['emailAddress'] ?? 'Not Provided').toString();
+    final String address = (data['address'] ?? data['residentialAddress'] ?? 'Not Provided').toString();
+    
+    final String emergencyContactName = (data['emergencyContactName'] ?? data['emergencyName'] ?? 'Not Specified').toString();
+    final String emergencyContactPhone = (data['emergencyContactPhone'] ?? data['emergencyPhone'] ?? 'Not Specified').toString();
+    final String emergencyRelation = (data['emergencyRelation'] ?? data['relation'] ?? 'Guardian / Relative').toString();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
@@ -176,7 +182,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                   radius: 28,
                   backgroundColor: const Color(0xFFE0F2FE),
                   child: Text(
-                    widget.patientName.isNotEmpty ? widget.patientName[0].toUpperCase() : 'P',
+                    name.isNotEmpty ? name[0].toUpperCase() : 'P',
                     style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 24),
                   ),
                 ),
@@ -185,9 +191,14 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_formatName(widget.patientName), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                      const SizedBox(height: 4),
-                      Row(
+                      Text(
+                        _formatName(name),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -195,9 +206,11 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text('$age Yrs • $gender', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                            child: Text(
+                              age != 'N/A' ? '$age Yrs • $gender' : gender,
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                            ),
                           ),
-                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
@@ -205,7 +218,10 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: const Color(0xFFFCA5A5)),
                             ),
-                            child: Text('Blood: $bloodGroup 🩸', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
+                            child: Text(
+                              'Blood: $bloodGroup 🩸',
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)),
+                            ),
                           ),
                         ],
                       ),
@@ -217,7 +233,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           ),
           const SizedBox(height: 18),
 
-          // Contact Details
+          // Contact Details Section
           const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
           const SizedBox(height: 10),
           Container(
@@ -251,9 +267,19 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             ),
             child: Column(
               children: [
-                _buildInfoTile(Icons.contact_phone_outlined, 'Contact Name & Relation', '$emergencyContactName ($emergencyRelation)', titleColor: const Color(0xFF9F1239)),
+                _buildInfoTile(
+                  Icons.contact_phone_outlined,
+                  'Contact Name & Relation',
+                  emergencyContactName != 'Not Specified' ? '$emergencyContactName ($emergencyRelation)' : 'Not Specified',
+                  titleColor: const Color(0xFF9F1239),
+                ),
                 const Divider(height: 16, color: Color(0xFFFECDD3)),
-                _buildInfoTile(Icons.phone_in_talk_rounded, 'Emergency Phone', emergencyContactPhone, titleColor: const Color(0xFF9F1239)),
+                _buildInfoTile(
+                  Icons.phone_in_talk_rounded,
+                  'Emergency Phone',
+                  emergencyContactPhone,
+                  titleColor: const Color(0xFF9F1239),
+                ),
               ],
             ),
           ),
@@ -263,24 +289,28 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   }
 
   // -------------------------------------------------------------
-  // TAB 2: MEDICAL HISTORY (EMR / EHR)
+  // TAB 2: MEDICAL HISTORY (EMR / EHR) - DYNAMIC FROM DATABASE
   // -------------------------------------------------------------
   Widget _buildMedicalHistoryTab(Map<String, dynamic> data) {
     final List<String> allergies = (data['allergies'] is List)
         ? (data['allergies'] as List).map((e) => e.toString()).toList()
-        : ['Penicillin ⚠️', 'Dust & Pollen'];
+        : [];
 
     final List<String> diagnoses = (data['diagnoses'] is List)
         ? (data['diagnoses'] as List).map((e) => e.toString()).toList()
-        : ['Mild Asthma', 'Seasonal Allergies'];
+        : [];
 
     final List<String> surgeries = (data['surgeries'] is List)
         ? (data['surgeries'] as List).map((e) => e.toString()).toList()
-        : ['Appendectomy (2022)'];
+        : [];
 
     final List<String> familyHistory = (data['familyHistory'] is List)
         ? (data['familyHistory'] as List).map((e) => e.toString()).toList()
-        : ['Hypertension (Maternal)', 'Diabetes (Paternal)'];
+        : [];
+
+    final List<String> medications = (data['currentMedications'] is List)
+        ? (data['currentMedications'] as List).map((e) => e.toString()).toList()
+        : [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
@@ -295,6 +325,19 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             items: allergies,
             chipColor: const Color(0xFFFEE2E2),
             textColor: const Color(0xFF991B1B),
+            emptyMessage: 'No known allergies recorded.',
+          ),
+          const SizedBox(height: 16),
+
+          // Current Medications
+          _buildEmrCard(
+            title: 'Active Medications 💊',
+            color: const Color(0xFFF0FDF4),
+            borderColor: const Color(0xFFA7F3D0),
+            items: medications,
+            chipColor: const Color(0xFFDCFCE7),
+            textColor: const Color(0xFF166534),
+            emptyMessage: 'No active medications logged.',
           ),
           const SizedBox(height: 16),
 
@@ -306,6 +349,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             items: diagnoses,
             chipColor: const Color(0xFFE0F2FE),
             textColor: const Color(0xFF0369A1),
+            emptyMessage: 'No chronic conditions logged.',
           ),
           const SizedBox(height: 16),
 
@@ -317,27 +361,29 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             items: surgeries,
             chipColor: const Color(0xFFF3E8FF),
             textColor: const Color(0xFF6B21A8),
+            emptyMessage: 'No surgical history logged.',
           ),
           const SizedBox(height: 16),
 
           // Family Medical History
           _buildEmrCard(
             title: 'Family Medical History 🧬',
-            color: const Color(0xFFECFDF5),
-            borderColor: const Color(0xFFA7F3D0),
+            color: const Color(0xFFFFFBEB),
+            borderColor: const Color(0xFFFDE68A),
             items: familyHistory,
-            chipColor: const Color(0xD1D1FBE4),
-            textColor: const Color(0xFF047857),
+            chipColor: const Color(0xFFFEF3C7),
+            textColor: const Color(0xFFB45309),
+            emptyMessage: 'No family medical history recorded.',
           ),
           const SizedBox(height: 20),
 
-          // Add Allergy / Note Action Button
+          // Add Allergy / EMR Entry Action Button
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => _showAddEmrDialog(context),
               icon: const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF0EA5E9)),
-              label: const Text('+ Add Medical Note / Allergy', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0EA5E9))),
+              label: const Text('+ Add Clinical Note / Allergy', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0EA5E9))),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFF0EA5E9)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -351,7 +397,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   }
 
   // -------------------------------------------------------------
-  // TAB 3: VISIT HISTORY & CLINICAL NOTES LOGS
+  // TAB 3: VISIT HISTORY & CLINICAL NOTES LOGS (DYNAMIC FROM DATABASE)
   // -------------------------------------------------------------
   Widget _buildVisitHistoryTab(String? doctorId) {
     return StreamBuilder<QuerySnapshot>(
@@ -360,7 +406,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           .where('patientUid', isEqualTo: widget.patientUid)
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9)));
         }
 
@@ -393,12 +439,17 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
-            final String date = (data['date'] ?? 'Recent Date').toString();
-            final String time = (data['time'] ?? '10:00 AM').toString();
-            final String status = (data['status'] ?? 'Completed').toString();
-            final String hospital = (data['hospitalName'] ?? data['hospital'] ?? 'Medical Center').toString();
-            final String notes = (data['notes'] ?? data['reason'] ?? 'General Health Checkup').toString();
-            final String diagnosis = (data['diagnosis'] ?? 'Clinical Consultation Complete').toString();
+            final String date = (data['date'] ?? 'N/A').toString();
+            final String time = (data['time'] ?? 'N/A').toString();
+            final String status = (data['status'] ?? 'Booked').toString();
+            final String hospital = (data['hospitalName'] ?? data['hospital'] ?? 'Consultation Center').toString();
+            final String notes = (data['notes'] ?? data['reason'] ?? 'Routine consultation').toString();
+            final String diagnosis = (data['diagnosis'] ?? 'Consultation Completed').toString();
+            final String cType = (data['consultationType'] ?? 'In-Person Clinic').toString();
+            final String tokenStr = (data['queueToken'] ?? (data['tokenNumber'] != null ? '#${data['tokenNumber'].toString().padLeft(2, '0')}' : '')).toString();
+
+            final bool isCompleted = status.toLowerCase().contains('complet');
+            final bool isCancelled = status.toLowerCase().contains('cancel');
 
             return Container(
               margin: const EdgeInsets.only(bottom: 14),
@@ -426,21 +477,53 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                           const Icon(Icons.event_note_rounded, color: Color(0xFF0EA5E9), size: 18),
                           const SizedBox(width: 6),
                           Text('$date • $time', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+                          if (tokenStr.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0F2FE),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(tokenStr, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                            ),
+                          ],
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
+                          color: isCompleted
+                              ? const Color(0xFFECFDF5)
+                              : isCancelled
+                                  ? const Color(0xFFFEF2F2)
+                                  : const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                          border: Border.all(
+                            color: isCompleted
+                                ? const Color(0xFFA7F3D0)
+                                : isCancelled
+                                    ? const Color(0xFFFECDD3)
+                                    : const Color(0xFFFDE68A),
+                          ),
                         ),
-                        child: Text(status.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF047857))),
+                        child: Text(
+                          status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isCompleted
+                                ? const Color(0xFF047857)
+                                : isCancelled
+                                    ? Colors.redAccent
+                                    : const Color(0xFFB45309),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text('Hospital: $hospital', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(height: 6),
+                  Text('Center: $hospital • $cType', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                   const SizedBox(height: 10),
 
                   Container(
@@ -456,7 +539,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                       children: [
                         Text('Impression: $diagnosis', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF334155))),
                         const SizedBox(height: 4),
-                        Text('Notes: $notes', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                        Text('Notes / Reason: $notes', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
                       ],
                     ),
                   ),
@@ -495,6 +578,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
     required List<String> items,
     required Color chipColor,
     required Color textColor,
+    required String emptyMessage,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -509,7 +593,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor)),
           const SizedBox(height: 10),
           if (items.isEmpty)
-            const Text('No records logged.', style: TextStyle(fontSize: 12, color: Color(0xFF64748B)))
+            Text(emptyMessage, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))
           else
             Wrap(
               spacing: 8,
@@ -534,38 +618,65 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Medical Note / Allergy', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _allergyController,
-                decoration: const InputDecoration(labelText: 'Allergy or Chronic Condition'),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Clinical Entry', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCategory,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: const [
+                      DropdownMenuItem(value: 'Allergies', child: Text('Allergies & Adverse Reactions')),
+                      DropdownMenuItem(value: 'Medications', child: Text('Active Medication')),
+                      DropdownMenuItem(value: 'Diagnoses', child: Text('Past Diagnoses / Chronic Condition')),
+                      DropdownMenuItem(value: 'Surgeries', child: Text('Surgeries & Procedures')),
+                      DropdownMenuItem(value: 'FamilyHistory', child: Text('Family Medical History')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => _selectedCategory = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _itemController,
+                    decoration: const InputDecoration(labelText: 'Entry details (e.g. Penicillin, Asthma)'),
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () async {
-                if (_allergyController.text.trim().isNotEmpty) {
-                  await FirebaseFirestore.instance.collection('patients').doc(widget.patientUid).set({
-                    'allergies': FieldValue.arrayUnion([_allergyController.text.trim()]),
-                  }, SetOptions(merge: true));
-                  _allergyController.clear();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('EHR record updated! 🏥'), backgroundColor: Color(0xFF10B981)),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0EA5E9)),
-              child: const Text('Save Note', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    final text = _itemController.text.trim();
+                    if (text.isNotEmpty) {
+                      String fieldKey = 'allergies';
+                      if (_selectedCategory == 'Medications') fieldKey = 'currentMedications';
+                      if (_selectedCategory == 'Diagnoses') fieldKey = 'diagnoses';
+                      if (_selectedCategory == 'Surgeries') fieldKey = 'surgeries';
+                      if (_selectedCategory == 'FamilyHistory') fieldKey = 'familyHistory';
+
+                      await FirebaseFirestore.instance.collection('patients').doc(widget.patientUid).set({
+                        fieldKey: FieldValue.arrayUnion([text]),
+                      }, SetOptions(merge: true));
+
+                      _itemController.clear();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('EHR record updated! 🏥'), backgroundColor: Color(0xFF10B981)),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0EA5E9)),
+                  child: const Text('Save Entry', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
         );
       },
     );

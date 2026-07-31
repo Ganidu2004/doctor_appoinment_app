@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/core/utils/text_sanitizer.dart';
 
 class DoctorReviewsPage extends StatefulWidget {
   const DoctorReviewsPage({super.key});
@@ -532,7 +533,7 @@ class _CreativePatientFeedbackCardState extends State<_CreativePatientFeedbackCa
 
     // Clean up "(Tags: ...)" inside rawComment if embedded
     if (rawComment.contains('(Tags:')) {
-      final tagMatch = RegExp(r'\(Tags:\s*💬?\s*([^)]+)\)').firstMatch(rawComment);
+      final tagMatch = RegExp(r'\(Tags:\s*([^)]+)\)').firstMatch(rawComment);
       if (tagMatch != null) {
         final extractedTag = tagMatch.group(1)?.trim() ?? '';
         if (extractedTag.isNotEmpty && extractedTag != '[]') {
@@ -545,6 +546,9 @@ class _CreativePatientFeedbackCardState extends State<_CreativePatientFeedbackCa
     if (rawTags == '[]' || rawTags == 'null') {
       rawTags = '';
     }
+
+    rawComment = cleanGarbledText(rawComment);
+    rawTags = cleanGarbledText(rawTags);
 
     final String formattedDate = _formatReviewDate(widget.reviewData['date']);
 

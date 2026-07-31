@@ -42,6 +42,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   DateTime? selectedDate;
   String? selectedTime;
+  String selectedConsultationType = 'In-Person Clinic Visit';
   bool loading = true;
 
   @override
@@ -253,6 +254,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
           scheduleId: selectedSchedule.id,
           appointmentDate: DateFormat('MMMM d, yyyy').format(selectedDate!),
           appointmentTime: selectedTime!,
+          consultationType: selectedConsultationType,
         ),
       ),
     );
@@ -296,7 +298,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              "Step 1 of 2 â€¢ Date & Time",
+              "Step 1 of 2 • Date & Time",
               style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500),
             ),
           ],
@@ -312,6 +314,8 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 if (doctorData != null) _buildDoctorCard(doctorData!),
                 const SizedBox(height: 16),
                 _buildHospitalDetails(),
+                const SizedBox(height: 16),
+                _buildConsultationTypeSelector(),
                 _buildDateSelector(),
                 const SizedBox(height: 20),
                 _buildGeneratedSlotSection(),
@@ -399,7 +403,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  "${data['specialization'] ?? 'Specialist'} â€¢ ${data['experience'] ?? '0'} yrs exp",
+                  "${data['specialization'] ?? 'Specialist'} • ${data['experience'] ?? '0'} yrs exp",
                   style: const TextStyle(
                     color: Color(0xFF0284C7),
                     fontWeight: FontWeight.bold,
@@ -580,6 +584,159 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConsultationTypeSelector() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.video_camera_front_rounded, color: Color(0xFF0EA5E9), size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Select Consultation Type',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => selectedConsultationType = 'In-Person Clinic Visit'),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: selectedConsultationType == 'In-Person Clinic Visit'
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: selectedConsultationType == 'In-Person Clinic Visit'
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFE2E8F0),
+                        width: selectedConsultationType == 'In-Person Clinic Visit' ? 2 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: selectedConsultationType == 'In-Person Clinic Visit'
+                                ? const Color(0xFFDBEAFE)
+                                : const Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.local_hospital_rounded,
+                            color: selectedConsultationType == 'In-Person Clinic Visit'
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF64748B),
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'In-Person Clinic',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: selectedConsultationType == 'In-Person Clinic Visit'
+                                ? const Color(0xFF1E40AF)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Hospital Visit',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => selectedConsultationType = 'Online / Live Video Consultation'),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: selectedConsultationType == 'Online / Live Video Consultation'
+                          ? const Color(0xFFECFDF5)
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: selectedConsultationType == 'Online / Live Video Consultation'
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFE2E8F0),
+                        width: selectedConsultationType == 'Online / Live Video Consultation' ? 2 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: selectedConsultationType == 'Online / Live Video Consultation'
+                                ? const Color(0xFFA7F3D0)
+                                : const Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.videocam_rounded,
+                            color: selectedConsultationType == 'Online / Live Video Consultation'
+                                ? const Color(0xFF047857)
+                                : const Color(0xFF64748B),
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Online / Live Video',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: selectedConsultationType == 'Online / Live Video Consultation'
+                                ? const Color(0xFF047857)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Virtual Room',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1022,7 +1179,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             SizedBox(width: 10),
             Expanded(
               child: Text(
-                "Consultations usually take 20â€“30 minutes. Please arrive 10 minutes prior to your slot time for check-in.",
+                "Consultations usually take 20-30 minutes. Please arrive 10 minutes prior to your slot time for check-in.",
                 style: TextStyle(fontSize: 12, color: Color(0xFF0369A1), height: 1.4, fontWeight: FontWeight.w500),
               ),
             ),

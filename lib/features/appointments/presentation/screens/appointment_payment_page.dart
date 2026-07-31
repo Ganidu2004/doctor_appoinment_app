@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 import 'hospital_booking_pass_page.dart';
 
@@ -10,6 +11,7 @@ class ConfirmBookingScreen extends StatefulWidget {
   final String scheduleId;
   final String appointmentDate;
   final String appointmentTime;
+  final String consultationType;
 
   const ConfirmBookingScreen({
     super.key,
@@ -18,6 +20,7 @@ class ConfirmBookingScreen extends StatefulWidget {
     required this.scheduleId,
     required this.appointmentDate,
     required this.appointmentTime,
+    this.consultationType = 'In-Person Clinic Visit',
   });
 
   @override
@@ -105,6 +108,20 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     return 0.0;
   }
 
+  int _parseTimeToMinutes(String timeStr) {
+    if (timeStr.isEmpty) return 0;
+    final clean = timeStr.trim();
+    try {
+      final dt = DateFormat('hh:mm a').parseLoose(clean);
+      return dt.hour * 60 + dt.minute;
+    } catch (_) {}
+    try {
+      final dt = DateFormat('HH:mm').parseLoose(clean);
+      return dt.hour * 60 + dt.minute;
+    } catch (_) {}
+    return 0;
+  }
+
   Future<void> _confirmBooking() async {
     if (_patientNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter patient name.')));
@@ -126,8 +143,37 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
       final String generatedBookingNo = 'DOC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
+      // Cumulative token calculation across preceding time blocks up to current slot
+      final existingBookingsSnap = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where('doctorId', isEqualTo: widget.doctorId)
+          .where('date', isEqualTo: widget.appointmentDate)
+          .get();
+
+      final int selectedMinutes = _parseTimeToMinutes(widget.appointmentTime);
+      int precedingBookingsCount = 0;
+      int currentSlotBookingsCount = 0;
+
+      for (var doc in existingBookingsSnap.docs) {
+        final data = doc.data();
+        final timeStr = (data['time'] ?? '').toString();
+        if (timeStr.isEmpty) continue;
+
+        final slotMinutes = _parseTimeToMinutes(timeStr);
+        if (slotMinutes < selectedMinutes) {
+          precedingBookingsCount++;
+        } else if (slotMinutes == selectedMinutes) {
+          currentSlotBookingsCount++;
+        }
+      }
+
+      final int tokenNumber = precedingBookingsCount + currentSlotBookingsCount + 1;
+      final String queueToken = '#${tokenNumber.toString().padLeft(2, '0')}';
+
       final appointmentRef = await FirebaseFirestore.instance.collection('appointments').add({
         'bookingNo': generatedBookingNo,
+        'tokenNumber': tokenNumber,
+        'queueToken': queueToken,
         'doctorId': widget.doctorId,
         'patientUid': widget.patientUid,
         'scheduleId': widget.scheduleId,
@@ -136,6 +182,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         'hospitalName': hospitalName,
         'date': widget.appointmentDate,
         'time': widget.appointmentTime,
+        'consultationType': widget.consultationType,
+        'queueStatus': 'waiting',
         'consultationFee': consultationFee,
         'hospitalCharges': _hospitalCharges,
         'patientName': _patientNameController.text.trim(),
@@ -319,7 +367,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             ),
             const SizedBox(height: 2),
             const Text(
-              'Step 2 of 2 â€¢ Final Review',
+              'Step 2 of 2 • Final Review',
               style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
             ),
           ],
@@ -565,7 +613,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Platform Service Fee', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Text('FREE âœ¨', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 12)),
+                              Text('FREE \u2728', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 12)),
                             ],
                           ),
                           const Padding(
@@ -753,7 +801,7 @@ class SuccessPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  "Booking Confirmed! ðŸŽ‰",
+                  "Booking Confirmed!",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -849,7 +897,7 @@ class SuccessPage extends StatelessWidget {
                         ),
                         icon: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 20),
                         label: const Text(
-                          "View Hospital Pass ðŸŽŸï¸",
+                          "View Hospital Pass",
                           style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ),

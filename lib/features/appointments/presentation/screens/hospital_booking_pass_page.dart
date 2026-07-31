@@ -41,30 +41,46 @@ class HospitalBookingPassPage extends StatelessWidget {
     }
 
     if (appointmentId != null && appointmentId!.isNotEmpty) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0.5,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            'Hospital Booking Pass',
-            style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          centerTitle: true,
-        ),
-        body: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('appointments').doc(appointmentId).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9)));
-            }
+      return StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('appointments').doc(appointmentId).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF1F5F9),
+              appBar: AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0.5,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                title: const Text(
+                  'Hospital Verification Pass',
+                  style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                centerTitle: true,
+              ),
+              body: const Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9))),
+            );
+          }
 
-            if (!snapshot.hasData || !snapshot.data!.exists) {
-              return Center(
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF1F5F9),
+              appBar: AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0.5,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                title: const Text(
+                  'Hospital Verification Pass',
+                  style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                centerTitle: true,
+              ),
+              body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -78,25 +94,30 @@ class HospitalBookingPassPage extends StatelessWidget {
                     ),
                   ],
                 ),
-              );
-            }
+              ),
+            );
+          }
 
-            final data = snapshot.data!.data() as Map<String, dynamic>;
-            return _buildPassContent(context, data, snapshot.data!.id);
-          },
-        ),
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          return _buildPassContent(context, data, snapshot.data!.id);
+        },
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
         backgroundColor: Colors.white,
+        elevation: 0.5,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Hospital Booking Pass'),
+        title: const Text(
+          'Hospital Verification Pass',
+          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        centerTitle: true,
       ),
       body: const Center(child: Text('No booking information provided.')),
     );
@@ -115,6 +136,13 @@ class HospitalBookingPassPage extends StatelessWidget {
     final double consultationFee = data['consultationFee'] is num ? (data['consultationFee'] as num).toDouble() : 0.0;
     final double hospitalCharges = data['hospitalCharges'] is num ? (data['hospitalCharges'] as num).toDouble() : 0.0;
     final double totalAmount = consultationFee + hospitalCharges;
+
+    String tokenDisplay = '#01';
+    if (data['queueToken'] != null && data['queueToken'].toString().isNotEmpty) {
+      tokenDisplay = data['queueToken'].toString();
+    } else if (data['tokenNumber'] != null) {
+      tokenDisplay = '#${data['tokenNumber'].toString().padLeft(2, '0')}';
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -259,7 +287,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '#${(bookingNo.hashCode % 30 + 1).toString().padLeft(2, '0')}',
+                                  tokenDisplay,
                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
                                 ),
                               ],

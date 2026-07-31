@@ -127,7 +127,7 @@ class PatientGreetingHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Hello, ðŸ‘‹",
+                          "Hello,",
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 14,

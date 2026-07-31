@@ -91,13 +91,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (mounted) Navigator.pop(context); 
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return; // ðŸ‘ˆ Guard check
+      if (!mounted) return; // Guard check
       setState(() {
         _notificationMessage = e.message ?? 'Registration failed';
         _isSuccessNotification = false;
       });
     } catch (e) {
-      if (!mounted) return; // ðŸ‘ˆ Guard check
+      if (!mounted) return; // Guard check
       setState(() {
         _notificationMessage = 'An unexpected error occurred.';
         _isSuccessNotification = false;

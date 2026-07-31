@@ -192,9 +192,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning â˜€ï¸';
-    if (hour < 17) return 'Good Afternoon ðŸŒ¤ï¸';
-    return 'Good Evening ðŸŒ™';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   }
 
   @override
@@ -286,7 +286,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// ðŸ”µ CUSTOM GRADIENT HEADER WITH ONLINE STATUS SWITCHER
+                /// CUSTOM GRADIENT HEADER WITH ONLINE STATUS SWITCHER
                 StreamBuilder<DocumentSnapshot>(
                   stream: _doctorStream(user.uid),
                   builder: (context, docSnap) {
@@ -509,7 +509,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                   },
                 ),
 
-                /// ðŸ”µ DYNAMIC ACTION QUICK BUTTONS ROW
+                /// DYNAMIC ACTION QUICK BUTTONS ROW
                 const Text(
                   'Quick Actions',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.3),
@@ -522,7 +522,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                     children: [
                       _buildQuickAction(
                         icon: Icons.calendar_month_rounded,
-                        label: 'Calendar ðŸ“…',
+                        label: 'Calendar',
                         color: const Color(0xFF0EA5E9),
                         onTap: () {
                           Navigator.push(
@@ -533,7 +533,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       ),
                       _buildQuickAction(
                         icon: Icons.people_alt_rounded,
-                        label: 'Live Queue âš¡',
+                        label: 'Live Queue',
                         color: const Color(0xFF10B981),
                         onTap: () {
                           showModalBottomSheet(
@@ -546,7 +546,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       ),
                       _buildQuickAction(
                         icon: Icons.analytics_rounded,
-                        label: 'Analytics ðŸ“Š',
+                        label: 'Analytics',
                         color: const Color(0xFF0EA5E9),
                         onTap: () {
                           showModalBottomSheet(
@@ -559,7 +559,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       ),
                       _buildQuickAction(
                         icon: Icons.star_rounded,
-                        label: 'Reviews â­',
+                        label: 'Reviews',
                         color: const Color(0xFFF59E0B),
                         onTap: () {
                           Navigator.push(
@@ -585,7 +585,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
                 const SizedBox(height: 24),
 
-                /// ðŸ”µ ANALYTICS CHART SECTION
+                /// ANALYTICS CHART SECTION
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -664,7 +664,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
                 const SizedBox(height: 24),
 
-                /// ðŸ”µ INTERACTIVE STATS / MINI SUMMARY GRID
+                /// INTERACTIVE STATS / MINI SUMMARY GRID
                 Row(
                   children: [
                     Expanded(
@@ -689,7 +689,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
                 const SizedBox(height: 20),
 
-                /// ðŸ”µ PATIENT INSIGHTS & REVIEWS QUICK BANNER CARDS
+                /// PATIENT INSIGHTS & REVIEWS QUICK BANNER CARDS
                 Row(
                   children: [
                     Expanded(
@@ -727,7 +727,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text('Patient Insights ðŸ“Š', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              const Text('Patient Insights', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
                               const SizedBox(height: 2),
                               const Text('New vs Returning & Peak hours', style: TextStyle(fontSize: 10.5, color: Color(0xFF0369A1))),
                             ],
@@ -769,7 +769,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text('Ratings & Reviews â­', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              const Text('Ratings & Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
                               const SizedBox(height: 2),
                               const Text('Patient feedback & quality', style: TextStyle(fontSize: 10.5, color: Color(0xFF92400E))),
                             ],
@@ -782,7 +782,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
                 const SizedBox(height: 24),
 
-                /// ðŸ”µ TODAY'S OVERVIEW METRICS
+                /// TODAY'S OVERVIEW METRICS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -847,7 +847,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
                 const SizedBox(height: 28),
 
-                /// ðŸ”µ UPCOMING TIMELINE
+                /// UPCOMING TIMELINE
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -941,14 +941,19 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       final status = _normalizeStatus(data['status']?.toString() ?? '');
                       final bool isLast = index == upcoming.length - 1;
 
+                      final String? queueTokenStr = (data['queueToken'] != null && data['queueToken'].toString().isNotEmpty)
+                          ? data['queueToken'].toString()
+                          : (data['tokenNumber'] != null ? '#${data['tokenNumber'].toString().padLeft(2, '0')}' : null);
+
                       return _buildTimelineItem(
                         isLast: isLast,
                         time: data['time']?.toString() ?? '10:00 AM',
                         child: AppointmentCard(
                           name: data['patientName'] ?? 'Patient',
                           type: data['hospitalName'] ?? (data['reason']?.toString().isNotEmpty == true ? data['reason'].toString() : 'District General Hospital Hambantota'),
-                          time: '${data['date']} â€¢ ${data['time']}',
+                          time: '${data['date']} • ${data['time']}',
                           status: status,
+                          queueToken: queueTokenStr,
                           amount: data['amount'] != null ? 'LKR ${data['amount']}' : 'LKR 1,200',
                           reason: data['reason']?.toString(),
                           imageUrl: data['patientImageUrl']?.toString() ?? data['profileImageUrl']?.toString(),

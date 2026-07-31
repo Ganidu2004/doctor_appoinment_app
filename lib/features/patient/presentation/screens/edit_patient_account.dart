@@ -215,7 +215,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                       ),
                       const SizedBox(height: 32),
 
-                      // ðŸ“¸ --- IMAGE PICKER ---
+                      // --- IMAGE PICKER ---
                       Center(
                         child: Stack(
                           children: [
@@ -497,7 +497,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // ðŸªª --- NIC NUMBER ---
+                      // --- NIC NUMBER ---
                       TextModelField(
                         controller: _nicController,
                         labelText: 'NIC Number',
@@ -515,7 +515,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // ðŸ“ž --- PHONE NUMBER ---
+                      // --- PHONE NUMBER ---
                       TextModelField(
                         controller: _phoneController,
                         labelText: 'Phone Number',

@@ -361,7 +361,7 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
                 items: unselectedHospitals.map((hospital) {
                   final district = hospital['district'] ?? '';
                   final displayName = district.isNotEmpty
-                      ? "${hospital['hospitalName']} â€” $district"
+                      ? "${hospital['hospitalName']} — $district"
                       : hospital['hospitalName'] ?? 'Unknown Hospital';
                   return DropdownMenuItem<Map<String, dynamic>>(
                     value: hospital,
@@ -447,7 +447,7 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
                           ),
                         if (contact.isNotEmpty)
                           Text(
-                            'ðŸ“ž $contact',
+                            'Tel: $contact',
                             style: TextStyle(color: Colors.grey[500], fontSize: 11),
                           ),
                       ],

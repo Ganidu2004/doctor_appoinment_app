@@ -244,7 +244,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '$specialization â€¢ $dateStr',
+                                      '$specialization • $dateStr',
                                       style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                                     ),
                                   ],
@@ -301,7 +301,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                                 );
                               },
                               icon: const Icon(Icons.visibility_rounded, size: 16, color: Colors.white),
-                              label: const Text('View Full E-Prescription (Rx) ðŸ“„', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                              label: const Text('View Full E-Prescription (Rx)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0EA5E9),
                                 elevation: 0,

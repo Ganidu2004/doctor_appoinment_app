@@ -424,7 +424,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // âš¡ Interactive Resolution Buttons (if Pending Patient Choice)
+                    // Interactive Resolution Buttons (if Pending Patient Choice)
                     if (isPendingChoice && invData != null) ...[
                       const Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
                       const SizedBox(height: 10),
@@ -865,7 +865,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                       ),
                                                       icon: const Icon(Icons.qr_code_2_rounded, size: 15),
-                                                      label: const Text('Pass ðŸŽŸï¸', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                      label: const Text('Pass', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 8),

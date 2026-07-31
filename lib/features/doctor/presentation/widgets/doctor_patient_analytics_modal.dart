@@ -22,19 +22,22 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
             .where('doctorId', isEqualTo: user.uid)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
             return const SizedBox(
-              height: 300,
+              height: 320,
               child: Center(child: CircularProgressIndicator(color: Color(0xFF0EA5E9))),
             );
           }
 
           final docs = snapshot.data?.docs ?? [];
-          
+
           // Analytics Computation
           final Set<String> allPatientIds = {};
-          final Set<String> completedPatientIds = {};
           final Map<String, int> patientVisitCounts = {};
+          int completedCount = 0;
+          int pendingCount = 0;
+          int cancelledCount = 0;
+
           int morningVisits = 0;
           int afternoonVisits = 0;
           int eveningVisits = 0;
@@ -47,12 +50,17 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
             if (pUid.isNotEmpty) {
               allPatientIds.add(pUid);
               patientVisitCounts[pUid] = (patientVisitCounts[pUid] ?? 0) + 1;
-              if (status.contains('complet')) {
-                completedPatientIds.add(pUid);
-              }
             }
 
-            // Time slot distribution
+            if (status.contains('complet')) {
+              completedCount++;
+            } else if (status.contains('cancel')) {
+              cancelledCount++;
+            } else {
+              pendingCount++;
+            }
+
+            // Time slot distribution analysis
             final timeStr = (data['time'] ?? '').toString().toUpperCase();
             if (timeStr.contains('AM')) {
               morningVisits++;
@@ -74,8 +82,7 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
           }
 
           final totalUniquePatients = allPatientIds.length;
-          final totalCompletedPatients = completedPatientIds.length;
-          
+
           int newPatients = 0;
           int returningPatients = 0;
           patientVisitCounts.forEach((_, visitCount) {
@@ -86,24 +93,35 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
             }
           });
 
-          final totalCounted = newPatients + returningPatients;
-          final newPct = totalCounted > 0 ? (newPatients / totalCounted) : 0.65;
-          final returningPct = totalCounted > 0 ? (returningPatients / totalCounted) : 0.35;
+          final totalCountedPatients = newPatients + returningPatients;
+          final double newPct = totalCountedPatients > 0 ? (newPatients / totalCountedPatients) : 0.0;
+          final double returningPct = totalCountedPatients > 0 ? (returningPatients / totalCountedPatients) : 0.0;
+
+          int newFlex = (newPct * 100).round();
+          int returningFlex = (returningPct * 100).round();
+
+          if (totalCountedPatients > 0 && newFlex == 0 && returningFlex == 0) {
+            newFlex = 50;
+            returningFlex = 50;
+          } else if (totalCountedPatients == 0) {
+            newFlex = 50;
+            returningFlex = 50;
+          }
 
           // Peak hours determination
           String peakSlotName = 'Evening (04:00 PM - 09:00 PM)';
           int peakVisits = eveningVisits;
 
-          if (morningVisits >= afternoonVisits && morningVisits >= eveningVisits) {
+          if (morningVisits >= afternoonVisits && morningVisits >= eveningVisits && morningVisits > 0) {
             peakSlotName = 'Morning (08:00 AM - 12:00 PM)';
             peakVisits = morningVisits;
-          } else if (afternoonVisits >= morningVisits && afternoonVisits >= eveningVisits) {
+          } else if (afternoonVisits >= morningVisits && afternoonVisits >= eveningVisits && afternoonVisits > 0) {
             peakSlotName = 'Afternoon (12:00 PM - 04:00 PM)';
             peakVisits = afternoonVisits;
           }
 
           final totalTimeVisits = morningVisits + afternoonVisits + eveningVisits;
-          final peakPct = totalTimeVisits > 0 ? ((peakVisits / totalTimeVisits) * 100).toStringAsFixed(0) : '48';
+          final peakPct = totalTimeVisits > 0 ? ((peakVisits / totalTimeVisits) * 100).toStringAsFixed(0) : '0';
 
           return SingleChildScrollView(
             child: Column(
@@ -181,12 +199,12 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$totalUniquePatients Patients',
+                            '$totalUniquePatients Patient${totalUniquePatients == 1 ? '' : 's'}',
                             style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$totalCompletedPatients completed consultations',
+                            '$completedCount completed consultation${completedCount == 1 ? '' : 's'}',
                             style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 11.5),
                           ),
                         ],
@@ -243,13 +261,13 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
                           child: Row(
                             children: [
                               Expanded(
-                                flex: (newPct * 100).round() == 0 ? 65 : (newPct * 100).round(),
-                                child: Container(color: const Color(0xFF0EA5E9)),
+                                flex: newFlex,
+                                child: Container(color: newPct > 0 ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0)),
                               ),
                               const SizedBox(width: 2),
                               Expanded(
-                                flex: (returningPct * 100).round() == 0 ? 35 : (returningPct * 100).round(),
-                                child: Container(color: const Color(0xFF10B981)),
+                                flex: returningFlex,
+                                child: Container(color: returningPct > 0 ? const Color(0xFF10B981) : const Color(0xFFCBD5E1)),
                               ),
                             ],
                           ),
@@ -259,8 +277,8 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('$newPatients First-time Visits', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                          Text('$returningPatients Repeat Consultations', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          Text('$newPatients First-time Visit${newPatients == 1 ? '' : 's'}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          Text('$returningPatients Repeat Consultation${returningPatients == 1 ? '' : 's'}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                         ],
                       ),
                     ],
@@ -313,15 +331,74 @@ class DoctorPatientAnalyticsModal extends StatelessWidget {
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF78350F)),
                             ),
                             const SizedBox(height: 2),
-                            const Text(
-                              'Most appointment bookings occur during this shift window.',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+                            Text(
+                              totalTimeVisits > 0
+                                  ? 'Most appointment bookings occur during this shift window.'
+                                  : 'No appointment logs recorded yet for peak analysis.',
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF92400E)),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 20),
+
+                // 4. Consultation Status Breakdown Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('$completedCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF047857))),
+                            const Text('Completed', style: TextStyle(fontSize: 11, color: Color(0xFF065F46))),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFFDE68A)),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('$pendingCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFB45309))),
+                            const Text('Pending/Booked', style: TextStyle(fontSize: 11, color: Color(0xFF92400E))),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFFECACA)),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('$cancelledCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.redAccent)),
+                            const Text('Cancelled', style: TextStyle(fontSize: 11, color: Colors.redAccent)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
               ],

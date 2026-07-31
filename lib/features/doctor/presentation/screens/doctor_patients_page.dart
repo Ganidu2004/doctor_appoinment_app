@@ -464,7 +464,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF0EA5E9)),
                           const SizedBox(width: 6),
                           Text(
-                            'Latest: $latestDate â€¢ $latestTime',
+                            'Latest: $latestDate • $latestTime',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
                         ],
@@ -484,7 +484,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                         ),
                         icon: const Icon(Icons.description_outlined, size: 18, color: Color(0xFF0EA5E9)),
                         label: const Text(
-                          'Patient Record ðŸ“„',
+                          'Patient Record',
                           style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),

@@ -80,7 +80,7 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
           setState(() {
             _patientName = name;
             _patientSubtitle = (age.isNotEmpty && city.isNotEmpty)
-                ? 'Age: $age â€¢ $city'
+                ? 'Age: $age • $city'
                 : (city.isNotEmpty ? city : 'Patient Account');
             _profileImageUrl = imageUrl;
             _gender = gender;

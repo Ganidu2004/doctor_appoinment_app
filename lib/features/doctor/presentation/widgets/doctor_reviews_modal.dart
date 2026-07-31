@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:appoinment_app/core/utils/text_sanitizer.dart';
 
 class DoctorReviewsModal extends StatelessWidget {
   const DoctorReviewsModal({super.key});
@@ -179,7 +180,7 @@ class DoctorReviewsModal extends StatelessWidget {
                   final String patientName = review['patientName'].toString();
                   final String initial = patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P';
                   final double rating = review['rating'] as double;
-                  final String comment = review['comment'].toString();
+                  final String comment = cleanGarbledText(review['comment'].toString());
                   final String date = review['date'].toString();
 
                   return Container(
