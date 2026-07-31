@@ -439,7 +439,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                               Expanded(
                                 flex: 3,
                                 child: DropdownButtonFormField<String>(
-                                  value: _selectedGender,
+                                  initialValue: _selectedGender,
                                   decoration: _buildInputDecoration(
                                     labelText: 'Gender',
                                     prefixIcon: Icons.wc_outlined,
@@ -494,7 +494,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
                               Expanded(
                                 flex: 3,
                                 child: DropdownButtonFormField<String>(
-                                  value: _selectedBloodGroup,
+                                  initialValue: _selectedBloodGroup,
                                   decoration: _buildInputDecoration(
                                     labelText: 'Blood Group',
                                     prefixIcon: Icons.bloodtype_outlined,
