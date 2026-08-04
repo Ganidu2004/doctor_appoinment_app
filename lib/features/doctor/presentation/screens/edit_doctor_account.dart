@@ -200,15 +200,29 @@ class _DoctorProfileEditPageState extends State<DoctorProfileEditPage> {
         String finalImageUrl = _existingImageUrl ?? "";
 
         if (_pickedImage != null) {
-          final fileName = '${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          
-          await supabase.Supabase.instance.client.storage
-              .from('avatars')
-              .upload(fileName, _pickedImage!, fileOptions: const supabase.FileOptions(cacheControl: '3600', upsert: true));
+          final fileName = '${user.uid}/profile.jpg';
+          try {
+            final bytes = await _pickedImage!.readAsBytes();
+            await supabase.Supabase.instance.client.storage
+                .from('profile_images')
+                .uploadBinary(
+                  fileName, 
+                  bytes, 
+                  fileOptions: const supabase.FileOptions(
+                    cacheControl: '3600', 
+                    upsert: true,
+                    contentType: 'image/jpeg',
+                  ),
+                );
 
-          finalImageUrl = supabase.Supabase.instance.client.storage
-              .from('avatars')
-              .getPublicUrl(fileName);
+            final String publicUrl = supabase.Supabase.instance.client.storage
+                .from('profile_images')
+                .getPublicUrl(fileName);
+
+            finalImageUrl = "$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}";
+          } catch (e) {
+            debugPrint("Error uploading image to Supabase: $e");
+          }
         }
 
         List<String> qualificationsList = _qualificationControllers

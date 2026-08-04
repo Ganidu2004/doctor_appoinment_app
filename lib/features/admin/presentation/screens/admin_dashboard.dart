@@ -7,6 +7,7 @@ import 'package:appoinment_app/features/admin/presentation/widgets/dialog_helper
 import 'admin_support_chats_page.dart';
 import 'add_hospital_page.dart';
 import 'package:appoinment_app/features/admin/presentation/screens/admin_payments_page.dart';
+import 'package:appoinment_app/features/admin/presentation/screens/admin_reports_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -285,9 +286,62 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           Column(
             children: [
-              _buildHeroCard(
-                title: "Payment Details",
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPaymentsPage())),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildHeroCard(
+                      title: "Payment Details",
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPaymentsPage())),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminReportsPage())),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2563EB), Color(0xFF0284C7)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            )
+                          ],
+                        ),
+                        child: const Stack(
+                          children: [
+                            Positioned(
+                              right: -20,
+                              top: -20,
+                              child: Icon(Icons.assessment_rounded, size: 100, color: Colors.white12),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Generate Reports",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Row(
@@ -1826,6 +1880,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assessment_outlined, color: Colors.black87),
+            tooltip: "System Reports",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminReportsPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.black87),
             tooltip: "Support Chats",

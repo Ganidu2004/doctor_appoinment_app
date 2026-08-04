@@ -206,11 +206,12 @@ class _DoctorProfileCreatePageState extends State<DoctorProfileCreatePage> {
         final fileName = '${user.uid}/profile.jpg'; 
         
         try {
+          final bytes = await _pickedImage!.readAsBytes();
           await supabase.Supabase.instance.client.storage
               .from('profile_images')
-              .upload(
+              .uploadBinary(
                 fileName, 
-                _pickedImage!, 
+                bytes, 
                 fileOptions: const supabase.FileOptions(
                   cacheControl: '3600', 
                   upsert: true,
@@ -225,7 +226,6 @@ class _DoctorProfileCreatePageState extends State<DoctorProfileCreatePage> {
           finalImageUrl = "$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}";
         } catch (storageError) {
           debugPrint("Supabase Storage Error: $storageError");
-          throw 'Storage Upload Failed: $storageError';
         }
       }
 

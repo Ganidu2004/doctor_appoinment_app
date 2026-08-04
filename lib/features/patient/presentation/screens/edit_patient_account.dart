@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:appoinment_app/core/services/notification_services.dart';
 
@@ -33,6 +34,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
   String? _selectedBloodGroup;
   bool _isLoading = true; 
   bool _isSaving = false;
+  bool _isPickingImage = false;
   File? _selectedImage; 
   String _existingProfileImageUrl = ""; 
 
@@ -43,6 +45,34 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
   void initState() {
     super.initState();
     _fetchUserData(); 
+  }
+
+  Future<void> _pickImage() async {
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70, 
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    } finally {
+      setState(() {
+        _isPickingImage = false;
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -96,11 +126,20 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
     if (_selectedImage == null) return _existingProfileImageUrl;
 
     try {
-      final fileName = 'public/$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = '$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final bytes = await _selectedImage!.readAsBytes();
       
       await supabase.Supabase.instance.client.storage
           .from('profile_images') 
-          .upload(fileName, _selectedImage!);
+          .uploadBinary(
+            fileName, 
+            bytes,
+            fileOptions: const supabase.FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'image/jpeg',
+            ),
+          );
 
       final String publicUrl = supabase.Supabase.instance.client.storage
           .from('profile_images')
@@ -109,7 +148,7 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
       return publicUrl;
     } catch (e) {
       debugPrint("Supabase Upload Error: $e");
-      throw Exception("Failed to upload profile image.");
+      return _existingProfileImageUrl;
     }
   }
 
@@ -217,50 +256,59 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
 
                       // --- IMAGE PICKER ---
                       Center(
-                        child: Stack(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.blue.shade100, width: 3),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: CircleAvatar(
-                                radius: 54,
-                                backgroundColor: Colors.grey.shade100,
-                                backgroundImage: _selectedImage != null 
-                                    ? FileImage(_selectedImage!) 
-                                    : (_existingProfileImageUrl.isNotEmpty 
-                                        ? NetworkImage(_existingProfileImageUrl) as ImageProvider
-                                        : null),
-                                child: _selectedImage == null && _existingProfileImageUrl.isEmpty
-                                    ? Icon(Icons.person_rounded, size: 55, color: Colors.blue.shade200)
-                                    : null,
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 2,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.blue.shade100, width: 3),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.white,
-                                  size: 18,
+                                child: CircleAvatar(
+                                  radius: 54,
+                                  backgroundColor: Colors.grey.shade100,
+                                  backgroundImage: _selectedImage != null 
+                                      ? FileImage(_selectedImage!) 
+                                      : (_existingProfileImageUrl.isNotEmpty 
+                                          ? NetworkImage(_existingProfileImageUrl) as ImageProvider
+                                          : null),
+                                  child: _selectedImage == null && _existingProfileImageUrl.isEmpty
+                                      ? Icon(Icons.person_rounded, size: 55, color: Colors.blue.shade200)
+                                      : null,
                                 ),
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                bottom: 0,
+                                right: 2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: _isPickingImage
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        )
+                                      : const Icon(
+                                          Icons.camera_alt_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),

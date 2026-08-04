@@ -69,11 +69,20 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
     if (_selectedImage == null) return "";
 
     try {
-      final fileName = 'public/$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = '$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final bytes = await _selectedImage!.readAsBytes();
       
       await supabase.Supabase.instance.client.storage
           .from('profile_images') 
-          .upload(fileName, _selectedImage!);
+          .uploadBinary(
+            fileName, 
+            bytes,
+            fileOptions: const supabase.FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'image/jpeg',
+            ),
+          );
 
       final String publicUrl = supabase.Supabase.instance.client.storage
           .from('profile_images')
@@ -82,7 +91,7 @@ class _PatientProfileCreatePageState extends State<PatientProfileCreatePage> {
       return publicUrl;
     } catch (e) {
       debugPrint("Supabase Upload Error: $e");
-      throw Exception("Failed to upload profile image.");
+      return "";
     }
   }
 
