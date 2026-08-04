@@ -8,7 +8,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class AdminReportsPage extends StatefulWidget {
-  const AdminReportsPage({super.key});
+  final bool isEmbedded;
+  const AdminReportsPage({super.key, this.isEmbedded = false});
 
   @override
   State<AdminReportsPage> createState() => _AdminReportsPageState();
@@ -19,6 +20,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
   String _selectedReportType = 'Executive Summary';
   String _selectedDateFilter = 'All Time';
   DateTimeRange? _customDateRange;
+  DateTime _selectedReportMonth = DateTime(DateTime.now().year, DateTime.now().month);
   String _selectedSpecialization = 'All';
   String _selectedStatus = 'All';
 
@@ -32,6 +34,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
 
   final List<String> _dateFilterPresets = [
     'All Time',
+    'Select Month',
     'Today',
     'This Week',
     'This Month',
@@ -111,6 +114,8 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           date.isBefore(today.add(const Duration(days: 1)));
     } else if (_selectedDateFilter == 'This Month') {
       return date.year == today.year && date.month == today.month;
+    } else if (_selectedDateFilter == 'Select Month') {
+      return date.year == _selectedReportMonth.year && date.month == _selectedReportMonth.month;
     } else if (_selectedDateFilter == 'Last 30 Days') {
       final thirtyDaysAgo = today.subtract(const Duration(days: 30));
       return date.isAfter(thirtyDaysAgo) && date.isBefore(today.add(const Duration(days: 1)));
@@ -129,6 +134,88 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (match) => ',',
     )}';
+  }
+
+  Future<void> _selectMonthForReport() async {
+    final now = DateTime.now();
+    final years = List.generate(5, (index) => now.year - index);
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    int selectedYear = _selectedReportMonth.year;
+    int selectedMonthIndex = _selectedReportMonth.month - 1;
+
+    final picked = await showDialog<DateTime>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.calendar_month_rounded, color: Color(0xFF2563EB)),
+                  SizedBox(width: 8),
+                  Text("Select Month for Report", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedYear,
+                    decoration: InputDecoration(
+                      labelText: "Year",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: years.map((y) => DropdownMenuItem(value: y, child: Text(y.toString()))).toList(),
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => selectedYear = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedMonthIndex,
+                    decoration: InputDecoration(
+                      labelText: "Month",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: List.generate(
+                      12,
+                      (i) => DropdownMenuItem(value: i, child: Text(months[i])),
+                    ),
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => selectedMonthIndex = val);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, DateTime(selectedYear, selectedMonthIndex + 1)),
+                  child: const Text("Apply Month"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedReportMonth = picked;
+        _selectedDateFilter = 'Select Month';
+      });
+    }
   }
 
   Future<void> _selectCustomDateRange() async {
@@ -702,6 +789,44 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bodyContent = StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('appointments').snapshots(),
+      builder: (context, apptSnap) {
+        final apptDocs = apptSnap.data?.docs ?? [];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('patients').snapshots(),
+          builder: (context, patientSnap) {
+            final patientDocs = patientSnap.data?.docs ?? [];
+
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('doctors').snapshots(),
+              builder: (context, doctorSnap) {
+                final doctorDocs = doctorSnap.data?.docs ?? [];
+
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance.collection('hospital').snapshots(),
+                  builder: (context, hospitalSnap) {
+                    final hospitalDocs = hospitalSnap.data?.docs ?? [];
+                    return _buildReportBody(
+                      apptDocs,
+                      patientDocs,
+                      doctorDocs,
+                      hospitalDocs,
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+
+    if (widget.isEmbedded) {
+      return bodyContent;
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -720,40 +845,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('appointments').snapshots(),
-        builder: (context, apptSnap) {
-          final apptDocs = apptSnap.data?.docs ?? [];
-
-          return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('patients').snapshots(),
-            builder: (context, patientSnap) {
-              final patientDocs = patientSnap.data?.docs ?? [];
-
-              return StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('doctors').snapshots(),
-                builder: (context, doctorSnap) {
-                  final doctorDocs = doctorSnap.data?.docs ?? [];
-
-                  return StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('hospital').snapshots(),
-                    builder: (context, hospitalSnap) {
-                      final hospitalDocs = hospitalSnap.data?.docs ?? [];
-
-                      return _buildReportBody(
-                        apptDocs,
-                        patientDocs,
-                        doctorDocs,
-                        hospitalDocs,
-                      );
-                    },
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+      body: bodyContent,
     );
   }
 
@@ -855,60 +947,75 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Report Type & Preset Controls Header Card
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
+                  color: Colors.blueGrey.withValues(alpha: 0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
                 )
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Report Configuration",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: _selectedReportType,
-                  decoration: InputDecoration(
-                    labelText: "Report Category",
-                    prefixIcon: const Icon(Icons.assessment_rounded, color: Color(0xFF2563EB), size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  ),
-                  items: _reportTypes
-                      .map((t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(t, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedReportType = val);
-                  },
-                ),
-                const SizedBox(height: 14),
-                Row(
+            child: LayoutBuilder(
+              builder: (context, configConstraints) {
+                final isNarrowConfig = configConstraints.maxWidth < 420;
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.tune_rounded, color: Color(0xFF4F46E5), size: 18),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          "Report Configuration Filters",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedReportType,
+                      decoration: InputDecoration(
+                        labelText: "Report Category",
+                        prefixIcon: const Icon(Icons.assessment_rounded, color: Color(0xFF4F46E5), size: 20),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      items: _reportTypes
+                          .map((t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedReportType = val);
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    if (isNarrowConfig) ...[
+                      DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _selectedDateFilter,
                         decoration: InputDecoration(
                           labelText: "Timeframe",
                           prefixIcon: const Icon(Icons.date_range_rounded, color: Color(0xFF0EA5E9), size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         ),
                         items: _dateFilterPresets
                             .map((p) => DropdownMenuItem(
@@ -919,22 +1026,23 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                         onChanged: (val) {
                           if (val == 'Custom Range') {
                             _selectCustomDateRange();
+                          } else if (val == 'Select Month') {
+                            _selectMonthForReport();
                           } else if (val != null) {
                             setState(() => _selectedDateFilter = val);
                           }
                         },
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
+                      const SizedBox(height: 14),
+                      DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _selectedStatus,
                         decoration: InputDecoration(
                           labelText: "Status",
                           prefixIcon: const Icon(Icons.filter_alt_rounded, color: Color(0xFF8B5CF6), size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         ),
                         items: _statuses
                             .map((s) => DropdownMenuItem(
@@ -946,124 +1054,272 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                           if (val != null) setState(() => _selectedStatus = val);
                         },
                       ),
+                    ] else ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              initialValue: _selectedDateFilter,
+                              decoration: InputDecoration(
+                                labelText: "Timeframe",
+                                prefixIcon: const Icon(Icons.date_range_rounded, color: Color(0xFF0EA5E9), size: 18),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                              ),
+                              items: _dateFilterPresets
+                                  .map((p) => DropdownMenuItem(
+                                        value: p,
+                                        child: Text(p, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                      ))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val == 'Custom Range') {
+                                  _selectCustomDateRange();
+                                } else if (val == 'Select Month') {
+                                  _selectMonthForReport();
+                                } else if (val != null) {
+                                  setState(() => _selectedDateFilter = val);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              initialValue: _selectedStatus,
+                              decoration: InputDecoration(
+                                labelText: "Status",
+                                prefixIcon: const Icon(Icons.filter_alt_rounded, color: Color(0xFF8B5CF6), size: 18),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                              ),
+                              items: _statuses
+                                  .map((s) => DropdownMenuItem(
+                                        value: s,
+                                        child: Text(s, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                      ))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedStatus = val);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedSpecialization,
+                      decoration: InputDecoration(
+                        labelText: "Specialization / Department",
+                        prefixIcon: const Icon(Icons.medical_services_rounded, color: Color(0xFF10B981), size: 20),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      items: _specializations
+                          .map((sp) => DropdownMenuItem(
+                                value: sp,
+                                child: Text(sp, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedSpecialization = val);
+                      },
                     ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: _selectedSpecialization,
-                  decoration: InputDecoration(
-                    labelText: "Specialization / Department",
-                    prefixIcon: const Icon(Icons.medical_services_rounded, color: Color(0xFF10B981), size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  ),
-                  items: _specializations
-                      .map((sp) => DropdownMenuItem(
-                            value: sp,
-                            child: Text(sp, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedSpecialization = val);
-                  },
-                ),
-                if (_selectedDateFilter == 'Custom Range' && _customDateRange != null) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Custom: ${DateFormat('MMM d, yyyy').format(_customDateRange!.start)} - ${DateFormat('MMM d, yyyy').format(_customDateRange!.end)}",
-                          style: const TextStyle(color: Color(0xFF1D4ED8), fontSize: 13, fontWeight: FontWeight.w600),
+                    if (_selectedDateFilter == 'Select Month') ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F46E5).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.2)),
                         ),
-                        InkWell(
-                          onTap: _selectCustomDateRange,
-                          child: const Text("Edit", style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFF4F46E5)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Report Month: ${DateFormat('MMMM yyyy').format(_selectedReportMonth)}",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF4F46E5)),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_left_rounded, size: 20, color: Color(0xFF4F46E5)),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedReportMonth = DateTime(_selectedReportMonth.year, _selectedReportMonth.month - 1);
+                                    });
+                                  },
+                                  tooltip: "Previous Month",
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF4F46E5)),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedReportMonth = DateTime(_selectedReportMonth.year, _selectedReportMonth.month + 1);
+                                    });
+                                  },
+                                  tooltip: "Next Month",
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                                InkWell(
+                                  onTap: _selectMonthForReport,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4.0),
+                                    child: Icon(Icons.edit_calendar_rounded, size: 18, color: Color(0xFF4F46E5)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (_selectedDateFilter == 'Custom Range' && _customDateRange != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F46E5).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Custom Range: ${DateFormat('MMM d, yyyy').format(_customDateRange!.start)} - ${DateFormat('MMM d, yyyy').format(_customDateRange!.end)}",
+                              style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                            InkWell(
+                              onTap: _selectCustomDateRange,
+                              child: const Text("Edit", style: TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold)),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(height: 20),
 
-          // Action Toolbar (Export / Print Buttons)
+          // Action Toolbar (Print / PDF Export Buttons)
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  onPressed: () => _showPrintPreviewModal(_selectedReportType, summaryMetricsMap, recordsForExport),
-                  icon: const Icon(Icons.print_outlined, size: 20),
-                  label: const Text("Print / PDF Summary", style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () => _showPrintPreviewModal(_selectedReportType, summaryMetricsMap, recordsForExport),
+                    icon: const Icon(Icons.print_rounded, size: 18, color: Colors.white),
+                    label: const Text("Print / PDF Summary", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0F172A),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE11D48).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  onPressed: () => _exportPDF(recordsForExport, summaryMetricsMap),
-                  icon: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 20),
-                  label: const Text("Export PDF", style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () => _exportPDF(recordsForExport, summaryMetricsMap),
+                    icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
+                    label: const Text("Export PDF Report", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
 
-          // KPI Cards Header Grid
+          // Vibrant KPI Metric Cards Header Grid
           GridView.count(
             crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
-            childAspectRatio: 1.5,
+            childAspectRatio: MediaQuery.of(context).size.width > 600 ? 1.5 : 1.3,
             children: [
               _buildKPICard(
                 title: "Total Revenue",
                 value: _formatCurrency(totalRevenue),
                 icon: Icons.payments_rounded,
-                color: const Color(0xFF10B981),
+                gradientColors: [const Color(0xFF059669), const Color(0xFF10B981)],
               ),
               _buildKPICard(
                 title: "Total Appointments",
                 value: filteredAppts.length.toString(),
                 icon: Icons.calendar_month_rounded,
-                color: const Color(0xFF2563EB),
+                gradientColors: [const Color(0xFF2563EB), const Color(0xFF3B82F6)],
               ),
               _buildKPICard(
                 title: "Completion Rate",
                 value: "${completionRate.toStringAsFixed(1)}%",
                 icon: Icons.task_alt_rounded,
-                color: const Color(0xFF8B5CF6),
+                gradientColors: [const Color(0xFF7C3AED), const Color(0xFF8B5CF6)],
               ),
               _buildKPICard(
                 title: "Doctor Share",
                 value: _formatCurrency(doctorEarnings),
                 icon: Icons.medical_services_rounded,
-                color: const Color(0xFFF59E0B),
+                gradientColors: [const Color(0xFFD97706), const Color(0xFFF59E0B)],
               ),
             ],
           ),
@@ -1092,55 +1348,89 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     required String title,
     required String value,
     required IconData icon,
-    required Color color,
+    required List<Color> gradientColors,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: gradientColors.first.withValues(alpha: 0.3),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           )
         ],
-        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -10,
+              bottom: -10,
+              child: Icon(
+                icon,
+                size: 76,
+                color: Colors.white.withValues(alpha: 0.15),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 15),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

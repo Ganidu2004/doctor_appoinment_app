@@ -5,6 +5,7 @@ import 'package:appoinment_app/features/auth/presentation/widgets/auth_notificat
 import 'package:appoinment_app/features/auth/presentation/screens/forgot_pass.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 import 'package:appoinment_app/shared/widgets/doc_time_logo.dart';
+import 'package:appoinment_app/shared/widgets/web_auth_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'signup.dart';
@@ -96,199 +97,193 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: lightBgColor,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // --- Brand Identity & Welcome Header ---
-                  const DocTimeLogo(
-                    variant: DocTimeLogoVariant.vertical,
-                    iconSize: 64,
-                    fontSize: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Book appointments with your favorite doctors seamlessly.', 
-                    textAlign: TextAlign.center, 
-                    style: TextStyle(
-                      fontSize: 15, 
-                      color: darkTextColor.withValues(alpha: 0.6),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  
-                  // --- Email Input Field ---
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
-                    decoration: InputDecoration(
-                      labelText: 'Email Address', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
-                      prefixIcon: const Icon(Icons.email_outlined, color: primaryColor), 
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: primaryColor, width: 2),
-                      ),
-                    ),
-                    validator: (val) => val == null || !val.contains('@') ? 'Enter a valid email address' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  // --- Password Input Field ---
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _isPasswordHidden,
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
-                    decoration: InputDecoration(
-                      labelText: 'Password', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
-                      prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor), 
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: primaryColor, width: 2),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: primaryColor.withValues(alpha: 0.7),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordHidden = !_isPasswordHidden;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (val) => val == null || val.isEmpty ? 'Password is required' : null,
-                  ),
-                  
-                  // --- Forgot Password Button ---
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                        );
-                      },
-                      child: Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: primaryColor.withValues(alpha: 0.9), 
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // --- Integrated Custom Component ---
-                  AuthNotificationBanner(
-                    key: ValueKey(_notificationMessage),
-                    message: _notificationMessage,
-                    type: _isSuccessNotification ? NotificationType.success : NotificationType.error,
-                  ),
-                  
-                  // --- Premium Animated Submit Button ---
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor, 
-                      foregroundColor: Colors.white, 
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: _isLoading 
-                        ? const SizedBox(
-                            height: 24, 
-                            width: 24, 
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                          ) 
-                        : const Text(
-                            'Sign In', 
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                          ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // --- Footer Link to Sign Up Screen ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: darkTextColor.withValues(alpha: 0.6), fontSize: 14),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const SignUpScreen()),
-                        ),
-                        child: const Text(
-                          "Register",
-                          style: TextStyle(
-                            color: primaryColor, 
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Admin Login',
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 14,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
+    return WebAuthWrapper(
+      heroTagline: "Book Doctor Appointments Seamlessly",
+      heroDescription: "Connect with islandwide specialists, view available time slots, and manage healthcare consultations easily.",
+      heroIcon: Icons.calendar_month_rounded,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // --- Brand Identity & Welcome Header ---
+            const DocTimeLogo(
+              variant: DocTimeLogoVariant.vertical,
+              iconSize: 56,
+              fontSize: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Book appointments with your favorite doctors seamlessly.', 
+              textAlign: TextAlign.center, 
+              style: TextStyle(
+                fontSize: 14, 
+                color: darkTextColor.withValues(alpha: 0.6),
+                height: 1.4,
               ),
             ),
-          ),
+            const SizedBox(height: 32),
+            
+            // --- Email Input Field ---
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                labelText: 'Email Address', 
+                labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                prefixIcon: const Icon(Icons.email_outlined, color: primaryColor), 
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: primaryColor, width: 2),
+                ),
+              ),
+              validator: (val) => val == null || !val.contains('@') ? 'Enter a valid email address' : null,
+            ),
+            const SizedBox(height: 16),
+            
+            // --- Password Input Field ---
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _isPasswordHidden,
+              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                labelText: 'Password', 
+                labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor), 
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: primaryColor, width: 2),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: primaryColor.withValues(alpha: 0.7),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+              validator: (val) => val == null || val.isEmpty ? 'Password is required' : null,
+            ),
+            
+            // --- Forgot Password Button ---
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                  );
+                },
+                child: Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: primaryColor.withValues(alpha: 0.9), 
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // --- Integrated Custom Component ---
+            AuthNotificationBanner(
+              key: ValueKey(_notificationMessage),
+              message: _notificationMessage,
+              type: _isSuccessNotification ? NotificationType.success : NotificationType.error,
+            ),
+            
+            // --- Premium Animated Submit Button ---
+            ElevatedButton(
+              onPressed: _isLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor, 
+                foregroundColor: Colors.white, 
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: _isLoading 
+                  ? const SizedBox(
+                      height: 24, 
+                      width: 24, 
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    ) 
+                  : const Text(
+                      'Sign In', 
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    ),
+            ),
+            const SizedBox(height: 20),
+            
+            // --- Footer Link to Sign Up Screen ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Don't have an account? ",
+                  style: TextStyle(color: darkTextColor.withValues(alpha: 0.6), fontSize: 13),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                  ),
+                  child: const Text(
+                    "Register",
+                    style: TextStyle(
+                      color: primaryColor, 
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                );
+              },
+              child: const Text(
+                'Admin Login',
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontSize: 13,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

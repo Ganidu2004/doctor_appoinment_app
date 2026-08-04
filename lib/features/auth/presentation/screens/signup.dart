@@ -3,6 +3,7 @@ import 'package:appoinment_app/features/auth/presentation/screens/auth_gate.dart
 import 'package:appoinment_app/features/auth/presentation/widgets/auth_notification_banner.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 import 'package:appoinment_app/shared/widgets/doc_time_logo.dart';
+import 'package:appoinment_app/shared/widgets/web_auth_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -117,27 +118,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: lightBgColor,
-      appBar: AppBar(
-        backgroundColor: lightBgColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: darkTextColor, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+    return WebAuthWrapper(
+      heroTagline: "Join DOC Time Healthcare",
+      heroDescription: "Create your account to schedule instant appointments with top doctors across hospitals.",
+      heroIcon: Icons.person_add_rounded,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
                   // --- Brand Header Logo & Text ---
                   const DocTimeLogo(
                     variant: DocTimeLogoVariant.vertical,
@@ -362,9 +352,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ],
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

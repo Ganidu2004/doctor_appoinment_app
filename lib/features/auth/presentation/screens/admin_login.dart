@@ -3,6 +3,7 @@ import 'package:appoinment_app/features/auth/presentation/screens/auth_gate.dart
 import 'package:appoinment_app/features/auth/presentation/widgets/auth_notification_banner.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 import 'package:appoinment_app/shared/widgets/doc_time_logo.dart';
+import 'package:appoinment_app/shared/widgets/web_auth_wrapper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -96,111 +97,93 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: lightBgColor,
-      appBar: AppBar(
-        backgroundColor: lightBgColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const DocTimeLogo(
-                    variant: DocTimeLogoVariant.vertical,
-                    iconSize: 56,
-                    fontSize: 28,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Admin Portal',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: darkTextColor,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in with your administrator account.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: darkTextColor.withValues(alpha: 0.65),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-                    decoration: InputDecoration(
-                      labelText: 'Email Address',
-                      prefixIcon: const Icon(Icons.email_outlined, color: primaryColor),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                    ),
-                    validator: (val) => val == null || !val.contains('@') ? 'Enter a valid email address' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _isPasswordHidden,
-                    style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: primaryColor.withValues(alpha: 0.7),
-                        ),
-                        onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
-                      ),
-                    ),
-                    validator: (val) => val == null || val.isEmpty ? 'Password is required' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  AuthNotificationBanner(
-                    key: ValueKey(_notificationMessage),
-                    message: _notificationMessage,
-                    type: _isSuccessNotification ? NotificationType.success : NotificationType.error,
-                  ),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _loginAdmin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                        : const Text('Admin Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                  ),
-                ],
-              ),
+    return WebAuthWrapper(
+      heroTagline: "Admin Management Console",
+      heroDescription: "Access system administrative settings, manage doctors and hospitals, inspect revenues, and monitor real-time appointments.",
+      heroIcon: Icons.admin_panel_settings_rounded,
+      featurePoints: const [
+        "Doctor & Hospital Approval Desk",
+        "Executive Revenue & Month-by-Month Reports",
+        "Live Helpdesk Chat Room Support",
+      ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const DocTimeLogo(
+              variant: DocTimeLogoVariant.vertical,
+              iconSize: 56,
+              fontSize: 28,
             ),
-          ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in to your Administrator Account',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            const SizedBox(height: 32),
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                labelText: 'Admin Email',
+                prefixIcon: const Icon(Icons.admin_panel_settings_outlined, color: primaryColor),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryColor, width: 2)),
+              ),
+              validator: (val) => val == null || !val.contains('@') ? 'Enter a valid admin email' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _isPasswordHidden,
+              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryColor, width: 2)),
+                suffixIcon: IconButton(
+                  icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: primaryColor.withValues(alpha: 0.7)),
+                  onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
+                ),
+              ),
+              validator: (val) => val == null || val.isEmpty ? 'Password is required' : null,
+            ),
+            const SizedBox(height: 16),
+            AuthNotificationBanner(
+              key: ValueKey(_notificationMessage),
+              message: _notificationMessage,
+              type: _isSuccessNotification ? NotificationType.success : NotificationType.error,
+            ),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _loginAdmin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: _isLoading
+                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                  : const Text('Admin Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Back to Normal Sign In', style: TextStyle(color: Colors.grey)),
+            ),
+          ],
         ),
       ),
     );
