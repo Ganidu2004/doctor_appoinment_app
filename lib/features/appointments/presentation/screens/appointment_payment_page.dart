@@ -257,6 +257,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   }
 
   Widget _buildPaymentOption({required String title, required String subtitle, IconData? icon, Widget? leading}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool selected = _selectedPaymentMethod == title;
     return Expanded(
       child: GestureDetector(
@@ -265,10 +266,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFF0F9FF) : Colors.white,
+            color: selected ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF)) : (isDark ? const Color(0xFF1E293B) : Colors.white),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+              color: selected ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               width: selected ? 1.8 : 1,
             ),
             boxShadow: selected
@@ -295,10 +296,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                      color: selected ? (isDark ? const Color(0xFF0369A1) : const Color(0xFFE0F2FE)) : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: leading ?? Icon(icon, size: 18, color: selected ? const Color(0xFF0EA5E9) : const Color(0xFF64748B)),
+                    child: leading ?? Icon(icon, size: 18, color: selected ? (isDark ? Colors.white : const Color(0xFF0EA5E9)) : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -308,7 +309,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13.5,
-                        color: selected ? const Color(0xFF0369A1) : const Color(0xFF0F172A),
+                        color: selected ? (isDark ? Colors.white : const Color(0xFF0369A1)) : (isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                     ),
                   ),
@@ -317,7 +318,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               const SizedBox(height: 8),
               Text(
                 subtitle,
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5, height: 1.3),
+                style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 11.5, height: 1.3),
               ),
             ],
           ),
@@ -328,9 +329,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -339,7 +342,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               const SizedBox(height: 16),
               Text(
                 'Loading booking summary...',
-                style: TextStyle(color: Color(0xFF475569), fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(color: isDark ? Colors.white70 : const Color(0xFF475569), fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -351,24 +354,24 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     final double totalFee = consultationFee + _hospitalCharges;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
           children: [
-            const Text(
+            Text(
               'Confirm & Checkout',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 2),
-            const Text(
+            Text(
               'Step 2 of 2 • Final Review',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -383,13 +386,13 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Section 1: Appointment & Doctor Review Card
-                  const Text('Consultation Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  Text('Consultation Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.03),
@@ -406,7 +409,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 26,
-                                backgroundColor: const Color(0xFFE0F2FE),
+                                backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                                 backgroundImage: _doctorData?['profileImageUrl'] != null && (_doctorData?['profileImageUrl'] as String).isNotEmpty
                                     ? NetworkImage(_doctorData!['profileImageUrl'] as String)
                                     : null,
@@ -421,7 +424,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                                   children: [
                                     Text(
                                       'Dr. ${_doctorData?['name'] ?? 'Doctor'}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: Color(0xFF0F172A)),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -433,7 +436,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                                     const SizedBox(height: 2),
                                     Text(
                                       _scheduleData?['hospitalName'] ?? 'Hospital/Clinic',
-                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                      style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -442,16 +445,16 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                               ),
                             ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                           ),
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0F9FF),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFBAE6FD)),
+                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -462,16 +465,16 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                                     const SizedBox(width: 6),
                                     Text(
                                       widget.appointmentDate,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A)),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                     ),
                                   ],
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                                   ),
                                   child: Row(
                                     children: [
@@ -494,14 +497,14 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   const SizedBox(height: 20),
 
                   // Section 2: Patient Information Inputs
-                  const Text('Patient Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  Text('Patient Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.03),
@@ -514,37 +517,37 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                       children: [
                         TextField(
                           controller: _patientNameController,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           decoration: InputDecoration(
                             labelText: 'Patient Full Name',
-                            labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                            labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                             prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF0EA5E9), size: 20),
                             filled: true,
-                            fillColor: const Color(0xFFF8FAFC),
+                            fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
                           ),
                         ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: _reasonController,
-                          style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           maxLines: 2,
                           decoration: InputDecoration(
                             labelText: 'Reason for Visit / Symptoms (Optional)',
                             alignLabelWithHint: true,
-                            labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                            labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                             prefixIcon: const Padding(
                               padding: EdgeInsets.only(bottom: 24),
                               child: Icon(Icons.medical_information_outlined, color: Color(0xFF0EA5E9), size: 20),
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF8FAFC),
+                            fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
                           ),
                         ),
@@ -554,7 +557,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   const SizedBox(height: 20),
 
                   // Section 3: Payment Options
-                  const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -574,13 +577,13 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   const SizedBox(height: 20),
 
                   // Section 4: Charges Receipt Card
-                  const Text('Charges Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: Color(0xFF0F172A))),
+                  Text('Charges Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.03),
@@ -596,34 +599,34 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Doctor Consultation Fee', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Text(_formatCurrency(consultationFee), style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A), fontSize: 13.5)),
+                              Text('Doctor Consultation Fee', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13)),
+                              Text(_formatCurrency(consultationFee), style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13.5)),
                             ],
                           ),
                           const SizedBox(height: 10),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Hospital / Clinic Charges', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Text(_formatCurrency(_hospitalCharges), style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A), fontSize: 13.5)),
+                              Text('Hospital / Clinic Charges', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13)),
+                              Text(_formatCurrency(_hospitalCharges), style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13.5)),
                             ],
                           ),
                           const SizedBox(height: 10),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Platform Service Fee', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Text('FREE \u2728', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 12)),
+                              Text('Platform Service Fee', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13)),
+                              const Text('FREE ✨', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 12)),
                             ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Total Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: Color(0xFF0F172A))),
+                              Text('Total Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                               Text(
                                 _formatCurrency(totalFee),
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0284C7)),
@@ -640,18 +643,18 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                      border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.shield_outlined, color: Color(0xFF047857), size: 18),
-                        SizedBox(width: 10),
+                        const Icon(Icons.shield_outlined, color: Color(0xFF10B981), size: 18),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             "100% Free Cancellation up to 24 hours prior to appointment slot.",
-                            style: TextStyle(fontSize: 12, color: Color(0xFF047857), fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857), fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -667,7 +670,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               boxShadow: [
                 BoxShadow(
@@ -687,24 +690,24 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Total Amount', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+                          Text('Total Amount', style: TextStyle(fontSize: 11.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontWeight: FontWeight.w500)),
                           const SizedBox(height: 2),
                           Text(
                             _formatCurrency(totalFee),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0F9FF),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFBAE6FD)),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                         ),
                         child: Text(
                           _selectedPaymentMethod,
-                          style: const TextStyle(color: Color(0xFF0369A1), fontWeight: FontWeight.bold, fontSize: 11),
+                          style: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1), fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                       ),
                     ],
@@ -773,8 +776,9 @@ class SuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -786,9 +790,9 @@ class SuccessPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
+                    color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFA7F3D0), width: 3),
+                    border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0), width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF10B981).withValues(alpha: 0.25),
@@ -800,22 +804,22 @@ class SuccessPage extends StatelessWidget {
                   child: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 72),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   "Booking Confirmed!",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                     letterSpacing: -0.3,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     "Your appointment has been successfully scheduled. We've issued an official Hospital Verification Pass for your visit.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13.5, color: Color(0xFF64748B), height: 1.45),
+                    style: TextStyle(fontSize: 13.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), height: 1.45),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -825,9 +829,9 @@ class SuccessPage extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.03),
@@ -838,22 +842,22 @@ class SuccessPage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.verified_rounded, color: Color(0xFF0EA5E9), size: 18),
-                          SizedBox(width: 6),
+                          const Icon(Icons.verified_rounded, color: Color(0xFF0EA5E9), size: 18),
+                          const SizedBox(width: 6),
                           Text(
                             "Hospital Verification Pass Issued",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 14),
-                      const Text(
+                      Text(
                         "Present your digital pass or reference number at the hospital reception counter upon arrival.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12.5, color: Color(0xFF475569)),
+                        style: TextStyle(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ],
                   ),
@@ -913,13 +917,14 @@ class SuccessPage extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    icon: const Icon(Icons.home_rounded, color: Color(0xFF0F172A), size: 18),
-                    label: const Text(
+                    icon: Icon(Icons.home_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
+                    label: Text(
                       "Back to Home",
-                      style: TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

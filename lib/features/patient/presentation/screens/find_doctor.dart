@@ -44,6 +44,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
 
 
   Widget _filterChip(String label, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(right: 10, top: 4, bottom: 4),
       child: GestureDetector(
@@ -63,10 +64,10 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                     end: Alignment.bottomRight,
                   )
                 : null,
-            color: isSelected ? null : Colors.white,
+            color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : Colors.white),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? Colors.transparent : Colors.grey.shade200,
+              color: isSelected ? Colors.transparent : (isDark ? const Color(0xFF334155) : Colors.grey.shade200),
             ),
             boxShadow: isSelected
                 ? [
@@ -87,7 +88,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black87,
+              color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               fontSize: 13,
             ),
@@ -104,15 +105,16 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
       query = query.where('specialization', isEqualTo: _selectedFilter);
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+        title: Text(
           "Find Doctor", 
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
       ),
@@ -168,7 +170,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                     borderSide: const BorderSide(color: Colors.blue, width: 1.5),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).cardColor,
                   contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
@@ -177,9 +179,9 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Quick Filters", 
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87),
                 ),
                 GestureDetector(
                   onTap: () => setState(() => _selectedFilter = "All"),
@@ -251,9 +253,9 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Registered Doctors", 
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                         ),
                         const SizedBox(height: 16),
                         ListView.builder(

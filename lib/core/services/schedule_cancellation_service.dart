@@ -1,11 +1,89 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:appoinment_app/features/appointments/data/models/cancellation_invoice_model.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 
 class ScheduleCancellationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool _isSameDate(String date1, String date2) {
+    final d1Str = date1.trim();
+    final d2Str = date2.trim();
+    if (d1Str == d2Str) return true;
+
+    DateTime? parseDate(String s) {
+      try {
+        return DateFormat("MMMM d, yyyy").parse(s);
+      } catch (_) {
+        try {
+          return DateFormat("yyyy-MM-dd").parse(s);
+        } catch (_) {
+          try {
+            return DateTime.parse(s);
+          } catch (_) {
+            return null;
+          }
+        }
+      }
+    }
+
+    final p1 = parseDate(d1Str);
+    final p2 = parseDate(d2Str);
+
+    if (p1 != null && p2 != null) {
+      return p1.year == p2.year && p1.month == p2.month && p1.day == p2.day;
+    }
+    return false;
+  }
+
+  bool _isTimeWithinShift(String apptTimeStr, String? startTimeStr, String? endTimeStr) {
+    if (startTimeStr == null || endTimeStr == null || startTimeStr.trim().isEmpty || endTimeStr.trim().isEmpty) {
+      return true;
+    }
+
+    final appt = apptTimeStr.trim();
+    final start = startTimeStr.trim();
+    final end = endTimeStr.trim();
+
+    if (appt.isEmpty) return true;
+
+    if (appt == start || appt == "$start - $end" || appt.contains(start) || start.contains(appt)) {
+      return true;
+    }
+
+    DateTime? parseTime(String tStr) {
+      final cleaned = tStr.toUpperCase().replaceAll('.', '').trim();
+      final formats = ["hh:mm a", "h:mm a", "HH:mm", "H:mm"];
+      for (var fmt in formats) {
+        try {
+          return DateFormat(fmt).parse(cleaned);
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    final apptDt = parseTime(appt);
+    final startDt = parseTime(start);
+    final endDt = parseTime(end);
+
+    if (apptDt != null && startDt != null && endDt != null) {
+      final base = DateTime(2026, 1, 1);
+      final aTime = DateTime(base.year, base.month, base.day, apptDt.hour, apptDt.minute);
+      var sTime = DateTime(base.year, base.month, base.day, startDt.hour, startDt.minute);
+      var eTime = DateTime(base.year, base.month, base.day, endDt.hour, endDt.minute);
+
+      if (!eTime.isAfter(sTime)) {
+        eTime = eTime.add(const Duration(days: 1));
+      }
+
+      return (aTime.isAfter(sTime) || aTime.isAtSameMomentAs(sTime)) &&
+             (aTime.isBefore(eTime) || aTime.isAtSameMomentAs(eTime));
+    }
+
+    return true;
+  }
 
   Future<List<Map<String, dynamic>>> getAffectedAppointments({
     required String doctorId,
@@ -18,7 +96,6 @@ class ScheduleCancellationService {
       final querySnapshot = await _firestore
           .collection('appointments')
           .where('doctorId', isEqualTo: doctorId)
-          .where('status', whereIn: ['Booked', 'Pending'])
           .get();
 
       List<Map<String, dynamic>> affected = [];
@@ -26,20 +103,22 @@ class ScheduleCancellationService {
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
         data['id'] = doc.id;
+
+        final statusLower = (data['status'] ?? '').toString().toLowerCase();
+        if (statusLower == 'cancelled' || statusLower.contains('cancelled') || statusLower == 'completed') {
+          continue;
+        }
+
         final apptTime = (data['time'] ?? '').toString();
         final apptDate = (data['date'] ?? '').toString();
 
         if (targetDate != null && targetDate.isNotEmpty) {
-          if (apptDate != targetDate) {
+          if (!_isSameDate(apptDate, targetDate)) {
             continue;
           }
         }
 
-        if (startTime != null && endTime != null && apptTime.isNotEmpty) {
-          if (apptTime == startTime || apptTime == "$startTime - $endTime" || apptTime.contains(startTime)) {
-            affected.add(data);
-          }
-        } else {
+        if (_isTimeWithinShift(apptTime, startTime, endTime)) {
           affected.add(data);
         }
       }
@@ -66,7 +145,7 @@ class ScheduleCancellationService {
     for (var appt in affectedAppointments) {
       try {
         final apptId = appt['id'] ?? '';
-        final patientUid = appt['patientUid'] ?? '';
+        final patientUid = (appt['patientUid'] ?? appt['patientId'] ?? appt['userId'] ?? appt['uid'] ?? '').toString().trim();
         final apptDate = appt['date'] ?? day;
         final apptTime = appt['time'] ?? '';
         final fee = (appt['consultationFee'] is num ? (appt['consultationFee'] as num).toDouble() : 0.0);

@@ -43,6 +43,7 @@ class AppointmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String cleanStatus = status.toUpperCase();
     final bool isConfirmed = cleanStatus == "CONFIRMED" || cleanStatus == "COMPLETED";
     final bool isCancelled = cleanStatus == "CANCELLED";
@@ -53,19 +54,19 @@ class AppointmentCard extends StatelessWidget {
     String statusLabel;
 
     if (isConfirmed) {
-      statusColor = const Color(0xFFB45309);
-      statusBg = const Color(0xFFFFFBEB);
-      statusBorder = const Color(0xFFFDE68A);
+      statusColor = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
+      statusBg = isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB);
+      statusBorder = isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A);
       statusLabel = cleanStatus == "COMPLETED" ? 'COMPLETED' : 'CONFIRMED';
     } else if (isCancelled) {
-      statusColor = const Color(0xFFB91C1C);
-      statusBg = const Color(0xFFFEF2F2);
-      statusBorder = const Color(0xFFFECACA);
+      statusColor = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C);
+      statusBg = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2);
+      statusBorder = isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA);
       statusLabel = 'CANCELLED';
     } else {
-      statusColor = const Color(0xFF0284C7);
-      statusBg = const Color(0xFFF0F9FF);
-      statusBorder = const Color(0xFFBAE6FD);
+      statusColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
+      statusBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF);
+      statusBorder = isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD);
       statusLabel = 'PENDING';
     }
 
@@ -78,12 +79,12 @@ class AppointmentCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -124,8 +125,8 @@ class AppointmentCard extends StatelessWidget {
                             height: 52,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFFE0F2FE),
-                              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+                              border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.5),
                               image: (imageUrl != null && imageUrl!.isNotEmpty)
                                   ? DecorationImage(
                                       image: NetworkImage(imageUrl!),
@@ -137,8 +138,8 @@ class AppointmentCard extends StatelessWidget {
                             child: (imageUrl == null || imageUrl!.isEmpty)
                                 ? Text(
                                     initial,
-                                    style: const TextStyle(
-                                      color: Color(0xFF0284C7),
+                                    style: TextStyle(
+                                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 22,
                                     ),
@@ -153,10 +154,10 @@ class AppointmentCard extends StatelessWidget {
                           children: [
                             Text(
                               formattedName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -164,8 +165,8 @@ class AppointmentCard extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               type.isEmpty ? 'District General Hospital Hambantota' : type,
-                              style: const TextStyle(
-                                color: Color(0xFF94A3B8),
+                              style: TextStyle(
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -224,9 +225,9 @@ class AppointmentCard extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,20 +238,20 @@ class AppointmentCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               time,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                           ],
                         ),
                         Text(
                           displayAmount,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0EA5E9),
+                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0EA5E9),
                           ),
                         ),
                       ],
@@ -296,15 +297,15 @@ class AppointmentCard extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: onDecline,
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFEF2F2),
-                              side: const BorderSide(color: Color(0xFFFECACA)),
+                              backgroundColor: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
+                              side: BorderSide(color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA)),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            icon: const Icon(Icons.close_rounded, size: 15, color: Color(0xFFEF4444)),
-                            label: const Text(
+                            icon: Icon(Icons.close_rounded, size: 15, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444)),
+                            label: Text(
                               'Decline',
-                              style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -349,15 +350,15 @@ class AppointmentCard extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: onReceipt,
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: const BorderSide(color: Color(0xFFCBD5E1)),
+                              backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                              side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            icon: const Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF475569)),
-                            label: const Text(
+                            icon: Icon(Icons.receipt_long_rounded, size: 15, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                            label: Text(
                               'Receipt 📄',
-                              style: TextStyle(color: Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),
                           const SizedBox(width: 8),

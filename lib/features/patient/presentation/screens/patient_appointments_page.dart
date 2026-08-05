@@ -21,7 +21,39 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Booked', 'Completed', 'Cancelled'];
 
-  Future<void> _cancelAppointment(String appointmentId) async {
+  bool _canCancelAppointment(String? dateStr) {
+    if (dateStr == null || dateStr.trim().isEmpty) return false;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    try {
+      final parsedDate = DateFormat("MMMM d, yyyy").parse(dateStr.trim());
+      final appointmentDayStart = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      return todayStart.isBefore(appointmentDayStart);
+    } catch (_) {
+      try {
+        final parsedDate = DateTime.parse(dateStr.trim());
+        final appointmentDayStart = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+        return todayStart.isBefore(appointmentDayStart);
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  Future<void> _cancelAppointment(String appointmentId, String? appointmentDate) async {
+    if (!_canCancelAppointment(appointmentDate)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Appointments can only be cancelled before the consultation day.'),
+          backgroundColor: Colors.orange.shade800,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     try {
       await FirebaseFirestore.instance.collection('appointments').doc(appointmentId).update({
         'status': 'Cancelled',
@@ -88,54 +120,54 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
     return Icons.bookmark_border_rounded;
   }
 
-  Color _statusTextColor(String status) {
+  Color _statusTextColor(String status, [bool isDark = false]) {
     switch (status.toLowerCase()) {
       case 'booked':
       case 'confirmed':
-        return const Color(0xFF0369A1);
+        return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1);
       case 'completed':
-        return const Color(0xFF15803D);
+        return isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
       case 'cancelled':
-        return const Color(0xFFB91C1C);
+        return isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C);
       case 'refunded':
       case 'cancelled (refunded)':
-        return const Color(0xFFB45309);
+        return isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
       default:
-        return const Color(0xFF475569);
+        return isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
     }
   }
 
-  Color _statusBgColor(String status) {
+  Color _statusBgColor(String status, [bool isDark = false]) {
     switch (status.toLowerCase()) {
       case 'booked':
       case 'confirmed':
-        return const Color(0xFFE0F2FE);
+        return isDark ? const Color(0xFF0369A1).withValues(alpha: 0.25) : const Color(0xFFE0F2FE);
       case 'completed':
-        return const Color(0xFFDCFCE7);
+        return isDark ? const Color(0xFF15803D).withValues(alpha: 0.25) : const Color(0xFFDCFCE7);
       case 'cancelled':
-        return const Color(0xFFFEE2E2);
+        return isDark ? const Color(0xFF991B1B).withValues(alpha: 0.25) : const Color(0xFFFEE2E2);
       case 'refunded':
       case 'cancelled (refunded)':
-        return const Color(0xFFFEF3C7);
+        return isDark ? const Color(0xFF92400E).withValues(alpha: 0.25) : const Color(0xFFFEF3C7);
       default:
-        return const Color(0xFFF1F5F9);
+        return isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
     }
   }
 
-  Color _statusBorderColor(String status) {
+  Color _statusBorderColor(String status, [bool isDark = false]) {
     switch (status.toLowerCase()) {
       case 'booked':
       case 'confirmed':
-        return const Color(0xFFBAE6FD);
+        return isDark ? const Color(0xFF0284C7).withValues(alpha: 0.5) : const Color(0xFFBAE6FD);
       case 'completed':
-        return const Color(0xFFBBF7D0);
+        return isDark ? const Color(0xFF16A34A).withValues(alpha: 0.5) : const Color(0xFFBBF7D0);
       case 'cancelled':
-        return const Color(0xFFFCA5A5);
+        return isDark ? const Color(0xFFDC2626).withValues(alpha: 0.5) : const Color(0xFFFCA5A5);
       case 'refunded':
       case 'cancelled (refunded)':
-        return const Color(0xFFFDE68A);
+        return isDark ? const Color(0xFFD97706).withValues(alpha: 0.5) : const Color(0xFFFDE68A);
       default:
-        return const Color(0xFFE2E8F0);
+        return isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0);
     }
   }
 
@@ -146,22 +178,6 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (match) => ',',
     )}';
-  }
-
-  bool _isDateExpired(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty) return false;
-    final todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    try {
-      final parsedDate = DateFormat("MMMM d, yyyy").parse(dateStr);
-      return parsedDate.isBefore(todayStart);
-    } catch (_) {
-      try {
-        final parsedDate = DateTime.parse(dateStr);
-        return parsedDate.isBefore(todayStart);
-      } catch (_) {
-        return false;
-      }
-    }
   }
 
   void _showRescheduleDatePicker(BuildContext context, Map<String, dynamic> invData) async {
@@ -203,15 +219,17 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
   }
 
   void _showCancellationInvoiceModal(BuildContext context, String appointmentId, Map<String, dynamic> apptData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.all(24),
           child: FutureBuilder<QuerySnapshot>(
@@ -253,7 +271,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: isDark ? const Color(0xFF475569) : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -274,8 +292,22 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Cancellation Invoice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                              Text('No: $invNum', style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+                              Text(
+                                'Cancellation Invoice',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                'No: $invNum',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? const Color(0xFF94A3B8) : Colors.grey,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -293,8 +325,8 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                 : (actionType == 'Refund' ? 'Refund Issued' : 'Rescheduled'),
                             style: TextStyle(
                               color: isPendingChoice
-                                  ? Colors.orange.shade900
-                                  : (actionType == 'Refund' ? Colors.green.shade800 : Colors.blue.shade800),
+                                  ? (isDark ? Colors.amber.shade300 : Colors.orange.shade900)
+                                  : (actionType == 'Refund' ? (isDark ? Colors.green.shade300 : Colors.green.shade800) : (isDark ? Colors.blue.shade300 : Colors.blue.shade800)),
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
@@ -302,25 +334,25 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                         ),
                       ],
                     ),
-                    const Divider(height: 28),
+                    Divider(height: 28, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                        color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                       ),
                       child: Column(
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Doctor:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text('Doctor:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Dr. ${apptData['doctorName'] ?? 'Doctor'}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                                   textAlign: TextAlign.end,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -331,12 +363,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Original Date:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text('Original Date:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   '${apptData['date']} (${apptData['time']})',
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                                   textAlign: TextAlign.end,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -347,12 +379,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Hospital:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text('Hospital:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   apptData['hospitalName'] ?? 'N/A',
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                                   textAlign: TextAlign.end,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -363,12 +395,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Payment Method:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text('Payment Method:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   '$method',
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                                   textAlign: TextAlign.end,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -379,28 +411,28 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Financial Breakdown', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    Text('Financial Breakdown', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Consultation Fee', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                        Text(_formatCurrency(fee), style: const TextStyle(fontSize: 13)),
+                        Text('Consultation Fee', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
+                        Text(_formatCurrency(fee), style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Hospital Service Charges', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                        Text(_formatCurrency(charges), style: const TextStyle(fontSize: 13)),
+                        Text('Hospital Service Charges', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
+                        Text(_formatCurrency(charges), style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                       ],
                     ),
-                    const Divider(height: 20),
+                    Divider(height: 20, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Invoice Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87)),
+                        Text('Total Invoice Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87)),
                         Text(_formatCurrency(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0EA5E9))),
                       ],
                     ),
@@ -409,16 +441,16 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.1),
+                        color: isDark ? const Color(0xFF451A03).withValues(alpha: 0.5) : Colors.amber.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                        border: Border.all(color: isDark ? const Color(0xFF92400E).withValues(alpha: 0.5) : Colors.amber.withValues(alpha: 0.3)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Cancellation Reason / Note:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.brown)),
+                          Text('Cancellation Reason / Note:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? const Color(0xFFFDBA74) : Colors.brown)),
                           const SizedBox(height: 4),
-                          Text(remarks, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                          Text(remarks, style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFFFEF3C7) : Colors.black87)),
                         ],
                       ),
                     ),
@@ -426,7 +458,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
 
                     // Interactive Resolution Buttons (if Pending Patient Choice)
                     if (isPendingChoice && invData != null) ...[
-                      const Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -484,11 +516,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                       width: double.infinity,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Close Invoice', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        child: Text('Close Invoice', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
                       ),
                     ),
                   ],
@@ -504,24 +537,25 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (user == null) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: Text('Please sign in to view your appointments.')),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: Text('Please sign in to view your appointments.')),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: widget.showAppBar
           ? AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0.5,
-              iconTheme: const IconThemeData(color: Colors.black),
-              title: const Text(
+              iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+              title: Text(
                 'My Appointments',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
               ),
               centerTitle: true,
             )
@@ -531,7 +565,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
           children: [
             // Creative Filter Bar with Active Gradient
             Container(
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: SizedBox(
                 height: 42,
@@ -572,10 +606,10 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                   end: Alignment.centerRight,
                                 )
                               : null,
-                          color: isSelected ? null : const Color(0xFFF1F5F9),
+                          color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+                            color: isSelected ? Colors.transparent : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           boxShadow: isSelected
                               ? [
@@ -592,13 +626,13 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                             Icon(
                               filterIcon,
                               size: 15,
-                              color: isSelected ? Colors.white : const Color(0xFF64748B),
+                              color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               filter,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : const Color(0xFF334155),
+                                color: isSelected ? Colors.white : (isDark ? Colors.white : const Color(0xFF334155)),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -652,8 +686,15 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                         // Apply filter
                         if (_selectedFilter != 'All') {
                           docs = docs.where((doc) {
-                            final status = (doc.data() as Map<String, dynamic>)['status']?.toString() ?? '';
-                            return status.toLowerCase() == _selectedFilter.toLowerCase();
+                            final status = ((doc.data() as Map<String, dynamic>)['status'] ?? '').toString().toLowerCase();
+                            final filter = _selectedFilter.toLowerCase();
+                            if (filter == 'cancelled') {
+                              return status.contains('cancelled');
+                            }
+                            if (filter == 'booked') {
+                              return status == 'booked' || status == 'confirmed';
+                            }
+                            return status == filter;
                           }).toList();
                         }
 
@@ -680,12 +721,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                             final doctorId = (data['doctorId'] ?? '').toString();
                             final imageUrl = (data['doctorImage'] ?? data['profileImageUrl'] ?? data['doctorProfileImageUrl'] ?? doctorImages[doctorId] ?? '').toString().trim();
 
-                            return Container(
+                             return Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.04),
@@ -705,13 +746,13 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                       bottom: 0,
                                       child: Container(
                                         width: 5,
-                                        color: _statusTextColor(status),
+                                        color: _statusTextColor(status, isDark),
                                       ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(left: 5),
                                       child: Material(
-                                        color: Colors.white,
+                                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                         child: Theme(
                                           data: Theme.of(context).copyWith(
                                             dividerColor: Colors.transparent,
@@ -721,17 +762,17 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                             tilePadding: const EdgeInsets.all(16),
                                             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                                             iconColor: const Color(0xFF0EA5E9),
-                                            collapsedIconColor: const Color(0xFF64748B),
-                                            leading: _buildDoctorAvatar(imageUrl, _formatDoctorName(data['doctorName']?.toString())),
+                                            collapsedIconColor: isDark ? Colors.white70 : const Color(0xFF64748B),
+                                            leading: _buildDoctorAvatar(imageUrl, _formatDoctorName(data['doctorName']?.toString()), isDark),
                                             title: Row(
                                               children: [
                                                 Expanded(
                                                   child: Text(
                                                     _formatDoctorName(data['doctorName']?.toString()),
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 15.5,
-                                                      color: Color(0xFF0F172A),
+                                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                                                       letterSpacing: -0.2,
                                                     ),
                                                     maxLines: 1,
@@ -749,7 +790,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(0xFFF0F9FF),
+                                                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                                                         borderRadius: BorderRadius.circular(6),
                                                       ),
                                                       child: Text(
@@ -765,19 +806,19 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                                       decoration: BoxDecoration(
-                                                        color: _statusBgColor(status),
+                                                        color: _statusBgColor(status, isDark),
                                                         borderRadius: BorderRadius.circular(8),
-                                                        border: Border.all(color: _statusBorderColor(status)),
+                                                        border: Border.all(color: _statusBorderColor(status, isDark)),
                                                       ),
                                                       child: Row(
                                                         mainAxisSize: MainAxisSize.min,
                                                         children: [
-                                                          Icon(_statusIcon(status), size: 12, color: _statusTextColor(status)),
+                                                          Icon(_statusIcon(status), size: 12, color: _statusTextColor(status, isDark)),
                                                           const SizedBox(width: 4),
                                                           Text(
                                                             _formatStatusBadge(status),
                                                             style: TextStyle(
-                                                              color: _statusTextColor(status),
+                                                              color: _statusTextColor(status, isDark),
                                                               fontWeight: FontWeight.bold,
                                                               fontSize: 11,
                                                             ),
@@ -792,9 +833,9 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                 Container(
                                                   padding: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF8FAFC),
+                                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                                     borderRadius: BorderRadius.circular(12),
-                                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                                   ),
                                                   child: Column(
                                                     children: [
@@ -804,7 +845,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                           const SizedBox(width: 5),
                                                           Text(
                                                             data['date'] ?? 'N/A',
-                                                            style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.bold),
+                                                            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.bold),
                                                           ),
                                                           const Spacer(),
                                                           const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF0EA5E9)),
@@ -823,7 +864,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                           Expanded(
                                                             child: Text(
                                                               data['hospitalName'] ?? 'Hospital / Clinic Center',
-                                                              style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5, fontWeight: FontWeight.w500),
+                                                              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569), fontSize: 11.5, fontWeight: FontWeight.w500),
                                                               maxLines: 1,
                                                               overflow: TextOverflow.ellipsis,
                                                             ),
@@ -836,7 +877,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                               ],
                                             ),
                                             children: [
-                                              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                              Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                                               const SizedBox(height: 14),
                                               _buildDetailRow(Icons.medical_information_outlined, 'Reason for Visit', data['reason']?.toString().isNotEmpty == true ? data['reason'] : 'General Consultation & Checkup'),
                                               const SizedBox(height: 10),
@@ -881,25 +922,25 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                       },
                                                       style: OutlinedButton.styleFrom(
                                                         padding: const EdgeInsets.symmetric(vertical: 10),
-                                                        side: const BorderSide(color: Color(0xFFBAE6FD)),
-                                                        backgroundColor: const Color(0xFFF0F9FF),
+                                                        side: BorderSide(color: isDark ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD)),
+                                                        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                       ),
                                                       icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Color(0xFF0284C7)),
                                                       label: const Text('Support', style: TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 12)),
                                                     ),
                                                   ),
-                                                  if ((status.toLowerCase().contains('cancelled') || status.toLowerCase().contains('rescheduled')) && !_isDateExpired(data['date'])) ...[
+                                                  if (status.toLowerCase().contains('cancelled') || status.toLowerCase().contains('rescheduled') || data['cancellationInvoiceId'] != null) ...[
                                                     const SizedBox(width: 8),
                                                     Expanded(
                                                       child: ElevatedButton.icon(
                                                         onPressed: () => _showCancellationInvoiceModal(context, doc.id, data),
                                                         style: ElevatedButton.styleFrom(
                                                           padding: const EdgeInsets.symmetric(vertical: 10),
-                                                          backgroundColor: const Color(0xFFFEF3C7),
-                                                          foregroundColor: const Color(0xFFB45309),
+                                                          backgroundColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7),
+                                                          foregroundColor: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
                                                           elevation: 0,
-                                                          side: const BorderSide(color: Color(0xFFFDE68A)),
+                                                          side: BorderSide(color: isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A)),
                                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                         ),
                                                         icon: const Icon(Icons.receipt_long_rounded, size: 15),
@@ -923,10 +964,10 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                         },
                                                         style: ElevatedButton.styleFrom(
                                                           padding: const EdgeInsets.symmetric(vertical: 10),
-                                                          backgroundColor: const Color(0xFFECFDF5),
-                                                          foregroundColor: const Color(0xFF047857),
+                                                          backgroundColor: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
+                                                          foregroundColor: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
                                                           elevation: 0,
-                                                          side: const BorderSide(color: Color(0xFFA7F3D0)),
+                                                          side: BorderSide(color: isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0)),
                                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                         ),
                                                         icon: const Icon(Icons.star_rounded, size: 15),
@@ -934,48 +975,87 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                       ),
                                                     ),
                                                   ],
-                                                  if (status.toLowerCase() != 'cancelled' && !status.toLowerCase().contains('cancelled') && status.toLowerCase() != 'completed') ...[
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: ElevatedButton.icon(
-                                                        onPressed: () async {
-                                                          final confirm = await showDialog<bool>(
-                                                            context: context,
-                                                            builder: (context) => AlertDialog(
-                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                              title: const Text('Cancel Appointment?', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                                                              content: const Text('Are you sure you want to cancel this appointment? This action cannot be undone.', style: TextStyle(color: Color(0xFF475569))),
-                                                              actions: [
-                                                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep Appointment', style: TextStyle(color: Color(0xFF64748B)))),
-                                                                ElevatedButton(
-                                                                  onPressed: () => Navigator.pop(context, true),
-                                                                  style: ElevatedButton.styleFrom(
-                                                                    backgroundColor: const Color(0xFFEF4444),
-                                                                    elevation: 0,
-                                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                                  ),
-                                                                  child: const Text('Cancel It', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          );
-                                                          if (confirm == true) {
-                                                            await _cancelAppointment(doc.id);
-                                                          }
-                                                        },
-                                                        style: ElevatedButton.styleFrom(
-                                                          padding: const EdgeInsets.symmetric(vertical: 10),
-                                                          backgroundColor: const Color(0xFFFEE2E2),
-                                                          foregroundColor: const Color(0xFFB91C1C),
-                                                          elevation: 0,
-                                                          side: const BorderSide(color: Color(0xFFFCA5A5)),
-                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                                        ),
-                                                        icon: const Icon(Icons.close_rounded, size: 15),
-                                                        label: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                                      ),
-                                                    ),
-                                                  ],
+                                                   if (status.toLowerCase() != 'cancelled' && !status.toLowerCase().contains('cancelled') && status.toLowerCase() != 'completed') ...[
+                                                     const SizedBox(width: 8),
+                                                     Builder(
+                                                       builder: (context) {
+                                                         final canCancel = _canCancelAppointment(data['date']?.toString());
+                                                         return Expanded(
+                                                           child: ElevatedButton.icon(
+                                                             onPressed: canCancel
+                                                                 ? () async {
+                                                                     final confirm = await showDialog<bool>(
+                                                                       context: context,
+                                                                       builder: (context) {
+                                                                         final isDarkDialog = Theme.of(context).brightness == Brightness.dark;
+                                                                         return AlertDialog(
+                                                                           backgroundColor: isDarkDialog ? const Color(0xFF1E293B) : Colors.white,
+                                                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                                           title: Text('Cancel Appointment?', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkDialog ? Colors.white : const Color(0xFF0F172A))),
+                                                                           content: Text('Are you sure you want to cancel this appointment? This action cannot be undone.', style: TextStyle(color: isDarkDialog ? const Color(0xFF94A3B8) : const Color(0xFF475569))),
+                                                                           actions: [
+                                                                             TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Keep Appointment', style: TextStyle(color: isDarkDialog ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))),
+                                                                             ElevatedButton(
+                                                                               onPressed: () => Navigator.pop(context, true),
+                                                                               style: ElevatedButton.styleFrom(
+                                                                                 backgroundColor: const Color(0xFFEF4444),
+                                                                                 elevation: 0,
+                                                                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                               ),
+                                                                               child: const Text('Cancel It', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                                                             ),
+                                                                           ],
+                                                                         );
+                                                                       },
+                                                                     );
+                                                                     if (confirm == true) {
+                                                                       await _cancelAppointment(doc.id, data['date']?.toString());
+                                                                     }
+                                                                   }
+                                                                 : () {
+                                                                     ScaffoldMessenger.of(context).showSnackBar(
+                                                                       SnackBar(
+                                                                         content: const Text('Appointments cannot be cancelled on the consultation day.'),
+                                                                         backgroundColor: Colors.orange.shade800,
+                                                                         behavior: SnackBarBehavior.floating,
+                                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                       ),
+                                                                     );
+                                                                   },
+                                                             style: ElevatedButton.styleFrom(
+                                                               padding: const EdgeInsets.symmetric(vertical: 10),
+                                                               backgroundColor: canCancel
+                                                                   ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.3) : const Color(0xFFFEE2E2))
+                                                                   : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                                                               foregroundColor: canCancel
+                                                                   ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C))
+                                                                   : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                                                               elevation: 0,
+                                                               side: BorderSide(
+                                                                 color: canCancel
+                                                                     ? (isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5))
+                                                                     : (isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
+                                                               ),
+                                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                             ),
+                                                             icon: Icon(
+                                                               Icons.close_rounded,
+                                                               size: 15,
+                                                               color: canCancel ? null : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                                                             ),
+                                                             label: Text(
+                                                               'Cancel',
+                                                               style: TextStyle(
+                                                                 fontWeight: FontWeight.bold,
+                                                                 fontSize: 12,
+                                                                 color: canCancel ? null : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                                                               ),
+                                                             ),
+                                                           ),
+                                                         );
+                                                       },
+                                                     ),
+                                                   ],
                                                 ],
                                               ),
                                             ],
@@ -1001,7 +1081,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
     );
   }
 
-  Widget _buildDoctorAvatar(String imageUrl, String doctorName) {
+  Widget _buildDoctorAvatar(String imageUrl, String doctorName, bool isDark) {
     final cleanUrl = imageUrl.trim();
     final String cleanDoctor = doctorName.replaceAll('Dr.', '').replaceAll('dr.', '').trim();
     final String initial = cleanDoctor.isNotEmpty ? cleanDoctor[0].toUpperCase() : 'D';
@@ -1011,8 +1091,8 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
       height: 52,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFFE0F2FE),
-        border: Border.all(color: const Color(0xFFBAE6FD), width: 2),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+        border: Border.all(color: isDark ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD), width: 2),
       ),
       child: ClipOval(
         child: cleanUrl.isNotEmpty
@@ -1022,7 +1102,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                 height: 52,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return _buildAvatarFallback(initial);
+                  return _buildAvatarFallback(initial, isDark);
                 },
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
@@ -1035,14 +1115,14 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                   );
                 },
               )
-            : _buildAvatarFallback(initial),
+            : _buildAvatarFallback(initial, isDark),
       ),
     );
   }
 
-  Widget _buildAvatarFallback(String initial) {
+  Widget _buildAvatarFallback(String initial, bool isDark) {
     return Container(
-      color: const Color(0xFFE0F2FE),
+      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
       alignment: Alignment.center,
       child: Text(
         initial,
@@ -1056,6 +1136,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1063,12 +1144,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
         const SizedBox(width: 10),
         Text(
           '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF64748B), fontSize: 13),
+          style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -1076,6 +1157,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1085,15 +1167,15 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: isDark ? const Color(0xFF0F172A) : Colors.blue[50],
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.calendar_today_outlined, size: 64, color: Colors.blue),
+              child: const Icon(Icons.calendar_today_outlined, size: 64, color: Color(0xFF0EA5E9)),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No Appointments Found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1101,7 +1183,7 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                   ? 'Book a doctor to see your upcoming visits here.'
                   : 'You have no appointments with status "$_selectedFilter".',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600]),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -1112,12 +1194,12 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color(0xFF0EA5E9),
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
-              child: const Text('Find a Doctor', style: TextStyle(color: Colors.white)),
+              child: const Text('Find a Doctor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

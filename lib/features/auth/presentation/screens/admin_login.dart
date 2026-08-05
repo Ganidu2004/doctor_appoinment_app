@@ -97,6 +97,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return WebAuthWrapper(
       heroTagline: "Admin Management Console",
       heroDescription: "Access system administrative settings, manage doctors and hospitals, inspect revenues, and monitor real-time appointments.",
@@ -118,23 +120,25 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               fontSize: 28,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Sign in to your Administrator Account',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(fontSize: 14, color: isDark ? const Color(0xFF94A3B8) : Colors.black54),
             ),
             const SizedBox(height: 32),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 labelText: 'Admin Email',
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                 prefixIcon: const Icon(Icons.admin_panel_settings_outlined, color: primaryColor),
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5)),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryColor, width: 2)),
               ),
               validator: (val) => val == null || !val.contains('@') ? 'Enter a valid admin email' : null,
@@ -143,17 +147,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             TextFormField(
               controller: _passwordController,
               obscureText: _isPasswordHidden,
-              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 labelText: 'Password',
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                 prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor),
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5)),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryColor, width: 2)),
                 suffixIcon: IconButton(
-                  icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: primaryColor.withValues(alpha: 0.7)),
+                  icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: isDark ? const Color(0xFF94A3B8) : primaryColor.withValues(alpha: 0.7)),
                   onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                 ),
               ),
@@ -181,7 +187,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Back to Normal Sign In', style: TextStyle(color: Colors.grey)),
+              child: Text('Back to Normal Sign In', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
             ),
           ],
         ),

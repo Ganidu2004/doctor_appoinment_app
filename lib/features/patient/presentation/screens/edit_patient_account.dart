@@ -224,12 +224,13 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : Colors.black)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 0,
         centerTitle: true,
       ),
@@ -243,14 +244,18 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "Update Your Information",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         "Keep your profile details up to date for better channelings.",
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                        style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13),
                       ),
                       const SizedBox(height: 32),
 
@@ -263,10 +268,13 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                               Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.blue.shade100, width: 3),
+                                  border: Border.all(
+                                    color: isDark ? const Color(0xFF0369A1) : Colors.blue.shade100,
+                                    width: 3,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.08),
+                                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -274,10 +282,10 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                                 ),
                                 child: CircleAvatar(
                                   radius: 54,
-                                  backgroundColor: Colors.grey.shade100,
-                                  backgroundImage: _selectedImage != null 
-                                      ? FileImage(_selectedImage!) 
-                                      : (_existingProfileImageUrl.isNotEmpty 
+                                  backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.grey.shade100,
+                                  backgroundImage: _selectedImage != null
+                                      ? FileImage(_selectedImage!)
+                                      : (_existingProfileImageUrl.isNotEmpty
                                           ? NetworkImage(_existingProfileImageUrl) as ImageProvider
                                           : null),
                                   child: _selectedImage == null && _existingProfileImageUrl.isEmpty
@@ -320,14 +328,15 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             child: TextFormField(
                               controller: _firstNameController,
                               textCapitalization: TextCapitalization.words,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'First Name',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -350,14 +359,15 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             child: TextFormField(
                               controller: _lastNameController,
                               textCapitalization: TextCapitalization.words,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'Last Name',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -387,15 +397,16 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             child: TextFormField(
                               controller: _ageController,
                               keyboardType: TextInputType.number,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'Age',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 prefixIcon: Icon(Icons.cake_outlined, color: Colors.blue[400]),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -422,15 +433,17 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             flex: 3,
                             child: DropdownButtonFormField<String>(
                               initialValue: _selectedGender,
+                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 prefixIcon: Icon(Icons.wc_outlined, color: Colors.blue[400]),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -469,15 +482,16 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             child: TextFormField(
                               controller: _weightController,
                               keyboardType: TextInputType.number,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'Weight (kg)',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 prefixIcon: Icon(Icons.scale_outlined, color: Colors.blue[400]),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -504,15 +518,17 @@ class _PatientProfileEditPageState extends State<PatientProfileEditPage> {
                             flex: 3,
                             child: DropdownButtonFormField<String>(
                               initialValue: _selectedBloodGroup,
+                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
                               decoration: InputDecoration(
                                 labelText: 'Blood Group',
-                                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 14),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
                                 prefixIcon: Icon(Icons.bloodtype_outlined, color: Colors.blue[400]),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -660,18 +676,25 @@ class TextModelField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+        labelStyle: TextStyle(
+          color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500],
+          fontSize: 14,
+        ),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
         prefixIcon: Icon(prefixIcon, color: Colors.blue[400]),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : Colors.grey.shade200,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

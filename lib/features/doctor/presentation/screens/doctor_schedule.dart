@@ -357,16 +357,27 @@ class _MySchedulePageState extends State<MySchedulePage> {
   DateTime _getUpcomingDateForDay(String dayName) {
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-    const daysMap = {
-      'monday': DateTime.monday,
-      'tuesday': DateTime.tuesday,
-      'wednesday': DateTime.wednesday,
-      'thursday': DateTime.thursday,
-      'friday': DateTime.friday,
-      'saturday': DateTime.saturday,
-      'sunday': DateTime.sunday,
-    };
-    int targetWeekday = daysMap[dayName.trim().toLowerCase()] ?? DateTime.monday;
+    
+    final lower = dayName.toLowerCase();
+    int? targetWeekday;
+    if (lower.contains('mon')) {
+      targetWeekday = DateTime.monday;
+    } else if (lower.contains('tue')) {
+      targetWeekday = DateTime.tuesday;
+    } else if (lower.contains('wed')) {
+      targetWeekday = DateTime.wednesday;
+    } else if (lower.contains('thu')) {
+      targetWeekday = DateTime.thursday;
+    } else if (lower.contains('fri')) {
+      targetWeekday = DateTime.friday;
+    } else if (lower.contains('sat')) {
+      targetWeekday = DateTime.saturday;
+    } else if (lower.contains('sun')) {
+      targetWeekday = DateTime.sunday;
+    }
+
+    targetWeekday ??= today.weekday;
+
     int daysAhead = targetWeekday - today.weekday;
     if (daysAhead < 0) {
       daysAhead += 7;
@@ -379,6 +390,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
     ScheduleModel slot,
     String upcomingDateDisplay,
   ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     String selectedOption = 'upcoming';
 
     return showDialog<String>(
@@ -388,20 +400,21 @@ class _MySchedulePageState extends State<MySchedulePage> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.15),
+                      color: Colors.orange.withValues(alpha: isDark ? 0.25 : 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.toggle_off_rounded, color: Colors.orange, size: 24),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text('Disable Schedule', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text('Disable Schedule', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                   ),
                 ],
               ),
@@ -411,7 +424,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                 children: [
                   Text(
                     'Choose how you want to disable this shift (${slot.day}, ${slot.startTime} - ${slot.endTime}):',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    style: TextStyle(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : Colors.black87),
                   ),
                   const SizedBox(height: 14),
                   InkWell(
@@ -420,10 +433,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: selectedOption == 'upcoming' ? const Color(0xFFF0F9FF) : Colors.white,
+                        color: selectedOption == 'upcoming' 
+                            ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF))
+                            : (isDark ? const Color(0xFF0F172A).withValues(alpha: 0.5) : Colors.white),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : Colors.grey.shade300,
+                          color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                           width: selectedOption == 'upcoming' ? 2 : 1,
                         ),
                       ),
@@ -432,7 +447,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         children: [
                           Icon(
                             selectedOption == 'upcoming' ? Icons.radio_button_checked : Icons.radio_button_off,
-                            color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : Colors.grey,
+                            color: selectedOption == 'upcoming' ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF64748B) : Colors.grey),
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -440,11 +455,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Disable for Upcoming Week Only', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold)),
+                                Text('Disable for Upcoming Week Only', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Temporarily disables shift on $upcomingDateDisplay. Patient invoicing will cancel appointments for this date only. Resumes automatically next week.',
-                                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                  style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.black54),
                                 ),
                               ],
                             ),
@@ -460,10 +475,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: selectedOption == 'permanent' ? const Color(0xFFFEF2F2) : Colors.white,
+                        color: selectedOption == 'permanent' 
+                            ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
+                            : (isDark ? const Color(0xFF0F172A).withValues(alpha: 0.5) : Colors.white),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: selectedOption == 'permanent' ? Colors.redAccent : Colors.grey.shade300,
+                          color: selectedOption == 'permanent' ? Colors.redAccent : (isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                           width: selectedOption == 'permanent' ? 2 : 1,
                         ),
                       ),
@@ -472,7 +489,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         children: [
                           Icon(
                             selectedOption == 'permanent' ? Icons.radio_button_checked : Icons.radio_button_off,
-                            color: selectedOption == 'permanent' ? Colors.redAccent : Colors.grey,
+                            color: selectedOption == 'permanent' ? Colors.redAccent : (isDark ? const Color(0xFF64748B) : Colors.grey),
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -480,11 +497,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Disable Permanently', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold)),
+                                Text('Disable Permanently', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                 const SizedBox(height: 4),
-                                const Text(
+                                Text(
                                   'Disables this recurring shift indefinitely. Patient invoicing will cancel all current and future booked appointments under this shift.',
-                                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                                  style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.black54),
                                 ),
                               ],
                             ),
@@ -498,7 +515,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, null),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: Text('Cancel', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -522,6 +539,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
     ScheduleModel slot,
     int affectedCount,
   ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final TextEditingController reasonController = TextEditingController(
       text: 'Physician unavailable on ${slot.day} (${slot.startTime} - ${slot.endTime}).',
     );
@@ -531,20 +549,21 @@ class _MySchedulePageState extends State<MySchedulePage> {
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.15),
+                  color: Colors.amber.withValues(alpha: isDark ? 0.25 : 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.edit_note_rounded, color: Colors.amber, size: 24),
               ),
               const SizedBox(width: 10),
-              const Expanded(
-                child: Text('Cancellation Reason', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Text('Cancellation Reason', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
               ),
             ],
           ),
@@ -554,18 +573,22 @@ class _MySchedulePageState extends State<MySchedulePage> {
             children: [
               Text(
                 'This shift has $affectedCount active booking(s). Please provide a reason that will be shown to affected patients on their cancellation invoice.',
-                style: const TextStyle(fontSize: 13, height: 1.4, color: Colors.black87),
+                style: TextStyle(fontSize: 13, height: 1.4, color: isDark ? const Color(0xFF94A3B8) : Colors.black87),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: reasonController,
                 maxLines: 2,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
                   labelText: 'Reason for Patients',
+                  labelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0EA5E9)),
                   hintText: 'e.g. Emergency leave, Conference duty...',
+                  hintStyle: TextStyle(color: isDark ? const Color(0xFF64748B) : Colors.grey),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  fillColor: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Color(0xFF0EA5E9)),
@@ -577,7 +600,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, null),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+              child: Text('Cancel', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -811,20 +834,21 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = Color(0xFF0EA5E9);
 
     if (_isFetching) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
-        body: Center(child: CircularProgressIndicator(color: primaryColor)),
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        body: const Center(child: CircularProgressIndicator(color: primaryColor)),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('My Working Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
-        backgroundColor: Colors.white,
+        title: Text('My Working Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0,
         centerTitle: false,
         actions: [
@@ -947,10 +971,10 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                 end: Alignment.bottomCenter,
                               )
                             : null,
-                        color: isSelected ? null : Colors.white,
+                        color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : Colors.white),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                          color: isSelected ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           width: isSelected ? 1.5 : 1,
                         ),
                         boxShadow: isSelected
@@ -963,7 +987,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               ]
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -977,14 +1001,14 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                              color: isSelected ? Colors.white : (isDark ? Colors.white : const Color(0xFF0F172A)),
                             ),
                           ),
                           const SizedBox(height: 4),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white.withValues(alpha: 0.25) : const Color(0xFFF1F5F9),
+                              color: isSelected ? Colors.white.withValues(alpha: 0.25) : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -992,7 +1016,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               ),
                             ),
                           ),
@@ -1014,9 +1038,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side: const BorderSide(color: primaryColor, width: 2),
+                    side: BorderSide(color: isDark ? const Color(0xFF0EA5E9) : primaryColor, width: 2),
                   ),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
@@ -1051,9 +1075,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         const Divider(height: 24),
 
                         // Quick Shift Presets
-                        const Text(
+                        Text(
                           "Quick Shift Presets",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                         ),
                         const SizedBox(height: 8),
                         SingleChildScrollView(
@@ -1061,24 +1085,24 @@ class _MySchedulePageState extends State<MySchedulePage> {
                           child: Row(
                             children: [
                               ActionChip(
-                                avatar: const Icon(Icons.wb_sunny_outlined, size: 16, color: Colors.orange),
-                                label: const Text('Morning OPD', style: TextStyle(fontSize: 12)),
-                                backgroundColor: Colors.orange.withValues(alpha: 0.08),
+                                avatar: const Icon(Icons.wb_sunny_rounded, size: 16, color: Colors.amber),
+                                label: Text('Morning Shift', style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
+                                backgroundColor: isDark ? Colors.amber.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.08),
                                 onPressed: () => _applyShiftPreset("08:00 AM", "12:00 PM", 20, 2500),
                               ),
                               const SizedBox(width: 8),
                               ActionChip(
-                                avatar: const Icon(Icons.nights_stay_outlined, size: 16, color: Colors.indigo),
-                                label: const Text('Evening Clinic', style: TextStyle(fontSize: 12)),
-                                backgroundColor: Colors.indigo.withValues(alpha: 0.08),
+                                avatar: const Icon(Icons.wb_twilight_rounded, size: 16, color: Colors.orangeAccent),
+                                label: Text('Evening Shift', style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
+                                backgroundColor: isDark ? Colors.orangeAccent.withValues(alpha: 0.2) : Colors.orangeAccent.withValues(alpha: 0.08),
                                 onPressed: () => _applyShiftPreset("04:00 PM", "08:00 PM", 15, 3000),
                               ),
                               const SizedBox(width: 8),
                               ActionChip(
-                                avatar: const Icon(Icons.local_hospital_outlined, size: 16, color: primaryColor),
-                                label: const Text('Weekend Special', style: TextStyle(fontSize: 12)),
-                                backgroundColor: primaryColor.withValues(alpha: 0.08),
-                                onPressed: () => _applyShiftPreset("09:00 AM", "01:00 PM", 10, 3500),
+                                avatar: const Icon(Icons.nights_stay_rounded, size: 16, color: Colors.indigoAccent),
+                                label: Text('Night Shift', style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
+                                backgroundColor: isDark ? Colors.indigoAccent.withValues(alpha: 0.2) : Colors.indigoAccent.withValues(alpha: 0.08),
+                                onPressed: () => _applyShiftPreset("08:00 PM", "12:00 AM", 12, 3500),
                               ),
                             ],
                           ),
@@ -1086,9 +1110,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         const SizedBox(height: 16),
 
                         // Hospital Selection
-                        const Text(
+                        Text(
                           "Hospital / Clinic",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                         ),
                         const SizedBox(height: 6),
                         _doctorHospitals.isEmpty
@@ -1099,14 +1123,14 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
-                                    Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
-                                    SizedBox(width: 8),
+                                    const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         "No hospitals available in database. Contact admin.",
-                                        style: TextStyle(color: Colors.black87, fontSize: 13),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13),
                                       ),
                                     ),
                                   ],
@@ -1116,8 +1140,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: Colors.grey.shade300),
-                                  color: const Color(0xFFF8FAFC),
+                                  border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<Map<String, dynamic>>(
@@ -1126,7 +1150,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                       orElse: () => _doctorHospitals.first,
                                     ),
                                     isExpanded: true,
-                                    hint: const Text("Select Hospital / Clinic"),
+                                    dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                    hint: Text("Select Hospital / Clinic", style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
                                     icon: const Icon(Icons.keyboard_arrow_down_rounded, color: primaryColor),
                                     items: _doctorHospitals.map((hospital) {
                                       final district = (hospital['district'] ?? '').toString();
@@ -1148,7 +1173,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                               child: Text(
                                                 displayName,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                               ),
                                             ),
                                             if (isAssigned) ...[
@@ -1180,9 +1205,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         const SizedBox(height: 16),
 
                         // ⏲ Time Selectors
-                        const Text(
+                        Text(
                           "Working Hours",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -1195,11 +1220,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                   if (picked != null) setState(() => _startTime = picked.format(context));
                                 },
                                 icon: const Icon(Icons.access_time_rounded, color: primaryColor, size: 18),
-                                label: Text(_startTime, style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500)),
+                                label: Text(_startTime, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13, fontWeight: FontWeight.w500)),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  side: BorderSide(color: Colors.grey.shade300),
+                                  side: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                                 ),
                               ),
                             ),
@@ -1212,11 +1237,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                   if (picked != null) setState(() => _endTime = picked.format(context));
                                 },
                                 icon: const Icon(Icons.access_time_filled_rounded, color: primaryColor, size: 18),
-                                label: Text(_endTime, style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500)),
+                                label: Text(_endTime, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13, fontWeight: FontWeight.w500)),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  side: BorderSide(color: Colors.grey.shade300),
+                                  side: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                                 ),
                               ),
                             ),
@@ -1231,17 +1256,23 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text("Consultation Fee", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  Text("Consultation Fee", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 6),
                                   TextFormField(
                                     initialValue: _consultationFee == 0 ? '' : _consultationFee.toStringAsFixed(0),
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                     decoration: InputDecoration(
                                       isDense: true,
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      filled: true,
+                                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300)),
+                                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300)),
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                       prefixText: 'LKR ',
+                                      prefixStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor),
                                       hintText: '2500',
+                                      hintStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                     ),
                                     onChanged: (value) {
                                       final parsed = double.tryParse(value) ?? 0;
@@ -1256,14 +1287,14 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text("Max Patients", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  Text("Max Patients", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 6),
                                   Container(
                                     height: 44,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      color: const Color(0xFFF8FAFC),
+                                      border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
+                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                     ),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1274,7 +1305,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                           padding: EdgeInsets.zero,
                                           constraints: const BoxConstraints(),
                                         ),
-                                        Text('$_maxPatients', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                        Text('$_maxPatients', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                         IconButton(
                                           onPressed: () => setState(() => _maxPatients++),
                                           icon: const Icon(Icons.add_circle_outline, color: primaryColor, size: 20),
@@ -1336,7 +1367,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     children: [
                       Text(
                         'Shifts for $_selectedDayTab',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                       Container(
                         decoration: BoxDecoration(
@@ -1375,12 +1406,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
                           borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -1391,8 +1422,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(16),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF0F9FF),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.event_busy_rounded, size: 36, color: Color(0xFF0EA5E9)),
@@ -1400,12 +1431,12 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               const SizedBox(height: 12),
                               Text(
                                 'No schedules added for $_selectedDayTab',
-                                style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15),
+                                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
+                              Text(
                                 'Tap "+ Add Shift" above to configure working hours.',
-                                style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                                style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12.5),
                               ),
                             ],
                           ),
@@ -1428,14 +1459,16 @@ class _MySchedulePageState extends State<MySchedulePage> {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 14),
                           decoration: BoxDecoration(
-                            color: isSlotActiveForUpcoming ? Colors.white : const Color(0xFFF8FAFC),
+                            color: isSlotActiveForUpcoming 
+                                ? (isDark ? const Color(0xFF1E293B) : Colors.white) 
+                                : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(
-                              color: const Color(0xFFE2E8F0),
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -1454,7 +1487,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                     width: 5,
                                     color: isSlotActiveForUpcoming
                                         ? const Color(0xFF10B981)
-                                        : (isTemporarilyDisabled ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1)),
+                                        : (isTemporarilyDisabled ? const Color(0xFFF59E0B) : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))),
                                   ),
                                 ),
                                 Padding(
@@ -1468,7 +1501,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                           Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: isSlotActiveForUpcoming ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                                              color: isSlotActiveForUpcoming 
+                                                  ? (isDark ? const Color(0xFF0EA5E9).withValues(alpha: 0.2) : const Color(0xFFE0F2FE)) 
+                                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                                               borderRadius: BorderRadius.circular(14),
                                             ),
                                             child: Icon(
@@ -1487,7 +1522,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                   style: TextStyle(
                                                     fontSize: 15.5,
                                                     fontWeight: FontWeight.bold,
-                                                    color: isSlotActiveForUpcoming ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                                                    color: isSlotActiveForUpcoming 
+                                                        ? (isDark ? Colors.white : const Color(0xFF0F172A)) 
+                                                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                                   ),
                                                 ),
                                                 const SizedBox(height: 6),
@@ -1498,9 +1535,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(0xFFF0F9FF),
+                                                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                                                         borderRadius: BorderRadius.circular(8),
-                                                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                                                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                                                       ),
                                                       child: Row(
                                                         mainAxisSize: MainAxisSize.min,
@@ -1554,9 +1591,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                           ),
                                         ],
                                       ),
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 12),
-                                        child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                       ),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1566,25 +1603,25 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFF1F5F9),
+                                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
                                                   "Max: ${slot.maxPatients} Patients",
-                                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFECFDF5),
+                                                  color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                                                   borderRadius: BorderRadius.circular(8),
-                                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                                                  border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                                                 ),
                                                 child: Text(
                                                   "LKR ${(slot.consultationFee ?? 0.0).toStringAsFixed(0)}",
-                                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+                                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857)),
                                                 ),
                                               ),
                                             ],
@@ -1596,11 +1633,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                 child: Container(
                                                   padding: const EdgeInsets.all(8),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFFFFBEB),
+                                                    color: isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB),
                                                     shape: BoxShape.circle,
-                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                    border: Border.all(color: isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A)),
                                                   ),
-                                                  child: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFFB45309)),
+                                                  child: Icon(Icons.edit_outlined, size: 18, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
@@ -1609,11 +1646,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                                 child: Container(
                                                   padding: const EdgeInsets.all(8),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFFEF2F2),
+                                                    color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
                                                     shape: BoxShape.circle,
-                                                    border: Border.all(color: const Color(0xFFFECACA)),
+                                                    border: Border.all(color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECACA)),
                                                   ),
-                                                  child: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
+                                                  child: Icon(Icons.delete_outline_rounded, size: 18, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444)),
                                                 ),
                                               ),
                                             ],

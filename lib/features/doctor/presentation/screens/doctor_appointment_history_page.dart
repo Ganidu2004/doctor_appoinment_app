@@ -61,43 +61,30 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return const Center(child: Text('Please sign in to view appointment history.'));
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             children: [
-              // Back Button & Title
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Appointment History',
-                    style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+
 
               // Search Input Box
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -105,13 +92,14 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                 ),
                 child: TextField(
                   controller: _searchController,
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                   decoration: InputDecoration(
                     hintText: 'Search history by patient, date, hospital...',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    hintStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8), fontSize: 14),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0EA5E9)),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, color: Color(0xFF64748B), size: 18),
+                            icon: Icon(Icons.clear_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), size: 18),
                             onPressed: () => _searchController.clear(),
                           )
                         : null,
@@ -144,10 +132,10 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                   colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
                                 )
                               : null,
-                          color: isSelected ? null : Colors.white,
+                          color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : Colors.white),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                            color: isSelected ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           boxShadow: isSelected
                               ? [
@@ -164,7 +152,7 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : const Color(0xFF475569),
+                            color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                         ),
                       ),
@@ -255,12 +243,12 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                         return Container(
                           margin: const EdgeInsets.only(bottom: 14),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
                             borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -292,13 +280,13 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                             height: 44,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: const Color(0xFFE0F2FE),
-                                              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+                                              border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.5),
                                             ),
                                             alignment: Alignment.center,
                                             child: Text(
                                               initial,
-                                              style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 18),
+                                              style: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 18),
                                             ),
                                           ),
                                           const SizedBox(width: 12),
@@ -308,12 +296,12 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                               children: [
                                                 Text(
                                                   patientName,
-                                                  style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                                 ),
                                                 const SizedBox(height: 2),
                                                 Text(
                                                   hospitalName,
-                                                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                                                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
@@ -323,9 +311,9 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: statusBg,
+                                              color: isDark ? const Color(0xFF0F172A) : statusBg,
                                               borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: statusBorder),
+                                              border: Border.all(color: isDark ? statusColor : statusBorder),
                                             ),
                                             child: Text(
                                               status.toUpperCase(),
@@ -340,9 +328,9 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                       Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF8FAFC),
+                                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                           borderRadius: BorderRadius.circular(14),
-                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                         ),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -353,13 +341,13 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   '$date • $time',
-                                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                                 ),
                                               ],
                                             ),
                                             Text(
                                               _formatCurrency(consultationFee),
-                                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900, color: Color(0xFF0284C7)),
+                                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7)),
                                             ),
                                           ],
                                         ),
@@ -373,12 +361,13 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
                                           OutlinedButton.icon(
                                             onPressed: () => AppointmentReceiptModal.show(context, data, doc.id),
                                             style: OutlinedButton.styleFrom(
+                                              backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                              side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                              side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                             ),
-                                            icon: const Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF475569)),
-                                            label: const Text('Receipt', style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 12)),
+                                            icon: Icon(Icons.receipt_long_rounded, size: 15, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                                            label: Text('Receipt', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 12)),
                                           ),
                                         ],
                                       ),
@@ -402,6 +391,7 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
   }
 
   Widget _buildEmptyHistoryState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -410,22 +400,22 @@ class _DoctorAppointmentHistoryPageState extends State<DoctorAppointmentHistoryP
           children: [
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF0F9FF),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.history_rounded, size: 48, color: Color(0xFF0EA5E9)),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Appointment History Found',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Your past completed and processed consultations will be archived here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
             ),
           ],
         ),

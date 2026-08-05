@@ -43,13 +43,14 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final doctorUser = FirebaseAuth.instance.currentUser;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
@@ -59,7 +60,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
             width: 42,
             height: 5,
             decoration: BoxDecoration(
-              color: const Color(0xFFCBD5E1),
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -76,7 +77,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                       Expanded(
                         child: Text(
                           '${_formatName(widget.patientName)}\'s EHR Record',
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -84,7 +85,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon: Icon(Icons.close_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -93,11 +94,11 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
 
           // 3 Feature Tabs: Profile, Medical History (EMR), Visit History
           Container(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             child: TabBar(
               controller: _tabController,
               labelColor: const Color(0xFF0EA5E9),
-              unselectedLabelColor: const Color(0xFF64748B),
+              unselectedLabelColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
               indicatorColor: const Color(0xFF0EA5E9),
               indicatorWeight: 3,
               labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -144,6 +145,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   // TAB 1: PATIENT PROFILE & DEMOGRAPHICS (DYNAMIC FROM DATABASE)
   // -------------------------------------------------------------
   Widget _buildPatientProfileTab(Map<String, dynamic> data) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String name = (data['name'] ?? widget.patientName).toString();
     final String age = (data['age'] ?? 'N/A').toString();
     final String gender = (data['gender'] ?? 'N/A').toString();
@@ -165,12 +167,12 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -180,10 +182,10 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                   child: Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'P',
-                    style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 24),
+                    style: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 24),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -193,7 +195,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                     children: [
                       Text(
                         _formatName(name),
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -203,24 +205,24 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               age != 'N/A' ? '$age Yrs • $gender' : gender,
-                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEE2E2),
+                              color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFFCA5A5)),
+                              border: Border.all(color: isDark ? const Color(0xFFB91C1C) : const Color(0xFFFCA5A5)),
                             ),
                             child: Text(
                               'Blood: $bloodGroup 🩸',
-                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)),
+                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B)),
                             ),
                           ),
                         ],
@@ -234,21 +236,21 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           const SizedBox(height: 18),
 
           // Contact Details Section
-          const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+          Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF0F172A))),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
                 _buildInfoTile(Icons.phone_iphone_rounded, 'Phone Number', phone),
-                const Divider(height: 16, color: Color(0xFFE2E8F0)),
+                Divider(height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 _buildInfoTile(Icons.email_outlined, 'Email Address', email),
-                const Divider(height: 16, color: Color(0xFFE2E8F0)),
+                Divider(height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 _buildInfoTile(Icons.location_on_outlined, 'Residential Address', address),
               ],
             ),
@@ -256,14 +258,14 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           const SizedBox(height: 18),
 
           // Emergency Contacts Section
-          const Text('Emergency Contacts 🚨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A))),
+          Text('Emergency Contacts 🚨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF0F172A))),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF1F2),
+              color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFFF1F2),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFFECDD3)),
+              border: Border.all(color: isDark ? const Color(0xFF991B1B) : const Color(0xFFFECDD3)),
             ),
             child: Column(
               children: [
@@ -271,14 +273,14 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                   Icons.contact_phone_outlined,
                   'Contact Name & Relation',
                   emergencyContactName != 'Not Specified' ? '$emergencyContactName ($emergencyRelation)' : 'Not Specified',
-                  titleColor: const Color(0xFF9F1239),
+                  titleColor: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF9F1239),
                 ),
-                const Divider(height: 16, color: Color(0xFFFECDD3)),
+                Divider(height: 16, color: isDark ? const Color(0xFF991B1B) : const Color(0xFFFECDD3)),
                 _buildInfoTile(
                   Icons.phone_in_talk_rounded,
                   'Emergency Phone',
                   emergencyContactPhone,
-                  titleColor: const Color(0xFF9F1239),
+                  titleColor: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF9F1239),
                 ),
               ],
             ),
@@ -438,6 +440,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           padding: const EdgeInsets.all(18),
           itemCount: docs.length,
           itemBuilder: (context, index) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             final data = docs[index].data() as Map<String, dynamic>;
             final String date = (data['date'] ?? 'N/A').toString();
             final String time = (data['time'] ?? 'N/A').toString();
@@ -455,12 +458,12 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -476,16 +479,16 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                         children: [
                           const Icon(Icons.event_note_rounded, color: Color(0xFF0EA5E9), size: 18),
                           const SizedBox(width: 6),
-                          Text('$date • $time', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+                          Text('$date • $time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                           if (tokenStr.isNotEmpty) ...[
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE0F2FE),
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(tokenStr, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                              child: Text(tokenStr, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7))),
                             ),
                           ],
                         ],
@@ -494,17 +497,17 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: isCompleted
-                              ? const Color(0xFFECFDF5)
+                              ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5))
                               : isCancelled
-                                  ? const Color(0xFFFEF2F2)
-                                  : const Color(0xFFFFFBEB),
+                                  ? (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2))
+                                  : (isDark ? const Color(0xFF78350F) : const Color(0xFFFFFBEB)),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isCompleted
-                                ? const Color(0xFFA7F3D0)
+                                ? (isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0))
                                 : isCancelled
-                                    ? const Color(0xFFFECDD3)
-                                    : const Color(0xFFFDE68A),
+                                    ? (isDark ? const Color(0xFFB91C1C) : const Color(0xFFFECDD3))
+                                    : (isDark ? const Color(0xFFB45309) : const Color(0xFFFDE68A)),
                           ),
                         ),
                         child: Text(
@@ -513,33 +516,33 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: isCompleted
-                                ? const Color(0xFF047857)
+                                ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857))
                                 : isCancelled
-                                    ? Colors.redAccent
-                                    : const Color(0xFFB45309),
+                                    ? (isDark ? const Color(0xFFFCA5A5) : Colors.redAccent)
+                                    : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text('Center: $hospital • $cType', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  Text('Center: $hospital • $cType', style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                   const SizedBox(height: 10),
 
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Impression: $diagnosis', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF334155))),
+                        Text('Impression: $diagnosis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: isDark ? Colors.white : const Color(0xFF334155))),
                         const SizedBox(height: 4),
-                        Text('Notes / Reason: $notes', style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                        Text('Notes / Reason: $notes', style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569))),
                       ],
                     ),
                   ),
@@ -553,6 +556,7 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
   }
 
   Widget _buildInfoTile(IconData icon, String label, String value, {Color? titleColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Icon(icon, size: 18, color: titleColor ?? const Color(0xFF0EA5E9)),
@@ -561,9 +565,9 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              Text(label, style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               const SizedBox(height: 2),
-              Text(value, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: titleColor ?? const Color(0xFF0F172A))),
+              Text(value, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: titleColor ?? (isDark ? Colors.white : const Color(0xFF0F172A)))),
             ],
           ),
         ),
@@ -580,20 +584,21 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
     required Color textColor,
     required String emptyMessage,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color,
+        color: isDark ? const Color(0xFF1E293B) : color,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : textColor)),
           const SizedBox(height: 10),
           if (items.isEmpty)
-            Text(emptyMessage, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))
+            Text(emptyMessage, style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))
           else
             Wrap(
               spacing: 8,
@@ -602,10 +607,10 @@ class _DoctorPatientEhrModalState extends State<DoctorPatientEhrModal> with Sing
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: chipColor,
+                    color: isDark ? const Color(0xFF0F172A) : chipColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(item, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor)),
+                  child: Text(item, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF38BDF8) : textColor)),
                 );
               }).toList(),
             ),

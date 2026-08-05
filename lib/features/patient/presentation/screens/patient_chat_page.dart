@@ -128,27 +128,28 @@ class _PatientChatPageState extends State<PatientChatPage> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
-              child: const Icon(Icons.support_agent, color: Colors.blue),
+              backgroundColor: isDark ? const Color(0xFF0C4A6E) : Colors.blue.shade50,
+              child: Icon(Icons.support_agent, color: isDark ? const Color(0xFF38BDF8) : Colors.blue),
             ),
             const SizedBox(width: 12),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Live Helper',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                Text(
+                const Text(
                   'Active Support Agent',
                   style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.w500),
                 ),
@@ -188,17 +189,28 @@ class _PatientChatPageState extends State<PatientChatPage> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade300),
+                                Icon(
+                                  Icons.chat_bubble_outline,
+                                  size: 64,
+                                  color: isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+                                ),
                                 const SizedBox(height: 16),
-                                const Text(
+                                Text(
                                   'Start a Conversation',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
+                                Text(
                                   'Ask us anything about your appointments or account. An agent will respond in real time.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                                  style: TextStyle(
+                                    color: isDark ? const Color(0xFF94A3B8) : Colors.grey,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
@@ -228,7 +240,9 @@ class _PatientChatPageState extends State<PatientChatPage> {
                                 maxWidth: MediaQuery.of(context).size.width * 0.75,
                               ),
                               decoration: BoxDecoration(
-                                color: isMe ? const Color(0xFF2563EB) : Colors.white,
+                                color: isMe
+                                    ? const Color(0xFF2563EB)
+                                    : (isDark ? const Color(0xFF1E293B) : Colors.white),
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
@@ -237,7 +251,7 @@ class _PatientChatPageState extends State<PatientChatPage> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.02),
+                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                     blurRadius: 5,
                                     offset: const Offset(0, 2),
                                   ),
@@ -249,7 +263,9 @@ class _PatientChatPageState extends State<PatientChatPage> {
                                   Text(
                                     text,
                                     style: TextStyle(
-                                      color: isMe ? Colors.white : Colors.black87,
+                                      color: isMe
+                                          ? Colors.white
+                                          : (isDark ? const Color(0xFFE2E8F0) : Colors.black87),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -257,7 +273,9 @@ class _PatientChatPageState extends State<PatientChatPage> {
                                   Text(
                                     _formatTime(timestamp),
                                     style: TextStyle(
-                                      color: isMe ? Colors.white.withValues(alpha: 0.6) : Colors.grey,
+                                      color: isMe
+                                          ? Colors.white.withValues(alpha: 0.6)
+                                          : (isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                       fontSize: 10,
                                     ),
                                   ),
@@ -272,22 +290,35 @@ class _PatientChatPageState extends State<PatientChatPage> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                        width: 1,
+                      ),
+                    ),
+                  ),
                   child: SafeArea(
                     child: Row(
                       children: [
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF334155) : Colors.transparent,
+                              ),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: TextField(
                               controller: _messageController,
                               textCapitalization: TextCapitalization.sentences,
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
+                              decoration: InputDecoration(
                                 hintText: 'Type a message...',
+                                hintStyle: TextStyle(color: isDark ? const Color(0xFF64748B) : Colors.grey),
                                 border: InputBorder.none,
                               ),
                               maxLines: null,

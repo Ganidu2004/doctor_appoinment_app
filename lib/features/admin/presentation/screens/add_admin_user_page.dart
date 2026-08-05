@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
 
 class AddAdminUserPage extends StatefulWidget {
   const AddAdminUserPage({super.key});
@@ -37,22 +38,31 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
     super.dispose();
   }
 
-  InputDecoration _fieldDeco(String label, IconData icon, {Widget? suffixIcon}) {
+  InputDecoration _fieldDeco(String label, IconData icon, bool isDark, {Widget? suffixIcon}) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+      labelStyle: TextStyle(
+        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+      floatingLabelStyle: TextStyle(
+        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF4F46E5),
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
       filled: true,
-      fillColor: Colors.white,
-      prefixIcon: Icon(icon, color: const Color(0xFF4F46E5), size: 20),
+      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      prefixIcon: Icon(icon, color: isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5), size: 20),
       suffixIcon: suffixIcon,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF4F46E5), width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
@@ -79,8 +89,6 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
     FirebaseApp? tempApp;
 
     try {
-      // Create a secondary Firebase App instance to register the new admin user
-      // without logging out the current active super admin session
       final appName = 'AdminCreator_${DateTime.now().millisecondsSinceEpoch}';
       tempApp = await Firebase.initializeApp(
         name: appName,
@@ -95,7 +103,6 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
 
       final newUid = userCredential.user!.uid;
 
-      // Store in main Firestore 'users' collection with role: 'admin'
       await FirebaseFirestore.instance.collection('users').doc(newUid).set({
         'name': name,
         'email': email,
@@ -134,8 +141,8 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red.shade600,
+          content: Text("Failed to create admin: ${e.toString()}"),
+          backgroundColor: Colors.redAccent,
         ),
       );
     } finally {
@@ -154,16 +161,29 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text("Add New Admin User", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A))),
-        backgroundColor: Colors.white,
+        title: Text("Add New Admin User", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : const Color(0xFF0F172A)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.wb_sunny_outlined : Icons.dark_mode_outlined,
+              color: isDark ? Colors.amber : Colors.indigo,
+            ),
+            tooltip: "Toggle Dark/Light Mode",
+            onPressed: () {
+              ThemeController.instance.toggleTheme(!isDark);
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -173,12 +193,12 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
               constraints: BoxConstraints(maxWidth: isDesktop ? 760 : 500),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blueGrey.withValues(alpha: 0.08),
+                      color: Colors.blueGrey.withValues(alpha: isDark ? 0.2 : 0.08),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
@@ -188,7 +208,6 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                   borderRadius: BorderRadius.circular(28),
                   child: Column(
                     children: [
-                      // Creative Hero Header Banner
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(28),
@@ -247,7 +266,6 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                         ),
                       ),
 
-                      // Form Container
                       Padding(
                         padding: const EdgeInsets.all(28.0),
                         child: Form(
@@ -261,7 +279,8 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                     Expanded(
                                       child: TextFormField(
                                         controller: _nameController,
-                                        decoration: _fieldDeco("Admin Full Name", Icons.person_outline_rounded),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("Admin Full Name", Icons.person_outline_rounded, isDark),
                                         validator: (val) => val == null || val.trim().isEmpty ? 'Please enter admin name' : null,
                                       ),
                                     ),
@@ -270,7 +289,8 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                       child: TextFormField(
                                         controller: _emailController,
                                         keyboardType: TextInputType.emailAddress,
-                                        decoration: _fieldDeco("Admin Email Address", Icons.email_outlined),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("Admin Email Address", Icons.email_outlined, isDark),
                                         validator: (val) {
                                           if (val == null || val.trim().isEmpty) return 'Please enter email';
                                           if (!val.contains('@')) return 'Enter a valid email address';
@@ -287,11 +307,13 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                       child: TextFormField(
                                         controller: _passwordController,
                                         obscureText: _isPasswordHidden,
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                         decoration: _fieldDeco(
                                           "Password",
                                           Icons.lock_outline_rounded,
+                                          isDark,
                                           suffixIcon: IconButton(
-                                            icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+                                            icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                             onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                                           ),
                                         ),
@@ -307,11 +329,13 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                       child: TextFormField(
                                         controller: _confirmPasswordController,
                                         obscureText: _isConfirmPasswordHidden,
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                         decoration: _fieldDeco(
                                           "Confirm Password",
                                           Icons.lock_outline_rounded,
+                                          isDark,
                                           suffixIcon: IconButton(
-                                            icon: Icon(_isConfirmPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+                                            icon: Icon(_isConfirmPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                             onPressed: () => setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden),
                                           ),
                                         ),
@@ -327,14 +351,16 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                               ] else ...[
                                 TextFormField(
                                   controller: _nameController,
-                                  decoration: _fieldDeco("Admin Full Name", Icons.person_outline_rounded),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Admin Full Name", Icons.person_outline_rounded, isDark),
                                   validator: (val) => val == null || val.trim().isEmpty ? 'Please enter admin name' : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
-                                  decoration: _fieldDeco("Admin Email Address", Icons.email_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Admin Email Address", Icons.email_outlined, isDark),
                                   validator: (val) {
                                     if (val == null || val.trim().isEmpty) return 'Please enter email';
                                     if (!val.contains('@')) return 'Enter a valid email address';
@@ -345,11 +371,13 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _isPasswordHidden,
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                   decoration: _fieldDeco(
                                     "Password",
                                     Icons.lock_outline_rounded,
+                                    isDark,
                                     suffixIcon: IconButton(
-                                      icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+                                      icon: Icon(_isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                       onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                                     ),
                                   ),
@@ -363,11 +391,13 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                 TextFormField(
                                   controller: _confirmPasswordController,
                                   obscureText: _isConfirmPasswordHidden,
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                   decoration: _fieldDeco(
                                     "Confirm Password",
                                     Icons.lock_outline_rounded,
+                                    isDark,
                                     suffixIcon: IconButton(
-                                      icon: Icon(_isConfirmPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+                                      icon: Icon(_isConfirmPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                       onPressed: () => setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden),
                                     ),
                                   ),
@@ -384,11 +414,13 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                               DropdownButtonFormField<String>(
                                 isExpanded: true,
                                 initialValue: _selectedAdminRole,
-                                decoration: _fieldDeco("Administrative Role Level", Icons.admin_panel_settings_outlined),
+                                dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                decoration: _fieldDeco("Administrative Role Level", Icons.admin_panel_settings_outlined, isDark),
                                 items: _adminRoles
                                     .map((r) => DropdownMenuItem(
                                           value: r,
-                                          child: Text(r, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                          child: Text(r, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
                                         ))
                                     .toList(),
                                 onChanged: (val) {
@@ -406,8 +438,8 @@ class _AddAdminUserPageState extends State<AddAdminUserPage> {
                                         onPressed: () => Navigator.of(context).pop(),
                                         style: OutlinedButton.styleFrom(
                                           minimumSize: const Size(0, 50),
-                                          foregroundColor: Colors.grey.shade700,
-                                          side: BorderSide(color: Colors.grey.shade300),
+                                          foregroundColor: isDark ? Colors.white70 : Colors.grey.shade700,
+                                          side: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         ),
                                         child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),

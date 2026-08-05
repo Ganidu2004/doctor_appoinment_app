@@ -18,12 +18,13 @@ class WebAuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 880;
 
     if (!isDesktop) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -32,10 +33,10 @@ class WebAuthWrapper extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 440),
                 child: Card(
                   elevation: 0,
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Theme.of(context).cardColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    side: BorderSide(color: isDark ? const Color(0xFF334155) : Theme.of(context).dividerColor),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -104,11 +105,12 @@ class WebAuthWrapper extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 1100, maxHeight: 720),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(32),
+                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
+                        color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.25),
                         blurRadius: 30,
                         offset: const Offset(0, 15),
                       )
@@ -255,7 +257,7 @@ class WebAuthWrapper extends StatelessWidget {
                       Expanded(
                         flex: 6,
                         child: Container(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 36),
                           child: Center(
                             child: SingleChildScrollView(

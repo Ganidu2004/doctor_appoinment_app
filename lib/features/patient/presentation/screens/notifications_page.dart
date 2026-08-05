@@ -71,12 +71,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 0.5,
         actions: [
           TextButton(
@@ -112,21 +113,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: isDark ? const Color(0xFF1E293B) : Colors.blue[50],
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.notifications_off_outlined, size: 64, color: Colors.blue),
+                      child: Icon(Icons.notifications_off_outlined, size: 64, color: isDark ? const Color(0xFF38BDF8) : Colors.blue),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'No Notifications Yet',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Notifications for profile updates, schedule changes, bookings, and alerts will appear here.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600], fontSize: 14),
                     ),
                   ],
                 ),
@@ -181,10 +182,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
               return Container(
                 decoration: BoxDecoration(
-                  color: isRead ? Colors.white : Colors.blue[50]?.withValues(alpha: 0.3),
+                  color: isDark 
+                      ? (isRead ? const Color(0xFF1E293B) : const Color(0xFF1E293B).withValues(alpha: 0.8)) 
+                      : (isRead ? Colors.white : Colors.blue[50]?.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isRead ? Colors.grey[200]! : Colors.blue[100]!,
+                    color: isDark ? const Color(0xFF334155) : (isRead ? Colors.grey[200]! : Colors.blue[100]!),
                     width: 1,
                   ),
                 ),
@@ -193,10 +196,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.1),
+                      color: iconColor.withValues(alpha: isDark ? 0.25 : 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(iconData, color: iconColor),
+                    child: Icon(iconData, color: isDark ? (iconColor == Colors.blue ? const Color(0xFF38BDF8) : iconColor) : iconColor),
                   ),
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -206,14 +209,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           title,
                           style: TextStyle(
                             fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
-                            color: Colors.black87,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                       ),
                       if (formattedTime.isNotEmpty)
                         Text(
                           formattedTime,
-                          style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey[500], fontSize: 11),
                         ),
                     ],
                   ),
@@ -221,7 +224,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     padding: const EdgeInsets.only(top: 6.0),
                     child: Text(
                       body,
-                      style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      style: TextStyle(color: isDark ? const Color(0xFFCBD5E1) : Colors.grey[700], fontSize: 13),
                     ),
                   ),
                 ),

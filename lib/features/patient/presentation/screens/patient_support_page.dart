@@ -36,16 +36,35 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
   ];
 
   void _showCategoryDialog(BuildContext context, String title, String desc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-        content: Text(desc, style: const TextStyle(color: Color(0xFF334155), height: 1.4)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
+        ),
+        content: Text(
+          desc,
+          style: TextStyle(
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+            height: 1.5,
+            fontSize: 13.5,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it', style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Got it',
+              style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -54,16 +73,17 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: widget.showAppBar
           ? AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0.5,
-              iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
-              title: const Text(
+              iconTheme: IconThemeData(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+              title: Text(
                 'Support Hub',
-                style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
+                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold),
               ),
               centerTitle: true,
             )
@@ -79,7 +99,7 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -88,15 +108,15 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                             letterSpacing: -0.3,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'We are here for your appointments & care questions',
                           style: TextStyle(
-                            color: Color(0xFF475569),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -107,19 +127,19 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                      border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
-                        SizedBox(width: 6),
+                        const Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
+                        const SizedBox(width: 6),
                         Text(
                           'Online',
                           style: TextStyle(
-                            color: Color(0xFF047857),
+                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
                           ),
@@ -200,8 +220,8 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF0284C7),
+                                backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                foregroundColor: isDark ? Colors.white : const Color(0xFF0284C7),
                                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 elevation: 0,
@@ -231,9 +251,9 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
               const SizedBox(height: 22),
 
               // Quick Topic Categories
-              const Text(
+              Text(
                 'Quick Support Topics',
-                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
               const SizedBox(height: 12),
               GridView.count(
@@ -301,9 +321,9 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
               const SizedBox(height: 22),
 
               // Alternative Support Channels
-              const Text(
+              Text(
                 'Other Ways to Connect',
-                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
               const SizedBox(height: 12),
 
@@ -334,9 +354,9 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
               const SizedBox(height: 24),
 
               // FAQ Accordion Section
-              const Text(
+              Text(
                 'Frequently Asked Questions',
-                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
               const SizedBox(height: 12),
               ListView.builder(
@@ -350,12 +370,12 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Material(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       clipBehavior: Clip.antiAlias,
                       child: Theme(
@@ -369,13 +389,13 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                             });
                           },
                           iconColor: const Color(0xFF0EA5E9),
-                          collapsedIconColor: const Color(0xFF64748B),
+                          collapsedIconColor: isDark ? Colors.white70 : const Color(0xFF64748B),
                           title: Text(
                             faq['question']!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13.5,
-                              color: Color(0xFF0F172A),
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
                           children: [
@@ -383,8 +403,8 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                               child: Text(
                                 faq['answer']!,
-                                style: const TextStyle(
-                                  color: Color(0xFF334155),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                                   fontSize: 13,
                                   height: 1.45,
                                 ),
@@ -414,15 +434,16 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
@@ -436,7 +457,7 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: bgColor,
+                color: isDark ? iconColor.withValues(alpha: 0.2) : bgColor,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 20),
@@ -449,10 +470,10 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: Color(0xFF0F172A),
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -460,8 +481,8 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       fontSize: 11,
                     ),
                     maxLines: 1,
@@ -486,12 +507,13 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
     required String actionText,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -505,9 +527,9 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: bgColor,
+              color: isDark ? iconColor.withValues(alpha: 0.15) : bgColor,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: borderColor),
+              border: Border.all(color: isDark ? iconColor.withValues(alpha: 0.3) : borderColor),
             ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
@@ -518,17 +540,17 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     fontSize: 12,
                   ),
                 ),
@@ -538,9 +560,9 @@ class _PatientSupportPageState extends State<PatientSupportPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: bgColor,
+              color: isDark ? iconColor.withValues(alpha: 0.15) : bgColor,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: borderColor),
+              border: Border.all(color: isDark ? iconColor.withValues(alpha: 0.3) : borderColor),
             ),
             child: Text(
               actionText,

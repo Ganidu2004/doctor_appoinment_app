@@ -1,5 +1,6 @@
 import 'package:appoinment_app/features/patient/presentation/screens/notifications_page.dart';
 import 'package:appoinment_app/shared/widgets/doc_time_logo.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
 import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -9,9 +10,11 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0.5,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      elevation: isDark ? 0 : 0.5,
       automaticallyImplyLeading: false,
       titleSpacing: 16,
       title: Row(
@@ -25,14 +28,14 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           Container(
             height: 16,
             width: 1,
-            color: const Color(0xFFCBD5E1),
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: Color(0xFF0F172A),
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -43,6 +46,38 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
+        ValueListenableBuilder<ThemeMode>(
+          valueListenable: ThemeController.instance,
+          builder: (context, mode, _) {
+            final isDarkTheme = mode == ThemeMode.dark;
+            return GestureDetector(
+              onTap: () {
+                ThemeController.instance.toggleTheme();
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: isDarkTheme ? const Color(0xFF1E293B) : const Color(0xFFF0F9FF),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: isDarkTheme ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: isDarkTheme ? 0.25 : 0.15),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isDarkTheme ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+                  color: isDarkTheme ? Colors.amber : const Color(0xFF0EA5E9),
+                  size: 20,
+                ),
+              ),
+            );
+          },
+        ),
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -54,12 +89,12 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F9FF),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F9FF),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFBAE6FD)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+                  color: const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.25 : 0.15),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -82,7 +117,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEF4444),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                      border: Border.all(color: isDark ? const Color(0xFF1E293B) : Colors.white, width: 1.5),
                     ),
                   ),
                 ),

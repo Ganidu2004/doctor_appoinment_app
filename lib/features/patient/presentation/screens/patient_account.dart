@@ -2,6 +2,7 @@ import 'package:appoinment_app/features/patient/presentation/screens/edit_patien
 import 'package:appoinment_app/features/patient/presentation/screens/patient_appointments_page.dart';
 import 'package:appoinment_app/features/patient/presentation/screens/patient_payment_history_page.dart';
 import 'package:appoinment_app/features/patient/presentation/screens/patient_prescriptions_page.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -156,14 +157,15 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: widget.showAppBar
           ? AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0.5,
-              iconTheme: const IconThemeData(color: Colors.black),
-              title: const Text('Profile', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+              title: Text('Profile', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
               centerTitle: true,
             )
           : null,
@@ -352,12 +354,12 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -430,20 +432,36 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: _buildSwitchTile(
-                        icon: Icons.notifications_none_outlined,
-                        title: 'Push Notifications',
-                        subtitle: 'Customize alerts and reminders',
-                        value: _pushNotifications,
-                        onChanged: (val) => setState(() => _pushNotifications = val),
+                      child: Column(
+                        children: [
+                          _buildSwitchTile(
+                            icon: Icons.notifications_none_outlined,
+                            title: 'Push Notifications',
+                            subtitle: 'Customize alerts and reminders',
+                            value: _pushNotifications,
+                            onChanged: (val) => setState(() => _pushNotifications = val),
+                          ),
+                          Divider(height: 1, color: Theme.of(context).dividerColor, indent: 60),
+                          _buildSwitchTile(
+                            icon: Icons.dark_mode_outlined,
+                            title: 'Dark Theme Mode',
+                            subtitle: 'Switch visual appearance to sleek dark slate mode',
+                            value: ThemeController.instance.isDarkMode,
+                            onChanged: (val) {
+                              setState(() {
+                                ThemeController.instance.toggleTheme(val);
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -453,12 +471,12 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -492,20 +510,35 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
                 // Sign Out Button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: SizedBox(
+                  child: Container(
                     width: double.infinity,
                     height: 52,
-                    child: OutlinedButton.icon(
-                      onPressed: _showSignOutDialog, 
-                      icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFEF4444), Color(0xFFB91C1C)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _showSignOutDialog,
+                      icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
                       label: const Text(
                         'Sign Out',
-                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.3),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red.shade100, width: 1.5),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        backgroundColor: Colors.red.shade50.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -548,10 +581,11 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
   }
 
   Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -560,7 +594,7 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,12 +603,12 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500, fontSize: 11),
           ),
         ],
       ),
@@ -589,6 +623,7 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
     bool isLast = false,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         ListTile(
@@ -600,18 +635,18 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
           ),
           leading: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
           ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-          subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)) : null,
-          trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 14),
+          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+          subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontSize: 12)) : null,
+          trailing: Icon(Icons.arrow_forward_ios, color: isDark ? Colors.white70 : Colors.grey.shade400, size: 14),
           onTap: onTap, 
         ),
         if (!isLast)
           Padding(
             padding: const EdgeInsets.only(left: 56.0, right: 16.0),
-            child: Divider(color: Colors.grey.shade100, height: 1),
+            child: Divider(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100, height: 1),
           ),
       ],
     );
@@ -624,16 +659,17 @@ class _PatientSettingsProfilePageState extends State<PatientSettingsProfilePage>
     required bool value, 
     required ValueChanged<bool> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-      subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+      subtitle: Text(subtitle, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontSize: 12)),
       trailing: Switch.adaptive(
         value: value,
         activeTrackColor: const Color(0xFF2563EB),

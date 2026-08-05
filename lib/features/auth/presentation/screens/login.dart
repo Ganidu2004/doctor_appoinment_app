@@ -97,6 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return WebAuthWrapper(
       heroTagline: "Book Doctor Appointments Seamlessly",
       heroDescription: "Connect with islandwide specialists, view available time slots, and manage healthcare consultations easily.",
@@ -119,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
               textAlign: TextAlign.center, 
               style: TextStyle(
                 fontSize: 14, 
-                color: darkTextColor.withValues(alpha: 0.6),
+                color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6),
                 height: 1.4,
               ),
             ),
@@ -129,20 +131,21 @@ class _LoginScreenState extends State<LoginScreen> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 labelText: 'Email Address', 
-                labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                 prefixIcon: const Icon(Icons.email_outlined, color: primaryColor), 
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -157,20 +160,21 @@ class _LoginScreenState extends State<LoginScreen> {
             TextFormField(
               controller: _passwordController,
               obscureText: _isPasswordHidden,
-              style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 labelText: 'Password', 
-                labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                 prefixIcon: const Icon(Icons.lock_outlined, color: primaryColor), 
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                  borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -179,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: primaryColor.withValues(alpha: 0.7),
+                    color: isDark ? const Color(0xFF94A3B8) : primaryColor.withValues(alpha: 0.7),
                   ),
                   onPressed: () {
                     setState(() {
@@ -203,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text(
                   'Forgot Password?',
                   style: TextStyle(
-                    color: primaryColor.withValues(alpha: 0.9), 
+                    color: isDark ? const Color(0xFF38BDF8) : primaryColor.withValues(alpha: 0.9), 
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -250,16 +254,16 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Text(
                   "Don't have an account? ",
-                  style: TextStyle(color: darkTextColor.withValues(alpha: 0.6), fontSize: 13),
+                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6), fontSize: 13),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const SignUpScreen()),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Register",
                     style: TextStyle(
-                      color: primaryColor, 
+                      color: isDark ? const Color(0xFF38BDF8) : primaryColor, 
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -274,10 +278,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
                 );
               },
-              child: const Text(
+              child: Text(
                 'Admin Login',
                 style: TextStyle(
-                  color: Colors.black54,
+                  color: isDark ? const Color(0xFF94A3B8) : Colors.black54,
                   fontSize: 13,
                   decoration: TextDecoration.underline,
                 ),

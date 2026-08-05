@@ -547,18 +547,29 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     } catch (e) {
       debugPrint("Printing plugin share missing or unhandled: $e");
     }
-
     if (!mounted) return;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.transparent),
+        ),
+        title: Row(
           children: [
-            Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 30),
-            SizedBox(width: 10),
-            Text('PDF Downloaded'),
+            const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 30),
+            const SizedBox(width: 10),
+            Text(
+              'PDF Downloaded',
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -567,37 +578,61 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           children: [
             Text(
               'Successfully generated and downloaded PDF report for ${records.length} records!',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
             const SizedBox(height: 12),
             if (saveSuccess) ...[
-              const Text('Saved PDF Location:', style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold)),
+              Text(
+                'Saved PDF Location:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? const Color(0xFF94A3B8) : Colors.black54,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 4),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                 ),
                 child: SelectableText(
                   savedPath,
-                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: Color(0xFF1E293B)),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
             ],
-            const Text(
+            Text(
               'The .pdf document is saved directly to your device storage and opened in the system viewer.',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? const Color(0xFF94A3B8) : Colors.black54,
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0EA5E9),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -609,15 +644,17 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     Map<String, String> summaryMetrics,
     List<Map<String, dynamic>> records,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.88,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           children: [
@@ -627,7 +664,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: isDark ? const Color(0xFF334155) : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -640,17 +677,17 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                   const SizedBox(width: 10),
                   Text(
                     'Print / PDF Summary',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey.shade900),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.grey.shade900),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(Icons.close_rounded, color: isDark ? Colors.white : Colors.black87),
                     onPressed: () => Navigator.pop(ctx),
                   )
                 ],
               ),
             ),
-            const Divider(),
+            Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -661,7 +698,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -705,9 +742,9 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Executive Metrics',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -718,16 +755,16 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                           width: (MediaQuery.of(context).size.width - 64) / 2,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(e.key, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                              Text(e.key, style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600)),
                               const SizedBox(height: 4),
-                              Text(e.value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                              Text(e.value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                             ],
                           ),
                         );
@@ -737,13 +774,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Detailed Records',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                         ),
                         Text(
                           'Total Records: ${records.length}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                          style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -752,11 +789,11 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
-                          headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
-                          columns: records.first.keys.map((k) => DataColumn(label: Text(k, style: const TextStyle(fontWeight: FontWeight.bold)))).toList(),
+                          headingRowColor: WidgetStateProperty.all(isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                          columns: records.first.keys.map((k) => DataColumn(label: Text(k, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)))).toList(),
                           rows: records.take(50).map((r) {
                             return DataRow(
-                              cells: r.values.map((v) => DataCell(Text(v.toString()))).toList(),
+                              cells: r.values.map((v) => DataCell(Text(v.toString(), style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)))).toList(),
                             );
                           }).toList(),
                         ),
@@ -787,8 +824,38 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     );
   }
 
+  InputDecoration _dropdownDeco(String label, IconData icon, Color primaryColor, bool isDark) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(
+        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+      floatingLabelStyle: TextStyle(
+        color: isDark ? const Color(0xFF38BDF8) : primaryColor,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
+      filled: true,
+      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      prefixIcon: Icon(icon, color: isDark ? const Color(0xFF818CF8) : primaryColor, size: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF38BDF8) : primaryColor, width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final bodyContent = StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('appointments').snapshots(),
       builder: (context, apptSnap) {
@@ -813,6 +880,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       patientDocs,
                       doctorDocs,
                       hospitalDocs,
+                      isDark,
                     );
                   },
                 );
@@ -828,15 +896,15 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Admin Report Generator",
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range_rounded, color: Color(0xFF2563EB)),
@@ -854,6 +922,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     List<DocumentSnapshot> patientDocs,
     List<DocumentSnapshot> doctorDocs,
     List<DocumentSnapshot> hospitalDocs,
+    bool isDark,
   ) {
     // 1. Filter appointments by date range, specialization, and status
     final filteredAppts = apptDocs.where((doc) {
@@ -950,12 +1019,12 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFF1F5F9)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blueGrey.withValues(alpha: 0.06),
+                  color: Colors.blueGrey.withValues(alpha: isDark ? 0.2 : 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 )
@@ -978,9 +1047,9 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                           child: const Icon(Icons.tune_rounded, color: Color(0xFF4F46E5), size: 18),
                         ),
                         const SizedBox(width: 10),
-                        const Text(
+                        Text(
                           "Report Configuration Filters",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                         ),
                       ],
                     ),
@@ -988,17 +1057,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     DropdownButtonFormField<String>(
                       isExpanded: true,
                       initialValue: _selectedReportType,
-                      decoration: InputDecoration(
-                        labelText: "Report Category",
-                        prefixIcon: const Icon(Icons.assessment_rounded, color: Color(0xFF4F46E5), size: 20),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      ),
+                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                      decoration: _dropdownDeco("Report Category", Icons.assessment_rounded, const Color(0xFF4F46E5), isDark),
                       items: _reportTypes
                           .map((t) => DropdownMenuItem(
                                 value: t,
-                                child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                                child: Text(t, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                               ))
                           .toList(),
                       onChanged: (val) {
@@ -1010,17 +1075,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _selectedDateFilter,
-                        decoration: InputDecoration(
-                          labelText: "Timeframe",
-                          prefixIcon: const Icon(Icons.date_range_rounded, color: Color(0xFF0EA5E9), size: 18),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        ),
+                        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                        decoration: _dropdownDeco("Timeframe", Icons.date_range_rounded, const Color(0xFF0EA5E9), isDark),
                         items: _dateFilterPresets
                             .map((p) => DropdownMenuItem(
                                   value: p,
-                                  child: Text(p, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                  child: Text(p, style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                                 ))
                             .toList(),
                         onChanged: (val) {
@@ -1037,17 +1098,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                       DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: _selectedStatus,
-                        decoration: InputDecoration(
-                          labelText: "Status",
-                          prefixIcon: const Icon(Icons.filter_alt_rounded, color: Color(0xFF8B5CF6), size: 18),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        ),
+                        dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                        decoration: _dropdownDeco("Status", Icons.filter_alt_rounded, const Color(0xFF8B5CF6), isDark),
                         items: _statuses
                             .map((s) => DropdownMenuItem(
                                   value: s,
-                                  child: Text(s, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                  child: Text(s, style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                                 ))
                             .toList(),
                         onChanged: (val) {
@@ -1062,17 +1119,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                             child: DropdownButtonFormField<String>(
                               isExpanded: true,
                               initialValue: _selectedDateFilter,
-                              decoration: InputDecoration(
-                                labelText: "Timeframe",
-                                prefixIcon: const Icon(Icons.date_range_rounded, color: Color(0xFF0EA5E9), size: 18),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                              ),
+                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                              decoration: _dropdownDeco("Timeframe", Icons.date_range_rounded, const Color(0xFF0EA5E9), isDark),
                               items: _dateFilterPresets
                                   .map((p) => DropdownMenuItem(
                                         value: p,
-                                        child: Text(p, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                        child: Text(p, style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                                       ))
                                   .toList(),
                               onChanged: (val) {
@@ -1091,17 +1144,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                             child: DropdownButtonFormField<String>(
                               isExpanded: true,
                               initialValue: _selectedStatus,
-                              decoration: InputDecoration(
-                                labelText: "Status",
-                                prefixIcon: const Icon(Icons.filter_alt_rounded, color: Color(0xFF8B5CF6), size: 18),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                              ),
+                              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                              decoration: _dropdownDeco("Status", Icons.filter_alt_rounded, const Color(0xFF8B5CF6), isDark),
                               items: _statuses
                                   .map((s) => DropdownMenuItem(
                                         value: s,
-                                        child: Text(s, style: const TextStyle(fontSize: 12.5), overflow: TextOverflow.ellipsis),
+                                        child: Text(s, style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                                       ))
                                   .toList(),
                               onChanged: (val) {
@@ -1116,17 +1165,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     DropdownButtonFormField<String>(
                       isExpanded: true,
                       initialValue: _selectedSpecialization,
-                      decoration: InputDecoration(
-                        labelText: "Specialization / Department",
-                        prefixIcon: const Icon(Icons.medical_services_rounded, color: Color(0xFF10B981), size: 20),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      ),
+                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                      decoration: _dropdownDeco("Specialization / Department", Icons.medical_services_rounded, const Color(0xFF10B981), isDark),
                       items: _specializations
                           .map((sp) => DropdownMenuItem(
                                 value: sp,
-                                child: Text(sp, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                                child: Text(sp, style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87), overflow: TextOverflow.ellipsis),
                               ))
                           .toList(),
                       onChanged: (val) {
@@ -1338,6 +1383,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             totalRevenue: totalRevenue,
             doctorEarnings: doctorEarnings,
             hospitalEarnings: hospitalEarnings,
+            isDark: isDark,
           ),
         ],
       ),
@@ -1447,6 +1493,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     required double totalRevenue,
     required double doctorEarnings,
     required double hospitalEarnings,
+    required bool isDark,
   }) {
     if (_selectedReportType == 'Appointments & Bookings') {
       return _buildAppointmentDistributionSection(
@@ -1455,30 +1502,33 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         pendingCount: pendingCount,
         cancelledCount: cancelledCount,
         total: filteredAppts.length,
+        isDark: isDark,
       );
     } else if (_selectedReportType == 'Financial & Revenue') {
       return _buildFinancialBreakdownSection(
         totalRevenue: totalRevenue,
         doctorEarnings: doctorEarnings,
         hospitalEarnings: hospitalEarnings,
+        isDark: isDark,
       );
     } else if (_selectedReportType == 'Doctor & Hospital Performance') {
-      return _buildPerformanceSection(doctorDocs, hospitalDocs, filteredAppts);
+      return _buildPerformanceSection(doctorDocs, hospitalDocs, filteredAppts, isDark);
     } else if (_selectedReportType == 'Patient Demographics') {
-      return _buildDemographicsSection(patientDocs);
+      return _buildDemographicsSection(patientDocs, isDark);
     }
 
     // Default: Executive Summary Table & Breakdown
-    return _buildExecutiveSummarySection(filteredAppts);
+    return _buildExecutiveSummarySection(filteredAppts, isDark);
   }
 
-  Widget _buildExecutiveSummarySection(List<DocumentSnapshot> apptDocs) {
+  Widget _buildExecutiveSummarySection(List<DocumentSnapshot> apptDocs, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 16, offset: const Offset(0, 4))
         ],
       ),
       child: Column(
@@ -1489,9 +1539,9 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Recent Matching Transactions",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                 ),
                 Text(
                   "${apptDocs.length} Total",
@@ -1500,18 +1550,23 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           if (apptDocs.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: Text("No records match the selected date range and filter.")),
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Text(
+                  "No records match the selected date range and filter.",
+                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.black54),
+                ),
+              ),
             )
           else
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: apptDocs.length > 15 ? 15 : apptDocs.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               itemBuilder: (context, index) {
                 final data = apptDocs[index].data() as Map<String, dynamic>;
                 final patientName = data['patientName'] ?? 'Patient';
@@ -1536,13 +1591,13 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
                     backgroundColor: statusColor.withValues(alpha: 0.12),
                     child: Icon(Icons.receipt_long_rounded, color: statusColor, size: 20),
                   ),
-                  title: Text(patientName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text("Dr. $doctorName • ${data['date'] ?? ''}", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  title: Text(patientName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                  subtitle: Text("Dr. $doctorName • ${data['date'] ?? ''}", style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600)),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(_formatCurrency(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                      Text(_formatCurrency(total), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                       const SizedBox(height: 2),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1571,37 +1626,39 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     required int pendingCount,
     required int cancelledCount,
     required int total,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 16, offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Booking Status Breakdown",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 20),
-          _buildProgressBarItem("Completed", completedCount, total, Colors.green),
+          _buildProgressBarItem("Completed", completedCount, total, Colors.green, isDark),
           const SizedBox(height: 14),
-          _buildProgressBarItem("Confirmed", confirmedCount, total, Colors.blue),
+          _buildProgressBarItem("Confirmed", confirmedCount, total, Colors.blue, isDark),
           const SizedBox(height: 14),
-          _buildProgressBarItem("Pending Approval", pendingCount, total, Colors.amber),
+          _buildProgressBarItem("Pending Approval", pendingCount, total, Colors.amber, isDark),
           const SizedBox(height: 14),
-          _buildProgressBarItem("Cancelled", cancelledCount, total, Colors.red),
+          _buildProgressBarItem("Cancelled", cancelledCount, total, Colors.red, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildProgressBarItem(String label, int count, int total, Color color) {
+  Widget _buildProgressBarItem(String label, int count, int total, Color color, bool isDark) {
     final double pct = total > 0 ? (count / total) : 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1609,7 +1666,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: isDark ? Colors.white70 : Colors.black87)),
             Text("$count (${(pct * 100).toStringAsFixed(1)}%)", style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13)),
           ],
         ),
@@ -1631,35 +1688,37 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     required double totalRevenue,
     required double doctorEarnings,
     required double hospitalEarnings,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 16, offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Revenue Allocation Summary",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 20),
-          _buildFinancialRow("Gross Platform Revenue", totalRevenue, Colors.indigo),
-          const Divider(height: 24),
-          _buildFinancialRow("Doctor Professional Fees", doctorEarnings, Colors.blue),
+          _buildFinancialRow("Gross Platform Revenue", totalRevenue, Colors.indigo, isDark),
+          Divider(height: 24, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          _buildFinancialRow("Doctor Professional Fees", doctorEarnings, Colors.blue, isDark),
           const SizedBox(height: 12),
-          _buildFinancialRow("Hospital Facility Charges", hospitalEarnings, const Color(0xFF10B981)),
+          _buildFinancialRow("Hospital Facility Charges", hospitalEarnings, const Color(0xFF10B981), isDark),
         ],
       ),
     );
   }
 
-  Widget _buildFinancialRow(String title, double amount, Color color) {
+  Widget _buildFinancialRow(String title, double amount, Color color, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1667,7 +1726,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
           children: [
             Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
             const SizedBox(width: 10),
-            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+            Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
           ],
         ),
         Text(_formatCurrency(amount), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
@@ -1679,35 +1738,37 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     List<DocumentSnapshot> doctors,
     List<DocumentSnapshot> hospitals,
     List<DocumentSnapshot> appts,
+    bool isDark,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 16, offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Provider Performance & Capacity",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const CircleAvatar(backgroundColor: Color(0xFFEFF6FF), child: Icon(Icons.badge_rounded, color: Color(0xFF2563EB))),
-            title: const Text("Total Registered Doctors", style: TextStyle(fontWeight: FontWeight.bold)),
+            title: Text("Total Registered Doctors", style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             trailing: Text("${doctors.length} Doctors", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2563EB))),
           ),
-          const Divider(),
+          Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const CircleAvatar(backgroundColor: Color(0xFFECFDF5), child: Icon(Icons.local_hospital_rounded, color: Color(0xFF10B981))),
-            title: const Text("Partner Hospitals", style: TextStyle(fontWeight: FontWeight.bold)),
+            title: Text("Partner Hospitals", style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             trailing: Text("${hospitals.length} Facilities", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF10B981))),
           ),
         ],
@@ -1715,7 +1776,7 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     );
   }
 
-  Widget _buildDemographicsSection(List<DocumentSnapshot> patients) {
+  Widget _buildDemographicsSection(List<DocumentSnapshot> patients, bool isDark) {
     int male = 0;
     int female = 0;
     int other = 0;
@@ -1734,25 +1795,26 @@ class _AdminReportsPageState extends State<AdminReportsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04), blurRadius: 16, offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Patient Gender Distribution",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 20),
-          _buildProgressBarItem("Male Patients", male, patients.length, Colors.blue),
+          _buildProgressBarItem("Male Patients", male, patients.length, Colors.blue, isDark),
           const SizedBox(height: 14),
-          _buildProgressBarItem("Female Patients", female, patients.length, Colors.pink),
+          _buildProgressBarItem("Female Patients", female, patients.length, Colors.pink, isDark),
           const SizedBox(height: 14),
-          _buildProgressBarItem("Other / Not Specified", other, patients.length, Colors.grey),
+          _buildProgressBarItem("Other / Not Specified", other, patients.length, Colors.grey, isDark),
         ],
       ),
     );

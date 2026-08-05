@@ -35,54 +35,66 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (user == null) {
       return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(title: const Text('My E-Prescriptions')),
         body: const Center(child: Text('Please sign in to view your prescriptions.')),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F172A)),
+          icon: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'My E-Prescriptions (Rx)',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ),
       body: Column(
         children: [
           // Search & Filter Surface
           Container(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Column(
               children: [
                 // Search Field
                 TextField(
                   controller: _searchController,
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'Search by doctor, medicine, or diagnosis...',
                     hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0EA5E9)),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            icon: Icon(Icons.clear_rounded, size: 18, color: isDark ? const Color(0xFF94A3B8) : null),
                             onPressed: () => _searchController.clear(),
                           )
                         : null,
                     filled: true,
-                    fillColor: const Color(0xFFF1F5F9),
+                    fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.transparent),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFF0EA5E9)),
                     ),
                   ),
                 ),
@@ -101,10 +113,14 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                           margin: const EdgeInsets.only(right: 8),
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFF1F5F9),
+                            color: isSelected
+                                ? const Color(0xFF0EA5E9)
+                                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                              color: isSelected
+                                  ? const Color(0xFF0EA5E9)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                           ),
                           child: Text(
@@ -112,7 +128,7 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : const Color(0xFF64748B),
+                              color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             ),
                           ),
                         ),
@@ -160,22 +176,22 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(20),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF0F9FF),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0C4A6E) : const Color(0xFFF0F9FF),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.history_edu_rounded, size: 44, color: Color(0xFF0EA5E9)),
                         ),
                         const SizedBox(height: 14),
-                        const Text(
+                        Text(
                           'No Prescriptions Found',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'E-Prescriptions issued by your doctor after consultations will appear here.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                          style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -205,12 +221,12 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                       margin: const EdgeInsets.only(bottom: 14),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -225,9 +241,9 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF0F9FF),
+                                  color: isDark ? const Color(0xFF0C4A6E) : const Color(0xFFF0F9FF),
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                                  border: Border.all(color: isDark ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD)),
                                 ),
                                 child: const Icon(Icons.history_edu_rounded, color: Color(0xFF0284C7), size: 24),
                               ),
@@ -238,14 +254,14 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                                   children: [
                                     Text(
                                       doctorName.startsWith('Dr.') ? doctorName : 'Dr. $doctorName',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       '$specialization • $dateStr',
-                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                      style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                     ),
                                   ],
                                 ),
@@ -254,13 +270,13 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFECFDF5),
+                                  color: isDark ? const Color(0xFF052E16) : const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                                  border: Border.all(color: isDark ? const Color(0xFF166534) : const Color(0xFFA7F3D0)),
                                 ),
                                 child: Text(
                                   rxNo,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF047857)),
                                 ),
                               ),
                             ],
@@ -272,17 +288,16 @@ class _PatientPrescriptionsPageState extends State<PatientPrescriptionsPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-
                                 Text(
                                   'Contains ${meds.length} prescribed medicine${meds.length == 1 ? '' : 's'}',
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                                  style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                                 ),
                               ],
                             ),

@@ -36,6 +36,8 @@ class HospitalBookingPassPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (appointmentData != null) {
       return _buildPassContent(context, appointmentData!, appointmentId ?? '');
     }
@@ -46,17 +48,17 @@ class HospitalBookingPassPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               appBar: AppBar(
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 elevation: 0.5,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
                   onPressed: () => Navigator.pop(context),
                 ),
-                title: const Text(
+                title: Text(
                   'Hospital Verification Pass',
-                  style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 centerTitle: true,
               ),
@@ -66,17 +68,17 @@ class HospitalBookingPassPage extends StatelessWidget {
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               appBar: AppBar(
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 elevation: 0.5,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
                   onPressed: () => Navigator.pop(context),
                 ),
-                title: const Text(
+                title: Text(
                   'Hospital Verification Pass',
-                  style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 centerTitle: true,
               ),
@@ -86,7 +88,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                   children: [
                     const Icon(Icons.error_outline_rounded, size: 48, color: Color(0xFFEF4444)),
                     const SizedBox(height: 12),
-                    const Text('Appointment pass not found.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('Appointment pass not found.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
@@ -105,25 +107,26 @@ class HospitalBookingPassPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Hospital Verification Pass',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
       ),
-      body: const Center(child: Text('No booking information provided.')),
+      body: Center(child: Text('No booking information provided.', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87))),
     );
   }
 
   Widget _buildPassContent(BuildContext context, Map<String, dynamic> data, String id) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String bookingNo = (data['bookingNo'] ?? 'DOC-${id.length >= 6 ? id.substring(0, 6).toUpperCase() : id.toUpperCase()}').toString();
     final String doctorName = _formatDoctorName(data['doctorName']?.toString());
     final String specialization = (data['specialization'] ?? 'General Specialist').toString();
@@ -145,19 +148,19 @@ class HospitalBookingPassPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
           children: [
-            const Text(
+            Text(
               'Hospital Verification Pass',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 2),
             Text(
@@ -239,7 +242,7 @@ class HospitalBookingPassPage extends StatelessWidget {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
                   boxShadow: [
                     BoxShadow(
@@ -261,23 +264,23 @@ class HospitalBookingPassPage extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'BOOKING NUMBER',
-                                style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B), letterSpacing: 0.5),
+                                style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), letterSpacing: 0.5),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 bookingNo,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: 0.5),
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF0F172A), letterSpacing: 0.5),
                               ),
                             ],
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0F9FF),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD), width: 1.5),
                             ),
                             child: Column(
                               children: [
@@ -288,7 +291,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   tokenDisplay,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1)),
                                 ),
                               ],
                             ),
@@ -303,9 +306,9 @@ class HospitalBookingPassPage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
                           children: [
@@ -349,19 +352,19 @@ class HospitalBookingPassPage extends StatelessWidget {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          const Text(
+                                          Text(
                                             'RECEPTION DESK SCANNER',
-                                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                           ),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFECFDF5),
+                                              color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'VERIFIED ✓',
-                                              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+                                              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857)),
                                             ),
                                           ),
                                         ],
@@ -383,9 +386,9 @@ class HospitalBookingPassPage extends StatelessWidget {
                         Container(
                           width: 14,
                           height: 24,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.horizontal(right: Radius.circular(12)),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
                           ),
                         ),
                         Expanded(
@@ -400,7 +403,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                                     width: 5,
                                     height: 1.5,
                                     child: DecoratedBox(
-                                      decoration: BoxDecoration(color: Colors.grey.shade300),
+                                      decoration: BoxDecoration(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                                     ),
                                   ),
                                 ),
@@ -411,9 +414,9 @@ class HospitalBookingPassPage extends StatelessWidget {
                         Container(
                           width: 14,
                           height: 24,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
                           ),
                         ),
                       ],
@@ -426,9 +429,9 @@ class HospitalBookingPassPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'APPOINTMENT SPECIFICATION',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -436,7 +439,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE0F2FE),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: const Icon(Icons.person_rounded, color: Color(0xFF0284C7), size: 28),
@@ -448,7 +451,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                                   children: [
                                     Text(
                                       doctorName,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                     ),
                                     const SizedBox(height: 3),
                                     Text(
@@ -458,7 +461,7 @@ class HospitalBookingPassPage extends StatelessWidget {
                                     const SizedBox(height: 2),
                                     Text(
                                       hospitalName,
-                                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                                      style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -476,53 +479,53 @@ class HospitalBookingPassPage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
                           children: [
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildInfoItem('PATIENT NAME', patientName, Icons.account_circle_outlined),
+                                  child: _buildInfoItem(context, 'PATIENT NAME', patientName, Icons.account_circle_outlined),
                                 ),
-                                Container(width: 1, height: 36, color: const Color(0xFFE2E8F0)),
+                                Container(width: 1, height: 36, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildInfoItem('STATUS', status, Icons.verified_outlined, valueColor: const Color(0xFF047857)),
+                                  child: _buildInfoItem(context, 'STATUS', status, Icons.verified_outlined, valueColor: isDark ? const Color(0xFF34D399) : const Color(0xFF047857)),
                                 ),
                               ],
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildInfoItem('SCHEDULED DATE', date, Icons.calendar_month_outlined),
+                                  child: _buildInfoItem(context, 'SCHEDULED DATE', date, Icons.calendar_month_outlined),
                                 ),
-                                Container(width: 1, height: 36, color: const Color(0xFFE2E8F0)),
+                                Container(width: 1, height: 36, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildInfoItem('TIME SLOT', time, Icons.access_time_outlined, valueColor: const Color(0xFF0284C7)),
+                                  child: _buildInfoItem(context, 'TIME SLOT', time, Icons.access_time_outlined, valueColor: const Color(0xFF0284C7)),
                                 ),
                               ],
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildInfoItem('PAYMENT METHOD', paymentMethod, Icons.payment_outlined),
+                                  child: _buildInfoItem(context, 'PAYMENT METHOD', paymentMethod, Icons.payment_outlined),
                                 ),
-                                Container(width: 1, height: 36, color: const Color(0xFFE2E8F0)),
+                                Container(width: 1, height: 36, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildInfoItem('TOTAL AMOUNT', totalAmount > 0 ? _formatCurrency(totalAmount) : 'Paid', Icons.account_balance_wallet_outlined, valueColor: const Color(0xFF0F172A)),
+                                  child: _buildInfoItem(context, 'TOTAL AMOUNT', totalAmount > 0 ? _formatCurrency(totalAmount) : 'Paid', Icons.account_balance_wallet_outlined, valueColor: isDark ? Colors.white : const Color(0xFF0F172A)),
                                 ),
                               ],
                             ),
@@ -538,37 +541,37 @@ class HospitalBookingPassPage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFFBEB),
+                          color: isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFFDE68A)),
+                          border: Border.all(color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A)),
                         ),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.info_outline_rounded, color: Color(0xFFB45309), size: 18),
-                                SizedBox(width: 8),
+                                Icon(Icons.info_outline_rounded, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309), size: 18),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Hospital Verification Protocol',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFB45309)),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309)),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               '1. Arrive 15 minutes before your scheduled appointment slot.',
-                              style: TextStyle(fontSize: 11.5, color: Color(0xFF92400E), height: 1.35),
+                              style: TextStyle(fontSize: 11.5, color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF92400E), height: 1.35),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               '2. Present this digital pass or booking reference to Counter #02 at OPD.',
-                              style: TextStyle(fontSize: 11.5, color: Color(0xFF92400E), height: 1.35),
+                              style: TextStyle(fontSize: 11.5, color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF92400E), height: 1.35),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               '3. Carry a valid National ID (NIC) or Hospital Membership Card.',
-                              style: TextStyle(fontSize: 11.5, color: Color(0xFF92400E), height: 1.35),
+                              style: TextStyle(fontSize: 11.5, color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF92400E), height: 1.35),
                             ),
                           ],
                         ),
@@ -598,12 +601,12 @@ class HospitalBookingPassPage extends StatelessWidget {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
-                        icon: const Icon(Icons.share_rounded, color: Color(0xFF0F172A), size: 18),
-                        label: const Text('Share Pass', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 14)),
+                        icon: Icon(Icons.share_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
+                        label: Text('Share Pass', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 14)),
                       ),
                     ),
                   ),
@@ -648,17 +651,18 @@ class HospitalBookingPassPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(String title, String value, IconData icon, {Color? valueColor}) {
+  Widget _buildInfoItem(BuildContext context, String title, String value, IconData icon, {Color? valueColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 13, color: const Color(0xFF64748B)),
+            Icon(icon, size: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             const SizedBox(width: 4),
             Text(
               title,
-              style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.3),
+              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), letterSpacing: 0.3),
             ),
           ],
         ),
@@ -668,7 +672,7 @@ class HospitalBookingPassPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: valueColor ?? const Color(0xFF0F172A),
+            color: valueColor ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

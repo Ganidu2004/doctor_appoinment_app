@@ -39,8 +39,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: FutureBuilder<DocumentSnapshot>(
         future: _doctorFuture,
         builder: (context, doctorSnapshot) {
@@ -204,20 +205,20 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                   const SizedBox(height: 24),
                                   
                                   // About doctor
-                                  const Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  Text("About Doctor", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 8),
                                   Text(
                                     data['aboutMe'] ?? "No description available.",
-                                    style: TextStyle(color: Colors.grey.shade600, height: 1.5, fontSize: 14),
+                                    style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, height: 1.5, fontSize: 14),
                                   ),
                                   const SizedBox(height: 24),
 
                                   // Location info card
-                                  const Text("Location", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  Text("Location", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 8),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                       borderRadius: BorderRadius.circular(16),
                                       boxShadow: [
                                         BoxShadow(
@@ -226,7 +227,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                           offset: const Offset(0, 4),
                                         ),
                                       ],
-                                      border: Border.all(color: Colors.grey.shade100),
+                                      border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                                     ),
                                     child: ListTile(
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -234,17 +235,17 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                         backgroundColor: Colors.blue.shade50,
                                         child: const Icon(Icons.location_on, color: Colors.blue),
                                       ),
-                                      title: Text(hName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 15)),
+                                      title: Text(hName, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87, fontSize: 15)),
                                       subtitle: Padding(
                                         padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text(hAddress, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                        child: Text(hAddress, style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 13)),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 24),
 
                                   // Next availability
-                                  const Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                  Text("Next Availability", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                   const SizedBox(height: 12),
                                   ScheduleSection(
                                     scheduleList: scheduleList,
@@ -273,10 +274,11 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          border: Border(top: BorderSide(color: isDark ? const Color(0xFF1E293B) : Colors.transparent)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
               blurRadius: 10,
               offset: const Offset(0, -4),
             ),
@@ -332,19 +334,20 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Rating Summary Breakdown Banner
-        Container(
+        Builder(builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                const Color(0xFF0EA5E9).withValues(alpha: 0.08),
-                const Color(0xFF2563EB).withValues(alpha: 0.03),
-              ],
+              colors: isDark
+                  ? [const Color(0xFF0C4A6E).withValues(alpha: 0.5), const Color(0xFF1E3A8A).withValues(alpha: 0.3)]
+                  : [const Color(0xFF0EA5E9).withValues(alpha: 0.08), const Color(0xFF2563EB).withValues(alpha: 0.03)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFBAE6FD)),
+            border: Border.all(color: isDark ? const Color(0xFF1D4ED8) : const Color(0xFFBAE6FD)),
           ),
           child: Row(
             children: [
@@ -358,19 +361,19 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                     children: [
                       Text(
                         avgRating > 0 ? avgRating.toStringAsFixed(1) : '5.0',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Text(
+                      Text(
                         '/ 5.0',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -388,10 +391,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   const SizedBox(height: 6),
                   Text(
                     '${reviews.length} Verified Reviews',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF475569),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                     ),
                   ),
                 ],
@@ -405,9 +408,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
+                      color: isDark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                      border: Border.all(color: isDark ? const Color(0xFF166534) : const Color(0xFFBBF7D0)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -416,8 +419,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                         const SizedBox(width: 6),
                         Text(
                           '$recommendPercentage% Recommend',
-                          style: const TextStyle(
-                            color: Color(0xFF15803D),
+                          style: TextStyle(
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -426,17 +429,17 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.verified_user_rounded, color: Color(0xFF0EA5E9), size: 14),
-                      SizedBox(width: 4),
+                      const Icon(Icons.verified_user_rounded, color: Color(0xFF0EA5E9), size: 14),
+                      const SizedBox(width: 4),
                       Text(
                         '100% Real Patients',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0369A1),
+                          color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                         ),
                       ),
                     ],
@@ -445,16 +448,19 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               ),
             ],
           ),
-        ),
+        );
+        }),
         const SizedBox(height: 16),
 
         // Write a Review Button Header Row
-        Row(
+        Builder(builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               'Patient Feedback (${reviews.length})',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             if (patientUid.isNotEmpty)
               OutlinedButton.icon(
@@ -473,7 +479,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   side: const BorderSide(color: Color(0xFF0EA5E9)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  backgroundColor: const Color(0xFFF0F9FF),
+                  backgroundColor: isDark ? const Color(0xFF0C4A6E) : const Color(0xFFF0F9FF),
                 ),
                 icon: const Icon(Icons.rate_review_rounded, size: 14, color: Color(0xFF0284C7)),
                 label: const Text(
@@ -482,25 +488,29 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                 ),
               ),
           ],
-        ),
+        );
+        }),
         const SizedBox(height: 12),
 
         // Review Cards List
         if (reviews.isEmpty)
-          Container(
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'No reviews yet. Be the first to leave a review after your visit!',
-                style: TextStyle(color: Color(0xFF64748B), fontStyle: FontStyle.italic, fontSize: 13),
+                style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontStyle: FontStyle.italic, fontSize: 13),
               ),
             ),
-          )
+          );
+          })
         else
           ListView.builder(
             shrinkWrap: true,
@@ -553,15 +563,16 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   final String patientName = patientData['name'] ?? 'Patient';
                   final String? patientImageUrl = patientData['profileImageUrl'];
 
+                  final isDarkCard = Theme.of(context).brightness == Brightness.dark;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkCard ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDarkCard ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: isDarkCard ? 0.2 : 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -595,33 +606,33 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                         Flexible(
                                           child: Text(
                                             patientName,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
-                                              color: Color(0xFF0F172A),
+                                              color: isDarkCard ? Colors.white : const Color(0xFF0F172A),
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
+                                         const SizedBox(width: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFECFDF5),
+                                            color: isDarkCard ? const Color(0xFF052E16) : const Color(0xFFECFDF5),
                                             borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                                            border: Border.all(color: isDarkCard ? const Color(0xFF166534) : const Color(0xFFA7F3D0)),
                                           ),
-                                          child: const Row(
+                                          child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.verified_rounded, size: 11, color: Color(0xFF10B981)),
-                                              SizedBox(width: 3),
+                                              const Icon(Icons.verified_rounded, size: 11, color: Color(0xFF10B981)),
+                                              const SizedBox(width: 3),
                                               Text(
                                                 'Verified',
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF047857),
+                                                  color: isDarkCard ? const Color(0xFF4ADE80) : const Color(0xFF047857),
                                                 ),
                                               ),
                                             ],
@@ -658,7 +669,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               if (formattedDate.isNotEmpty)
                                 Text(
                                   formattedDate,
-                                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5, fontWeight: FontWeight.w500),
+                                  style: TextStyle(color: isDarkCard ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 11.5, fontWeight: FontWeight.w500),
                                 ),
                             ],
                           ),
@@ -667,9 +678,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           // Comment Text
                           Text(
                             cleanComment,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13.5,
-                              color: Color(0xFF1E293B),
+                              color: isDarkCard ? const Color(0xFFCBD5E1) : const Color(0xFF1E293B),
                               height: 1.4,
                               fontWeight: FontWeight.w400,
                             ),
@@ -685,16 +696,16 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                 return Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF0F9FF),
+                                    color: isDarkCard ? const Color(0xFF0C4A6E) : const Color(0xFFF0F9FF),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                                    border: Border.all(color: isDarkCard ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD)),
                                   ),
                                   child: Text(
                                     tag,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0369A1),
+                                      color: isDarkCard ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                                     ),
                                   ),
                                 );
@@ -719,27 +730,28 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     required IconData icon, 
     required Color color
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500)),
+          Text(label, style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -816,15 +828,20 @@ class _ScheduleBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 65,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF2563EB) : Colors.white, 
+        color: isSelected
+            ? const Color(0xFF2563EB)
+            : (isDark ? const Color(0xFF1E293B) : Colors.white),
         border: Border.all(
-          color: isSelected ? const Color(0xFF2563EB) : Colors.grey.shade200, 
+          color: isSelected
+              ? const Color(0xFF2563EB)
+              : (isDark ? const Color(0xFF334155) : Colors.grey.shade200),
           width: 1.5,
-        ), 
+        ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: isSelected ? [
           BoxShadow(
@@ -832,16 +849,23 @@ class _ScheduleBox extends StatelessWidget {
             blurRadius: 8,
             offset: const Offset(0, 4),
           )
-        ] : [],
+        ] : [
+          if (isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(day, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white : Colors.grey, fontWeight: FontWeight.bold)),
+          Text(day, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : Colors.grey), fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(date, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black87)),
+          Text(date, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87))),
           const SizedBox(height: 4),
-          Text(slots, style: TextStyle(fontSize: 8, color: isSelected ? Colors.white70 : Colors.grey.shade600, fontWeight: FontWeight.w600))
+          Text(slots, style: TextStyle(fontSize: 8, color: isSelected ? Colors.white70 : (isDark ? const Color(0xFF64748B) : Colors.grey.shade600), fontWeight: FontWeight.w600))
         ],
       ),
     );

@@ -60,10 +60,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Cohesive Premium Medical UI Color Palette
     const primaryColor = Color(0xFF0EA5E9); // Vibrant Medical Teal
-    const darkTextColor = Color(0xFF1E293B); // Slate Blue
-    const lightBgColor = Color(0xFFF8FAFC); // Clean Canvas Background
+    final darkTextColor = isDark ? Colors.white : const Color(0xFF1E293B); // Slate Blue / White
+    final lightBgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC); // Clean Canvas Background
 
     return Scaffold(
       backgroundColor: lightBgColor,
@@ -71,7 +73,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         backgroundColor: lightBgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: darkTextColor, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: darkTextColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -102,7 +104,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 24),
                   
                   // --- Descriptive Typography Headers ---
-                  const Text(
+                  Text(
                     'Forgot Password?', 
                     textAlign: TextAlign.center, 
                     style: TextStyle(
@@ -118,7 +120,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     textAlign: TextAlign.center, 
                     style: TextStyle(
                       fontSize: 15, 
-                      color: darkTextColor.withValues(alpha: 0.6),
+                      color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6),
                       height: 1.4,
                     ),
                   ),
@@ -128,20 +130,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   TextFormField(
                     controller: _emailController, 
                     keyboardType: TextInputType.emailAddress, 
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
                     decoration: InputDecoration(
                       labelText: 'Email Address', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                      labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                      floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                       prefixIcon: const Icon(Icons.email_outlined, color: primaryColor),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -187,14 +190,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     children: [
                       Text(
                         "Remembered password? ",
-                        style: TextStyle(color: darkTextColor.withValues(alpha: 0.6), fontSize: 14),
+                        style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6), fontSize: 14),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text(
+                        child: Text(
                           "Sign In",
                           style: TextStyle(
-                            color: primaryColor, 
+                            color: isDark ? const Color(0xFF38BDF8) : primaryColor, 
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),

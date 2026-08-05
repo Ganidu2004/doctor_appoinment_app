@@ -118,6 +118,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return WebAuthWrapper(
       heroTagline: "Join DOC Time Healthcare",
       heroDescription: "Create your account to schedule instant appointments with top doctors across hospitals.",
@@ -135,13 +137,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     fontSize: 28,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Create Account', 
                     textAlign: TextAlign.center, 
                     style: TextStyle(
                       fontSize: 26, 
                       fontWeight: FontWeight.w900, 
-                      color: darkTextColor,
+                      color: isDark ? Colors.white : darkTextColor,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -151,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     textAlign: TextAlign.center, 
                     style: TextStyle(
                       fontSize: 15, 
-                      color: darkTextColor.withValues(alpha: 0.6),
+                      color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6),
                       height: 1.4,
                     ),
                   ),
@@ -161,20 +163,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: _emailController, 
                     keyboardType: TextInputType.emailAddress, 
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
                     decoration: InputDecoration(
                       labelText: 'Email Address', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                      labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                      floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                       prefixIcon: const Icon(Icons.email_outlined, color: primaryColor),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -192,28 +195,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // --- Role Dropdown Field ---
                   DropdownButtonFormField<String>(
                     initialValue: _selectedRole,
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500, fontSize: 16),
-                    dropdownColor: Colors.white,
+                    style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500, fontSize: 16),
+                    dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                     decoration: InputDecoration(
                       labelText: 'Select Profile Type', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                      labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                      floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                       prefixIcon: const Icon(Icons.person_outline_rounded, color: primaryColor),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: const BorderSide(color: primaryColor, width: 2),
                       ),
                     ),
-                    items: _roles.map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
+                    items: _roles.map((role) => DropdownMenuItem(value: role, child: Text(role, style: TextStyle(color: isDark ? Colors.white : darkTextColor)))).toList(),
                     onChanged: (value) => setState(() => _selectedRole = value!),
                   ),
                   const SizedBox(height: 20),
@@ -222,20 +226,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: _passwordController, 
                     obscureText: _isPasswordHidden,
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
                     decoration: InputDecoration(
                       labelText: 'Password', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                      labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                      floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                       prefixIcon: const Icon(Icons.lock_outline_rounded, color: primaryColor),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -244,7 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: primaryColor.withValues(alpha: 0.7),
+                          color: isDark ? const Color(0xFF94A3B8) : primaryColor.withValues(alpha: 0.7),
                         ),
                         onPressed: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
                       ),
@@ -261,20 +266,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: _confirmPasswordController, 
                     obscureText: _isConfirmPasswordHidden,
-                    style: const TextStyle(color: darkTextColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: isDark ? Colors.white : darkTextColor, fontWeight: FontWeight.w500),
                     decoration: InputDecoration(
                       labelText: 'Confirm Password', 
-                      labelStyle: TextStyle(color: darkTextColor.withValues(alpha: 0.5)),
+                      labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.5)),
+                      floatingLabelStyle: TextStyle(color: isDark ? const Color(0xFF38BDF8) : primaryColor, fontWeight: FontWeight.bold),
                       prefixIcon: const Icon(Icons.lock_clock_outlined, color: primaryColor),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -283,7 +289,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isConfirmPasswordHidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: primaryColor.withValues(alpha: 0.7),
+                          color: isDark ? const Color(0xFF94A3B8) : primaryColor.withValues(alpha: 0.7),
                         ),
                         onPressed: () => setState(() => _isConfirmPasswordHidden = !_isConfirmPasswordHidden),
                       ),
@@ -334,14 +340,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       Text(
                         "Already have an account? ",
-                        style: TextStyle(color: darkTextColor.withValues(alpha: 0.6), fontSize: 14),
+                        style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : darkTextColor.withValues(alpha: 0.6), fontSize: 14),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text(
+                        child: Text(
                           "Sign In",
                           style: TextStyle(
-                            color: primaryColor, 
+                            color: isDark ? const Color(0xFF38BDF8) : primaryColor, 
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),

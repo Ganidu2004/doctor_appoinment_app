@@ -12,6 +12,7 @@ import 'package:appoinment_app/features/patient/presentation/screens/recommend_d
 import 'package:appoinment_app/core/services/schedule_cancellation_service.dart';
 import 'package:appoinment_app/features/appointments/presentation/screens/hospital_booking_pass_page.dart';
 import 'package:intl/intl.dart';
+import 'package:appoinment_app/features/appointments/presentation/screens/appointment_page.dart';
 import 'package:appoinment_app/core/utils/text_sanitizer.dart';
 
 class PatientHomePage extends StatefulWidget {
@@ -60,8 +61,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _fetchUserData,
@@ -83,7 +87,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                             boxShadow: [
                               BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 3)),
                             ],
@@ -95,7 +99,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                               Expanded(
                                 child: Text(
                                   'Search doctors, specialties, hospitals...',
-                                  style: TextStyle(color: Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w500),
+                                  style: TextStyle(color: isDark ? Colors.grey.shade400 : const Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w500),
                                 ),
                               ),
                               Container(
@@ -116,7 +120,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Medical Specialties', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), letterSpacing: -0.3)),
+                          Text('Medical Specialties', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: titleTextColor, letterSpacing: -0.3)),
                           TextButton(
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FindDoctorScreen())),
                             child: const Text('All Specialties >', style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 12)),
@@ -130,14 +134,14 @@ class _PatientHomePageState extends State<PatientHomePage> {
                       const SizedBox(height: 16),
                       const _UpcomingVisitCard(),
                       const SizedBox(height: 24),
-                      const Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), letterSpacing: -0.3)),
+                      Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: titleTextColor, letterSpacing: -0.3)),
                       const SizedBox(height: 14),
                       const _QuickActionsGrid(),
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Recommended Doctors', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), letterSpacing: -0.3)),
+                          Text('Recommended Doctors', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: titleTextColor, letterSpacing: -0.3)),
                           TextButton(
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RecommendedDoctorsPage())),
                             child: const Text('See All', style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 13)),
@@ -195,9 +199,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
                                    return Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                       borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: Colors.grey.shade200),
+                                      border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withValues(alpha: 0.04),
@@ -222,7 +226,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                                       width: double.infinity,
                                                       height: double.infinity,
                                                       decoration: BoxDecoration(
-                                                        color: Colors.blue.shade50,
+                                                        color: isDark ? const Color(0xFF0F172A) : Colors.blue.shade50,
                                                         borderRadius: BorderRadius.circular(16),
                                                         image: imageUrl != null && imageUrl.isNotEmpty 
                                                             ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) 
@@ -264,7 +268,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                               const SizedBox(height: 8),
                                               Text(
                                                 'Dr. ${data['name'] ?? 'Doctor'}', 
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)), 
+                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: titleTextColor), 
                                                 maxLines: 1, 
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -278,7 +282,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 '${data['experience'] ?? 0}+ Yrs Exp', 
-                                                style: const TextStyle(color: Color(0xFF475569), fontSize: 11, fontWeight: FontWeight.w500),
+                                                style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569), fontSize: 11, fontWeight: FontWeight.w500),
                                               ),
                                             ],
                                           ),
@@ -335,13 +339,36 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 }
 
-class _UpcomingVisitCard extends StatelessWidget {
+class _UpcomingVisitCard extends StatefulWidget {
   const _UpcomingVisitCard();
+
+  @override
+  State<_UpcomingVisitCard> createState() => _UpcomingVisitCardState();
+}
+
+class _UpcomingVisitCardState extends State<_UpcomingVisitCard> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('doctors').snapshots(),
@@ -366,16 +393,18 @@ class _UpcomingVisitCard extends StatelessWidget {
 
             var docs = snapshot.data!.docs.where((doc) {
               final data = doc.data() as Map<String, dynamic>;
+              final status = (data['status'] ?? 'Booked').toString().toLowerCase();
+              if (status.contains('cancel') || status == 'completed') return false;
               try {
                 return DateFormat("MMMM d, yyyy").parse(data['date']).isAfter(now.subtract(const Duration(days: 1)));
               } catch (e) {
-                return false;
+                return true;
               }
             }).toList();
 
             if (docs.isEmpty) return const SizedBox.shrink();
 
-            // Sort appointments to get the soonest one
+            // Sort appointments to get chronological order
             docs.sort((a, b) {
               final aData = a.data() as Map<String, dynamic>;
               final bData = b.data() as Map<String, dynamic>;
@@ -388,162 +417,256 @@ class _UpcomingVisitCard extends StatelessWidget {
               }
             });
 
-            final doc = docs.first;
-            final data = doc.data() as Map<String, dynamic>;
-            final doctorId = data['doctorId'] ?? '';
-            final String imageUrl = doctorImages[doctorId] ?? '';
-            final status = (data['status'] ?? 'Booked').toString();
-
-            return InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HospitalBookingPassPage(
-                      appointmentId: doc.id,
-                      appointmentData: data,
-                    ),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(24),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue[600]!, Colors.blue[800]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: CircleAvatar(
-                            radius: 26,
-                            backgroundColor: Colors.blue[50],
-                            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                            child: imageUrl.isEmpty ? const Icon(Icons.person, size: 30, color: Colors.blue) : null,
+                        Text(
+                          'Booked Appointments',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: titleTextColor,
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Dr. ${data['doctorName']}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 17,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                data['specialization'] ?? 'Specialist',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            status,
+                            '${docs.length}',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF0EA5E9),
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                              fontSize: 12,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_rounded,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '${data['date']} | ${data['time']}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
+                    if (docs.length > 1)
+                      Row(
+                        children: List.generate(
+                          docs.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                            width: _currentPage == index ? 16 : 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: _currentPage == index
+                                  ? const Color(0xFF0EA5E9)
+                                  : (isDark ? Colors.white30 : Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_rounded,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  data['hospitalName'] ?? 'Hospital',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 10),
+                if (docs.length == 1)
+                  _buildCard(context, docs[0], doctorImages)
+                else
+                  SizedBox(
+                    height: 185,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: docs.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4.0),
+                          child: _buildCard(context, docs[index], doctorImages),
+                        );
+                      },
+                    ),
+                  ),
+              ],
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildCard(
+    BuildContext context,
+    DocumentSnapshot doc,
+    Map<String, String> doctorImages,
+  ) {
+    final data = doc.data() as Map<String, dynamic>;
+    final doctorId = data['doctorId'] ?? '';
+    final String imageUrl = doctorImages[doctorId] ?? '';
+    final status = (data['status'] ?? 'Booked').toString();
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HospitalBookingPassPage(
+              appointmentId: doc.id,
+              appointmentData: data,
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[600]!, Colors.blue[800]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.blue[50],
+                    backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                    child: imageUrl.isEmpty ? const Icon(Icons.person, size: 28, color: Colors.blue) : null,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dr. ${data['doctorName']}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        data['specialization'] ?? 'Specialist',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${data['date']} | ${data['time']}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          data['hospitalName'] ?? 'Hospital',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -553,6 +676,7 @@ class _QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final actions = [
       {
         'icon': Icons.medical_services_rounded, 
@@ -600,9 +724,9 @@ class _QuickActionsGrid extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade100),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -616,7 +740,7 @@ class _QuickActionsGrid extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: bgColor,
+                        color: isDark ? iconColor.withValues(alpha: 0.2) : bgColor,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -628,10 +752,10 @@ class _QuickActionsGrid extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       a['label'] as String, 
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12, 
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
@@ -915,14 +1039,17 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
   @override
   Widget build(BuildContext context) {
     final showRatedState = widget.hasReviewed && !_isEditing;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: showRatedState ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+          color: showRatedState
+              ? const Color(0xFFFDE68A)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           width: showRatedState ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -955,7 +1082,7 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
                   ),
                   child: CircleAvatar(
                     radius: 24,
-                    backgroundColor: Colors.white,
+                    backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                     backgroundImage: widget.imageUrl.isNotEmpty ? NetworkImage(widget.imageUrl) : null,
                     child: widget.imageUrl.isEmpty ? const Icon(Icons.person, color: Color(0xFF0EA5E9)) : null,
                   ),
@@ -967,10 +1094,10 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
                     children: [
                       Text(
                         'Dr. ${widget.doctorName}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15.5,
-                          color: Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1035,9 +1162,9 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFFFBEB),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
+                  border: Border.all(color: isDark ? const Color(0xFFF59E0B).withValues(alpha: 0.3) : const Color(0xFFFDE68A)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1056,7 +1183,7 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
                         const SizedBox(width: 8),
                         Text(
                           '${widget.existingRating}.0',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF92400E), fontSize: 13),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E), fontSize: 13),
                         ),
                         const Spacer(),
                         Container(
@@ -1076,10 +1203,10 @@ class _CreativeRatingCardState extends State<_CreativeRatingCard> {
                       const SizedBox(height: 6),
                       Text(
                         '"${widget.existingComment}"',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
-                          color: Color(0xFF451A03),
+                          color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF451A03),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1390,17 +1517,33 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
   }
 
   Widget _buildSentimentBadge() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (_rating) {
       case 5:
-        return _badgePill('Exceptional Consultation!', const Color(0xFFECFDF5), const Color(0xFF047857), const Color(0xFFA7F3D0));
+        return _badgePill('Exceptional Consultation!',
+            isDark ? const Color(0xFF052E16) : const Color(0xFFECFDF5),
+            isDark ? const Color(0xFF4ADE80) : const Color(0xFF047857),
+            isDark ? const Color(0xFF166534) : const Color(0xFFA7F3D0));
       case 4:
-        return _badgePill('Very Satisfied!', const Color(0xFFEFF6FF), const Color(0xFF1D4ED8), const Color(0xFFBFDBFE));
+        return _badgePill('Very Satisfied!',
+            isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF),
+            isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+            isDark ? const Color(0xFF1D4ED8) : const Color(0xFFBFDBFE));
       case 3:
-        return _badgePill('Good Experience', const Color(0xFFF0F9FF), const Color(0xFF0369A1), const Color(0xFFBAE6FD));
+        return _badgePill('Good Experience',
+            isDark ? const Color(0xFF0C4A6E) : const Color(0xFFF0F9FF),
+            isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
+            isDark ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD));
       case 2:
-        return _badgePill('Could Be Better', const Color(0xFFFEF3C7), const Color(0xFFB45309), const Color(0xFFFDE68A));
+        return _badgePill('Could Be Better',
+            isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
+            isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
+            isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A));
       case 1:
-        return _badgePill('Disappointed', const Color(0xFFFEE2E2), const Color(0xFFB91C1C), const Color(0xFFFCA5A5));
+        return _badgePill('Disappointed',
+            isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+            isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+            isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5));
       default:
         return const SizedBox.shrink();
     }
@@ -1423,9 +1566,11 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_loading) {
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         child: Container(
           height: 150,
           alignment: Alignment.center,
@@ -1442,11 +1587,11 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 420),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
                 blurRadius: 24,
                 offset: const Offset(0, 10),
               ),
@@ -1540,7 +1685,7 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                                   margin: const EdgeInsets.symmetric(horizontal: 3),
                                   child: Icon(
                                     Icons.star_rounded,
-                                    color: isSelected ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
+                                    color: isSelected ? const Color(0xFFF59E0B) : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                     size: 42,
                                   ),
                                 ),
@@ -1553,12 +1698,12 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                     const SizedBox(height: 20),
 
                     // Quick Feedback Tag Chips
-                    const Text(
+                    Text(
                       'What stood out during your visit?',
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -1573,16 +1718,16 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? Colors.white : const Color(0xFF334155),
+                              color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155)),
                             ),
                           ),
                           selected: isSelected,
                           selectedColor: const Color(0xFF0EA5E9),
-                          backgroundColor: const Color(0xFFF1F5F9),
+                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: BorderSide(
-                              color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                              color: isSelected ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                           ),
                           showCheckmark: false,
@@ -1604,12 +1749,12 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Recommend this doctor?',
                           style: TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                         Row(
@@ -1619,10 +1764,14 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: _wouldRecommend ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                                  color: _wouldRecommend
+                                      ? (isDark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7))
+                                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: _wouldRecommend ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                                    color: _wouldRecommend
+                                        ? (isDark ? const Color(0xFF166534) : const Color(0xFFBBF7D0))
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                   ),
                                 ),
                                 child: Text(
@@ -1630,7 +1779,9 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: _wouldRecommend ? const Color(0xFF15803D) : const Color(0xFF64748B),
+                                    color: _wouldRecommend
+                                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
+                                        : (isDark ? const Color(0xFF64748B) : const Color(0xFF64748B)),
                                   ),
                                 ),
                               ),
@@ -1641,10 +1792,14 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: !_wouldRecommend ? const Color(0xFFFEE2E2) : const Color(0xFFF1F5F9),
+                                  color: !_wouldRecommend
+                                      ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2))
+                                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: !_wouldRecommend ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0),
+                                    color: !_wouldRecommend
+                                        ? (isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5))
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                   ),
                                 ),
                                 child: Text(
@@ -1652,7 +1807,9 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: !_wouldRecommend ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
+                                    color: !_wouldRecommend
+                                        ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C))
+                                        : (isDark ? const Color(0xFF64748B) : const Color(0xFF64748B)),
                                   ),
                                 ),
                               ),
@@ -1668,17 +1825,17 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                       controller: _commentController,
                       maxLines: 3,
                       maxLength: 300,
-                      style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
+                      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Write your detailed review & advice for future patients...',
                         hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                         contentPadding: const EdgeInsets.all(14),
                         counterStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -1696,14 +1853,15 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
                             onPressed: () => Navigator.pop(context),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: Color(0xFFCBD5E1)),
+                              side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.transparent,
                             ),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
-                              style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold),
+                              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569), fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -1757,44 +1915,6 @@ class _DoctorRatingDialogState extends State<DoctorRatingDialog> {
 class _CancellationInvoicesSection extends StatelessWidget {
   const _CancellationInvoicesSection();
 
-  void _showRescheduleDatePicker(BuildContext context, Map<String, dynamic> invData) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
-    );
-
-    if (pickedDate != null && context.mounted) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: const TimeOfDay(hour: 9, minute: 0),
-      );
-
-      if (pickedTime != null && context.mounted) {
-        final formattedDate = DateFormat("MMMM d, yyyy").format(pickedDate);
-        final formattedTime = pickedTime.format(context);
-
-        final success = await ScheduleCancellationService().resolveInvoiceByReschedule(
-          invoiceId: invData['id'] ?? '',
-          appointmentId: invData['appointmentId'] ?? '',
-          newDate: formattedDate,
-          newTime: formattedTime,
-        );
-
-        if (success && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Appointment successfully rescheduled to $formattedDate at $formattedTime!'),
-              backgroundColor: const Color(0xFF0EA5E9),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   void _showInvoiceDetailsModal(BuildContext context, Map<String, dynamic> data) {
     final invNum = data['invoiceNumber'] ?? 'INV-CANCELLED';
     final actionType = data['actionType'] ?? 'Pending Patient Choice';
@@ -1811,10 +1931,12 @@ class _CancellationInvoicesSection extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -1827,7 +1949,7 @@ class _CancellationInvoicesSection extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? const Color(0xFF475569) : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1838,7 +1960,7 @@ class _CancellationInvoicesSection extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
+                        color: Colors.red.withValues(alpha: isDark ? 0.25 : 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.receipt_long_rounded, color: Colors.redAccent, size: 28),
@@ -1848,8 +1970,22 @@ class _CancellationInvoicesSection extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Cancellation Invoice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                          Text('No: $invNum', style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+                          Text(
+                            'Cancellation Invoice',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            'No: $invNum',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? const Color(0xFF94A3B8) : Colors.grey,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1857,8 +1993,10 @@ class _CancellationInvoicesSection extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: isPendingChoice
-                            ? Colors.orange.withValues(alpha: 0.15)
-                            : (actionType == 'Refund' ? Colors.green.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1)),
+                            ? Colors.orange.withValues(alpha: isDark ? 0.25 : 0.15)
+                            : (actionType == 'Refund'
+                                ? Colors.green.withValues(alpha: isDark ? 0.25 : 0.1)
+                                : Colors.blue.withValues(alpha: isDark ? 0.25 : 0.1)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -1867,8 +2005,10 @@ class _CancellationInvoicesSection extends StatelessWidget {
                             : (actionType == 'Refund' ? 'Refund Issued' : 'Rescheduled'),
                         style: TextStyle(
                           color: isPendingChoice
-                              ? Colors.orange.shade900
-                              : (actionType == 'Refund' ? Colors.green.shade800 : Colors.blue.shade800),
+                              ? (isDark ? const Color(0xFFFBBF24) : Colors.orange.shade900)
+                              : (actionType == 'Refund'
+                                  ? (isDark ? const Color(0xFF34D399) : Colors.green.shade800)
+                                  : (isDark ? const Color(0xFF60A5FA) : Colors.blue.shade800)),
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
                         ),
@@ -1876,25 +2016,25 @@ class _CancellationInvoicesSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Divider(height: 28),
+                Divider(height: 28, color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
                   ),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Original Date:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          Text('Original Date:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               dateStr.isNotEmpty ? dateStr : 'N/A',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                               textAlign: TextAlign.end,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1905,12 +2045,12 @@ class _CancellationInvoicesSection extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Payment Method:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                          Text('Payment Method:', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '$method',
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: isDark ? Colors.white : Colors.black87),
                               textAlign: TextAlign.end,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1921,28 +2061,31 @@ class _CancellationInvoicesSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Financial Breakdown', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                Text(
+                  'Financial Breakdown',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Consultation Fee', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                    Text('LKR ${fee.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
+                    Text('Consultation Fee', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
+                    Text('LKR ${fee.toStringAsFixed(0)}', style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Hospital Service Charges', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                    Text('LKR ${charges.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
+                    Text('Hospital Service Charges', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 13)),
+                    Text('LKR ${charges.toStringAsFixed(0)}', style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                   ],
                 ),
-                const Divider(height: 20),
+                Divider(height: 20, color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total Invoice Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87)),
+                    Text('Total Invoice Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87)),
                     Text('LKR ${total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0EA5E9))),
                   ],
                 ),
@@ -1951,25 +2094,25 @@ class _CancellationInvoicesSection extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
+                    color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                    border: Border.all(color: isDark ? const Color(0xFF047857) : Colors.green.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.account_balance_wallet_rounded, color: Colors.green, size: 22),
+                      const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF34D399), size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Payment Refund Notification:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green)),
+                            Text('Payment Refund Notification:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? const Color(0xFF34D399) : Colors.green)),
                             const SizedBox(height: 2),
                             Text(
                               actionType == 'Refund'
                                   ? 'Full refund of LKR ${total.toStringAsFixed(0)} will be credited back to your payment account.'
                                   : 'Your full payment of LKR ${total.toStringAsFixed(0)} will be refunded upon claiming below, or you may choose to reschedule.',
-                              style: TextStyle(fontSize: 12, color: Colors.green.shade900),
+                              style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFFA7F3D0) : Colors.green.shade900),
                             ),
                           ],
                         ),
@@ -1982,16 +2125,16 @@ class _CancellationInvoicesSection extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
+                    color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : Colors.amber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    border: Border.all(color: isDark ? const Color(0xFFB45309) : Colors.amber.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Cancellation Reason / Note:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.brown)),
+                      Text('Cancellation Reason / Note:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? const Color(0xFFFBBF24) : Colors.brown)),
                       const SizedBox(height: 4),
-                      Text(remarks, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                      Text(remarks, style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
                     ],
                   ),
                 ),
@@ -1999,14 +2142,14 @@ class _CancellationInvoicesSection extends StatelessWidget {
 
                 // Interactive Patient Resolution Buttons (if Pending Patient Choice)
                 if (isPendingChoice) ...[
-                  const Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                  Text('Select Resolution Option:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
+                            backgroundColor: const Color(0xFF059669),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -2040,9 +2183,34 @@ class _CancellationInvoicesSection extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.pop(context);
-                            _showRescheduleDatePicker(context, data);
+                            String docId = (data['doctorId'] ?? '').toString().trim();
+                            if (docId.isEmpty && data['appointmentId'] != null) {
+                              try {
+                                final apptDoc = await FirebaseFirestore.instance.collection('appointments').doc(data['appointmentId']).get();
+                                if (apptDoc.exists) {
+                                  docId = (apptDoc.data()?['doctorId'] ?? '').toString().trim();
+                                }
+                              } catch (_) {}
+                            }
+
+                            if (context.mounted && docId.isNotEmpty) {
+                              final patientUid = FirebaseAuth.instance.currentUser?.uid ?? (data['patientId'] ?? '');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SelectSlotPage(
+                                    doctorId: docId,
+                                    patientUid: patientUid,
+                                  ),
+                                ),
+                              );
+                            } else if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Doctor details not found for rescheduling.')),
+                              );
+                            }
                           },
                           icon: const Icon(Icons.edit_calendar_rounded, size: 16),
                           label: const Text('Reschedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
@@ -2059,9 +2227,10 @@ class _CancellationInvoicesSection extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: isDark ? const Color(0xFF475569) : Colors.grey.shade300),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Close Invoice', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    child: Text('Close Invoice', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : Colors.grey)),
                   ),
                 ),
               ],
@@ -2078,32 +2247,16 @@ class _CancellationInvoicesSection extends StatelessWidget {
     if (user == null) return const SizedBox.shrink();
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('invoices')
-          .where('patientId', isEqualTo: user.uid)
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('invoices').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data == null || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        final todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-
         final invoices = snapshot.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
-          final dateStr = (data['originalDate'] ?? '').toString();
-          if (dateStr.isEmpty) return true;
-          try {
-            final parsedDate = DateFormat("MMMM d, yyyy").parse(dateStr);
-            return !parsedDate.isBefore(todayStart);
-          } catch (_) {
-            try {
-              final parsedDate = DateTime.parse(dateStr);
-              return !parsedDate.isBefore(todayStart);
-            } catch (_) {
-              return true;
-            }
-          }
+          final pId = (data['patientId'] ?? data['patientUid'] ?? data['userId'] ?? '').toString().trim();
+          return pId == user.uid;
         }).toList()
           ..sort((a, b) {
             final aData = a.data() as Map<String, dynamic>;
@@ -2115,26 +2268,28 @@ class _CancellationInvoicesSection extends StatelessWidget {
 
         if (invoices.isEmpty) return const SizedBox.shrink();
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.receipt_long_rounded, color: Colors.redAccent, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.receipt_long_rounded, color: Colors.redAccent, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       'Cancellation Invoices',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                     ),
                   ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
+                    color: Colors.red.withValues(alpha: isDark ? 0.25 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -2162,20 +2317,25 @@ class _CancellationInvoicesSection extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: actionType == 'Refund'
-                          ? [const Color(0xFFFEF2F2), const Color(0xFFFFF1F2)]
-                          : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: isDark ? const Color(0xFF1E293B) : null,
+                    gradient: isDark
+                        ? null
+                        : LinearGradient(
+                            colors: actionType == 'Refund'
+                                ? [const Color(0xFFFEF2F2), const Color(0xFFFFF1F2)]
+                                : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: actionType == 'Refund' ? Colors.red.shade200 : Colors.amber.shade300,
+                      color: isDark
+                          ? (actionType == 'Refund' ? const Color(0xFF991B1B) : const Color(0xFFB45309))
+                          : (actionType == 'Refund' ? Colors.red.shade200 : Colors.amber.shade300),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -2197,19 +2357,27 @@ class _CancellationInvoicesSection extends StatelessWidget {
                               const SizedBox(width: 8),
                               Text(
                                 invNum,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87),
                               ),
                             ],
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: actionType == 'Refund' ? Colors.green.shade700 : Colors.orange.shade800,
+                              color: actionType == 'Refund'
+                                  ? (isDark ? const Color(0xFF064E3B) : Colors.green.shade700)
+                                  : (isDark ? const Color(0xFF78350F) : Colors.orange.shade800),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               actionType == 'Refund' ? 'Refund Issued' : 'Reschedule Credit',
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: isDark
+                                    ? (actionType == 'Refund' ? const Color(0xFF34D399) : const Color(0xFFFBBF24))
+                                    : Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -2217,12 +2385,12 @@ class _CancellationInvoicesSection extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         'Appointment on $dateStr was cancelled.',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         remarks,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade700),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2230,20 +2398,20 @@ class _CancellationInvoicesSection extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.12),
+                          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : Colors.green.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                          border: Border.all(color: isDark ? const Color(0xFF047857) : Colors.green.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.account_balance_wallet_rounded, size: 16, color: Colors.green),
+                            const Icon(Icons.account_balance_wallet_rounded, size: 16, color: Color(0xFF34D399)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 actionType == 'Refund'
                                     ? 'Full payment of LKR ${total.toStringAsFixed(0)} will be refunded.'
                                     : 'Your payment of LKR ${total.toStringAsFixed(0)} will be refunded upon claiming below (or reschedule for free).',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green.shade900),
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFFA7F3D0) : Colors.green.shade900),
                               ),
                             ),
                           ],
@@ -2481,12 +2649,21 @@ class _MedicalSpecialtiesGrid extends StatelessWidget {
                 child: Icon(item['icon'] as IconData, color: color, size: 26),
               ),
               const SizedBox(height: 6),
-              Text(
-                item['name'] as String,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Builder(
+                builder: (context) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  return Text(
+                    item['name'] as String,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
               ),
             ],
           ),

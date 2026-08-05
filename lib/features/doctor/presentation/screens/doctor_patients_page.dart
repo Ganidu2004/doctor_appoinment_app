@@ -142,13 +142,14 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return const Center(child: Text('Please sign in to view patients.'));
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -157,12 +158,12 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
               // Search Input Box
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -170,13 +171,14 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                 ),
                 child: TextField(
                   controller: _searchController,
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                   decoration: InputDecoration(
                     hintText: 'Search patients by name or notes...',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    hintStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8), fontSize: 14),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0EA5E9)),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, color: Color(0xFF64748B), size: 18),
+                            icon: Icon(Icons.clear_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), size: 18),
                             onPressed: () => _searchController.clear(),
                           )
                         : null,
@@ -209,10 +211,10 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                                   colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
                                 )
                               : null,
-                          color: isSelected ? null : Colors.white,
+                          color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : Colors.white),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                            color: isSelected ? const Color(0xFF0EA5E9) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           boxShadow: isSelected
                               ? [
@@ -229,7 +231,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : const Color(0xFF475569),
+                            color: isSelected ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                         ),
                       ),
@@ -354,6 +356,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     required String latestStatus,
     required Map<String, dynamic> patientGroup,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String initial = patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P';
     final normalized = _normalizeStatus(latestStatus);
     Color statusColor = normalized == 'completed'
@@ -365,12 +368,12 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -406,13 +409,13 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           height: 46,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFFE0F2FE),
-                            border: Border.all(color: const Color(0xFFBAE6FD), width: 1.5),
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+                            border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.5),
                           ),
                           alignment: Alignment.center,
                           child: Text(
                             initial,
-                            style: const TextStyle(color: Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 20),
+                            style: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7), fontWeight: FontWeight.bold, fontSize: 20),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -422,7 +425,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                             children: [
                               Text(
                                 patientName,
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -432,12 +435,12 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
+                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       '$totalAppointments Visit${totalAppointments == 1 ? '' : 's'}',
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                                     ),
                                   ),
                                 ],
@@ -455,9 +458,9 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         children: [
@@ -465,7 +468,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                           const SizedBox(width: 6),
                           Text(
                             'Latest: $latestDate • $latestTime',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ],
                       ),
@@ -478,14 +481,15 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
                       child: OutlinedButton.icon(
                         onPressed: () => _showPatientDetails(patientUid, patientGroup),
                         style: OutlinedButton.styleFrom(
+                          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 11),
-                          side: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5),
+                          side: BorderSide(color: isDark ? const Color(0xFF0EA5E9) : const Color(0xFF0EA5E9), width: 1.5),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         icon: const Icon(Icons.description_outlined, size: 18, color: Color(0xFF0EA5E9)),
-                        label: const Text(
+                        label: Text(
                           'Patient Record',
-                          style: TextStyle(color: Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0EA5E9), fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
                     ),
@@ -500,6 +504,7 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
   }
 
   Widget _buildEmptyPatientsState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -508,22 +513,22 @@ class _DoctorPatientsPageState extends State<DoctorPatientsPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF0F9FF),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.people_outline_rounded, size: 48, color: Color(0xFF0EA5E9)),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Patients Found for This Doctor',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Only patients who have scheduled appointments with you will be listed here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
             ),
           ],
         ),

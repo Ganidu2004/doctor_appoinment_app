@@ -133,8 +133,9 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: _fetchDoctorData,
         child: _isLoading 
@@ -231,12 +232,12 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -287,12 +288,12 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -306,7 +307,7 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 56.0, right: 16.0),
-                            child: Divider(color: Colors.grey.shade100, height: 1),
+                            child: Divider(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100, height: 1),
                           ),
                           _buildListTile(
                             icon: Icons.language_outlined,
@@ -326,12 +327,12 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Material(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     clipBehavior: Clip.antiAlias,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -376,9 +377,9 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                         style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red.shade100, width: 1.5),
+                        side: BorderSide(color: isDark ? const Color(0xFF991B1B) : Colors.red.shade100, width: 1.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        backgroundColor: Colors.red.shade50.withValues(alpha: 0.3),
+                        backgroundColor: isDark ? const Color(0xFF450A0A) : Colors.red.shade50.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -392,12 +393,12 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                     children: [
                       Text(
                         'Version 2.4.1 (Build 890)',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        style: TextStyle(color: isDark ? const Color(0xFF64748B) : Colors.grey.shade500, fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'DOCCONNECT INC. Â© 2024',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+                        'DOCCONNECT INC. © 2024',
+                        style: TextStyle(color: isDark ? const Color(0xFF475569) : Colors.grey.shade400, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5),
                       ),
                     ],
                   ),
@@ -411,11 +412,12 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, top: 20.0, bottom: 10.0),
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1.0),
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500, letterSpacing: 1.0),
       ),
     );
   }
@@ -428,6 +430,7 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
     bool isLast = false,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         ListTile(
@@ -439,18 +442,18 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
           ),
           leading: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
+            decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+            child: Icon(icon, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB), size: 20),
           ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-          subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)) : null,
-          trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey.shade400, size: 14),
+          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+          subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontSize: 12)) : null,
+          trailing: Icon(Icons.arrow_forward_ios, color: isDark ? const Color(0xFF64748B) : Colors.grey.shade400, size: 14),
           onTap: onTap, 
         ),
         if (!isLast)
           Padding(
             padding: const EdgeInsets.only(left: 56.0, right: 16.0),
-            child: Divider(color: Colors.grey.shade100, height: 1),
+            child: Divider(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100, height: 1),
           ),
       ],
     );
@@ -463,19 +466,20 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
     required bool value, 
     required ValueChanged<bool> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB), size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87)),
-      subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+      subtitle: Text(subtitle, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontSize: 12)),
       trailing: Switch.adaptive(
         value: value,
-        activeTrackColor: const Color(0xFF2563EB),
+        activeTrackColor: const Color(0xFF0EA5E9),
         activeThumbColor: Colors.white,
         onChanged: onChanged,
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
 
 class AddHospitalPage extends StatefulWidget {
   const AddHospitalPage({super.key});
@@ -27,21 +28,30 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
     super.dispose();
   }
 
-  InputDecoration _fieldDeco(String label, IconData icon) {
+  InputDecoration _fieldDeco(String label, IconData icon, bool isDark) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w500),
+      labelStyle: TextStyle(
+        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+      floatingLabelStyle: TextStyle(
+        color: isDark ? const Color(0xFFFB7185) : const Color(0xFFF43F5E),
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
       filled: true,
-      fillColor: Colors.white,
-      prefixIcon: Icon(icon, color: const Color(0xFFF43F5E), size: 20),
+      fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      prefixIcon: Icon(icon, color: isDark ? const Color(0xFFFB7185) : const Color(0xFFF43F5E), size: 20),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5),
+        borderSide: BorderSide(color: isDark ? const Color(0xFFFB7185) : const Color(0xFFF43F5E), width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
@@ -94,16 +104,29 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text("Register Hospital", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A))),
-        backgroundColor: Colors.white,
+        title: Text("Register Hospital", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : const Color(0xFF0F172A)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.wb_sunny_outlined : Icons.dark_mode_outlined,
+              color: isDark ? Colors.amber : Colors.indigo,
+            ),
+            tooltip: "Toggle Dark/Light Mode",
+            onPressed: () {
+              ThemeController.instance.toggleTheme(!isDark);
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -113,12 +136,12 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
               constraints: BoxConstraints(maxWidth: isDesktop ? 760 : 500),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blueGrey.withValues(alpha: 0.08),
+                      color: Colors.blueGrey.withValues(alpha: isDark ? 0.2 : 0.08),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
@@ -201,7 +224,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                     Expanded(
                                       child: TextFormField(
                                         controller: _nameController,
-                                        decoration: _fieldDeco("Hospital Name", Icons.local_hospital_outlined),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("Hospital Name", Icons.local_hospital_outlined, isDark),
                                         validator: (value) => value == null || value.trim().isEmpty ? 'Please enter hospital name' : null,
                                       ),
                                     ),
@@ -210,7 +234,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                       child: TextFormField(
                                         controller: _chargesController,
                                         keyboardType: TextInputType.number,
-                                        decoration: _fieldDeco("Hospital Charges (LKR)", Icons.payment_outlined),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("Hospital Charges (LKR)", Icons.payment_outlined, isDark),
                                         validator: (value) {
                                           if (value == null || value.trim().isEmpty) return 'Please enter hospital charges';
                                           if (double.tryParse(value.trim()) == null) return 'Enter a valid number';
@@ -226,7 +251,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                     Expanded(
                                       child: TextFormField(
                                         controller: _districtController,
-                                        decoration: _fieldDeco("District", Icons.map_outlined),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("District", Icons.map_outlined, isDark),
                                         validator: (value) => value == null || value.trim().isEmpty ? 'Please enter district' : null,
                                       ),
                                     ),
@@ -235,7 +261,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                       child: TextFormField(
                                         controller: _phoneController,
                                         keyboardType: TextInputType.phone,
-                                        decoration: _fieldDeco("Contact Number", Icons.phone_outlined),
+                                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                        decoration: _fieldDeco("Contact Number", Icons.phone_outlined, isDark),
                                         validator: (value) {
                                           if (value == null || value.trim().isEmpty) return 'Please enter contact number';
                                           final phoneStr = value.trim();
@@ -249,32 +276,37 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                 const SizedBox(height: 18),
                                 TextFormField(
                                   controller: _addressController,
-                                  decoration: _fieldDeco("Official Address", Icons.location_on_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Official Address", Icons.location_on_outlined, isDark),
                                   validator: (value) => value == null || value.trim().isEmpty ? 'Please enter address' : null,
                                 ),
                               ] else ...[
                                 TextFormField(
                                   controller: _nameController,
-                                  decoration: _fieldDeco("Hospital Name", Icons.local_hospital_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Hospital Name", Icons.local_hospital_outlined, isDark),
                                   validator: (value) => value == null || value.trim().isEmpty ? 'Please enter hospital name' : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _addressController,
-                                  decoration: _fieldDeco("Official Address", Icons.location_on_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Official Address", Icons.location_on_outlined, isDark),
                                   validator: (value) => value == null || value.trim().isEmpty ? 'Please enter address' : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _districtController,
-                                  decoration: _fieldDeco("District", Icons.map_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("District", Icons.map_outlined, isDark),
                                   validator: (value) => value == null || value.trim().isEmpty ? 'Please enter district' : null,
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
-                                  decoration: _fieldDeco("Contact Number", Icons.phone_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Contact Number", Icons.phone_outlined, isDark),
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) return 'Please enter contact number';
                                     final phoneStr = value.trim();
@@ -286,7 +318,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                 TextFormField(
                                   controller: _chargesController,
                                   keyboardType: TextInputType.number,
-                                  decoration: _fieldDeco("Hospital Charges (LKR)", Icons.payment_outlined),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  decoration: _fieldDeco("Hospital Charges (LKR)", Icons.payment_outlined, isDark),
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) return 'Please enter hospital charges';
                                     if (double.tryParse(value.trim()) == null) return 'Enter a valid number';
@@ -305,8 +338,8 @@ class _AddHospitalPageState extends State<AddHospitalPage> {
                                         onPressed: () => Navigator.of(context).pop(),
                                         style: OutlinedButton.styleFrom(
                                           minimumSize: const Size(0, 50),
-                                          foregroundColor: Colors.grey.shade700,
-                                          side: BorderSide(color: Colors.grey.shade300),
+                                          foregroundColor: isDark ? Colors.white70 : Colors.grey.shade700,
+                                          side: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         ),
                                         child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),

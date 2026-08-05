@@ -112,7 +112,14 @@ class DoctorCard extends StatelessWidget {
                             const SizedBox(width: 10),
                             const Icon(Icons.work_outline_rounded, color: Color(0xFF38BDF8), size: 14),
                             const SizedBox(width: 4),
-                            Text("$exp Yrs Exp", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+                            Text(
+                              "$exp Yrs Exp", 
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87, 
+                                fontSize: 12, 
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ],
                         ),
                       ],

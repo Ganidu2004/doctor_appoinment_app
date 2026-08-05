@@ -199,6 +199,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = FirebaseAuth.instance.currentUser;
     final doctorName = widget.doctorData['name']?.toString() ?? 'Doctor';
 
@@ -510,9 +511,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 ),
 
                 /// DYNAMIC ACTION QUICK BUTTONS ROW
-                const Text(
+                Text(
                   'Quick Actions',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.3),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SingleChildScrollView(
@@ -524,6 +530,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         icon: Icons.calendar_month_rounded,
                         label: 'Calendar',
                         color: const Color(0xFF0EA5E9),
+                        isDark: isDark,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -535,6 +542,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         icon: Icons.people_alt_rounded,
                         label: 'Live Queue',
                         color: const Color(0xFF10B981),
+                        isDark: isDark,
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
@@ -548,6 +556,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         icon: Icons.analytics_rounded,
                         label: 'Analytics',
                         color: const Color(0xFF0EA5E9),
+                        isDark: isDark,
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
@@ -561,6 +570,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         icon: Icons.star_rounded,
                         label: 'Reviews',
                         color: const Color(0xFFF59E0B),
+                        isDark: isDark,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -572,6 +582,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         icon: Icons.history_edu_rounded,
                         label: 'Write Rx',
                         color: Colors.teal,
+                        isDark: isDark,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -589,16 +600,16 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
                     ],
-                    border: Border.all(color: Colors.grey.shade100),
+                    border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +625,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
+                                  color: isDark ? Colors.white : Colors.grey.shade800,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -622,7 +633,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                 'Activity from the last 7 days',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey.shade500,
+                                  color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500,
                                 ),
                               ),
                             ],
@@ -673,6 +684,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         title: 'Total Patients',
                         value: uniquePatients.length.toString(),
                         color: Colors.blue.shade600,
+                        isDark: isDark,
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -682,6 +694,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         title: 'Total Consults',
                         value: totalConsults.toString(),
                         color: Colors.indigo.shade600,
+                        isDark: isDark,
                       ),
                     ),
                   ],
@@ -705,9 +718,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F9FF),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F9FF),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFBAE6FD)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,13 +736,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                     ),
                                     child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 18),
                                   ),
-                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF0284C7)),
+                                  Icon(Icons.arrow_forward_ios_rounded, size: 12, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7)),
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text('Patient Insights', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              Text('Patient Insights', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                               const SizedBox(height: 2),
-                              const Text('New vs Returning & Peak hours', style: TextStyle(fontSize: 10.5, color: Color(0xFF0369A1))),
+                              Text('New vs Returning & Peak hours', style: TextStyle(fontSize: 10.5, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1))),
                             ],
                           ),
                         ),
@@ -747,9 +760,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFFBEB),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFDE68A)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFFDE68A)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -765,13 +778,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                                     ),
                                     child: const Icon(Icons.star_rounded, color: Colors.white, size: 18),
                                   ),
-                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFB45309)),
+                                  Icon(Icons.arrow_forward_ios_rounded, size: 12, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              const Text('Ratings & Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A))),
+                              Text('Ratings & Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                               const SizedBox(height: 2),
-                              const Text('Patient feedback & quality', style: TextStyle(fontSize: 10.5, color: Color(0xFF92400E))),
+                              Text('Patient feedback & quality', style: TextStyle(fontSize: 10.5, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E))),
                             ],
                           ),
                         ),
@@ -786,22 +799,26 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Text(
                           "Today's Overview",
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
                         ),
-                        SizedBox(width: 6),
-                        Icon(Icons.insights_rounded, color: Color(0xFF0EA5E9), size: 18),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.insights_rounded, color: Color(0xFF0EA5E9), size: 18),
                       ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0F9FF),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F9FF),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
                       ),
                       child: const Row(
                         children: [
@@ -851,14 +868,18 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Text(
                           'Upcoming Timeline',
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
                         ),
-                        SizedBox(width: 6),
-                        Icon(Icons.timeline_rounded, color: Color(0xFF0EA5E9), size: 20),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.timeline_rounded, color: Color(0xFF0EA5E9), size: 20),
                       ],
                     ),
                     Container(
@@ -895,12 +916,12 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                     width: double.infinity,
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -910,22 +931,22 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF0F9FF),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.event_available_rounded, size: 36, color: Color(0xFF0EA5E9)),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'No Upcoming Consultations',
-                          style: TextStyle(color: Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'You have no scheduled patient appointments remaining for today.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                          style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -997,6 +1018,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
     required String label,
     required Color color,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1004,23 +1026,23 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
         margin: const EdgeInsets.only(right: 14),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: isDark ? 0.2 : 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 20),
@@ -1028,7 +1050,11 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
             const SizedBox(width: 10),
             Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
@@ -1041,13 +1067,14 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
     required String title,
     required String value,
     required Color color,
+    required bool isDark,
   }) {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
+        color: isDark ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+        border: Border.all(color: isDark ? color.withValues(alpha: 0.35) : color.withValues(alpha: 0.2), width: 1.5),
       ),
       child: Stack(
         children: [
@@ -1057,7 +1084,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
             bottom: -15,
             child: Transform.rotate(
               angle: -0.2,
-              child: Icon(icon, color: color.withValues(alpha: 0.12), size: 100),
+              child: Icon(icon, color: isDark ? color.withValues(alpha: 0.25) : color.withValues(alpha: 0.12), size: 100),
             ),
           ),
           Padding(
@@ -1088,25 +1115,25 @@ class _DoctorHomePageState extends State<DoctorHomePage> with SingleTickerProvid
                       ),
                       child: Icon(icon, color: Colors.white, size: 22),
                     ),
-                    Icon(Icons.arrow_outward_rounded, color: color.withValues(alpha: 0.5), size: 20),
+                    Icon(Icons.arrow_outward_rounded, color: isDark ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.5), size: 20),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                     letterSpacing: -1,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF475569),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

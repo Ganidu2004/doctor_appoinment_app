@@ -69,17 +69,18 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   }
 
   Widget _buildMonthSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final monthFormat = DateFormat("MMMM yyyy");
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           )
@@ -106,14 +107,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "BILLING PERIOD",
-                            style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                            style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             _filterByMonth ? monthFormat.format(_selectedMonth) : "All Time (All Months)",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -129,15 +130,15 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     if (_filterByMonth)
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.chevron_left_rounded, size: 18),
+                              icon: Icon(Icons.chevron_left_rounded, size: 18, color: isDark ? Colors.white : Colors.black87),
                               onPressed: () {
                                 setState(() {
                                   _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
@@ -147,9 +148,9 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                               constraints: const BoxConstraints(),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             ),
-                            Container(width: 1, height: 16, color: const Color(0xFFE2E8F0)),
+                            Container(width: 1, height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             IconButton(
-                              icon: const Icon(Icons.chevron_right_rounded, size: 18),
+                              icon: Icon(Icons.chevron_right_rounded, size: 18, color: isDark ? Colors.white : Colors.black87),
                               onPressed: () {
                                 setState(() {
                                   _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
@@ -163,6 +164,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                         ),
                       ),
                     PopupMenuButton<String>(
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       onSelected: (val) {
                         if (val == 'ALL') {
                           setState(() => _filterByMonth = false);
@@ -198,8 +200,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                         ),
                       ),
                       itemBuilder: (ctx) => [
-                        const PopupMenuItem(value: 'CURRENT', child: Text("Current Month Filter")),
-                        const PopupMenuItem(value: 'ALL', child: Text("Show All Months (All Time)")),
+                        PopupMenuItem(value: 'CURRENT', child: Text("Current Month Filter", style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
+                        PopupMenuItem(value: 'ALL', child: Text("Show All Months (All Time)", style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
                       ],
                     ),
                   ],
@@ -208,57 +210,50 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             );
           }
 
-          // Desktop & Wide layout
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.calendar_month_rounded, size: 20, color: Color(0xFF4F46E5)),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "BILLING PERIOD",
-                            style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _filterByMonth ? monthFormat.format(_selectedMonth) : "All Time (All Months)",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    child: const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFF4F46E5)),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "BILLING PERIOD",
+                        style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _filterByMonth ? monthFormat.format(_selectedMonth) : "All Time (All Months)",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_filterByMonth) ...[
+                  if (_filterByMonth)
                     Container(
+                      margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                            icon: Icon(Icons.chevron_left_rounded, size: 18, color: isDark ? Colors.white : Colors.black87),
                             onPressed: () {
                               setState(() {
                                 _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
@@ -266,11 +261,11 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                             },
                             tooltip: "Previous Month",
                             constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           ),
-                          Container(width: 1, height: 16, color: const Color(0xFFE2E8F0)),
+                          Container(width: 1, height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           IconButton(
-                            icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                            icon: Icon(Icons.chevron_right_rounded, size: 18, color: isDark ? Colors.white : Colors.black87),
                             onPressed: () {
                               setState(() {
                                 _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
@@ -278,14 +273,13 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                             },
                             tooltip: "Next Month",
                             constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                  const SizedBox(width: 8),
                   PopupMenuButton<String>(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     onSelected: (val) {
                       if (val == 'ALL') {
                         setState(() => _filterByMonth = false);
@@ -321,8 +315,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       ),
                     ),
                     itemBuilder: (ctx) => [
-                      const PopupMenuItem(value: 'CURRENT', child: Text("Current Month Filter")),
-                      const PopupMenuItem(value: 'ALL', child: Text("Show All Months (All Time)")),
+                      PopupMenuItem(value: 'CURRENT', child: Text("Current Month Filter", style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
+                      PopupMenuItem(value: 'ALL', child: Text("Show All Months (All Time)", style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
                     ],
                   ),
                 ],
@@ -335,6 +329,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   }
 
   Widget _buildSummaryTab(List<DocumentSnapshot> rawDocs, bool isHospital) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final docs = _filterDocsByMonth(rawDocs);
 
     // Aggregate data
@@ -465,7 +460,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                           "No payments recorded for ${DateFormat('MMMM yyyy').format(_selectedMonth)}.",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -496,12 +491,12 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           )
@@ -512,7 +507,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isHospital ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+                              color: isHospital ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5)) : (isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF)),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Icon(
@@ -528,19 +523,19 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                               children: [
                                 Text(
                                   entry.key,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   isHospital ? 'Hospital Facility Revenue Share' : 'Specialist Consultation Earnings',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                                  style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
                           ),
                           Text(
                             _formatCurrency(entry.value),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ],
                       ),
@@ -553,6 +548,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
   }
 
   Widget _buildPatientPaymentsTab(List<DocumentSnapshot> rawDocs) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filteredMonthDocs = _filterDocsByMonth(rawDocs);
 
     var docs = filteredMonthDocs.where((doc) {
@@ -578,12 +574,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           child: TextField(
             controller: _searchController,
             onChanged: (val) => setState(() => _searchQuery = val),
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
             decoration: InputDecoration(
               hintText: 'Search patient name or booking no...',
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              hintStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
+              prefixIcon: Icon(Icons.search, color: isDark ? const Color(0xFF94A3B8) : Colors.grey),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear, size: 18),
+                      icon: Icon(Icons.clear, size: 18, color: isDark ? Colors.white : Colors.black87),
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
@@ -592,14 +590,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                   : null,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey.shade200),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey.shade200),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -615,7 +613,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     _searchQuery.isNotEmpty
                         ? 'No matching patient payments found.'
                         : 'No patient payments recorded for ${DateFormat('MMMM yyyy').format(_selectedMonth)}.',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600, fontSize: 13),
                   ),
                 )
               : ListView.builder(
@@ -638,12 +636,12 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey.shade100),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -658,7 +656,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -672,7 +670,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                               ),
                               Text(
                                 '$dateStr $timeStr'.trim(),
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500),
                               ),
                             ],
                           ),
@@ -680,9 +678,9 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                           Row(
                             children: [
                               CircleAvatar(
-                                backgroundColor: const Color(0xFFF1F5F9),
+                                backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                                 radius: 20,
-                                child: const Icon(Icons.person, color: Color(0xFF64748B)),
+                                child: Icon(Icons.person, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -691,32 +689,32 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                                   children: [
                                     Text(
                                       patientName,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       'Dr. $doctorName${hospital.toString().isNotEmpty ? ' • $hospital' : ''}',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                      style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600),
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 'Doctor Fee: ${_formatCurrency(consultationFee)}',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600),
                               ),
                               Text(
                                 'Hospital Charge: ${_formatCurrency(hospitalCharges)}',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600),
                               ),
                             ],
                           ),
@@ -724,7 +722,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Total Paid', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                              Text('Total Paid', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                               Text(_formatCurrency(totalAmount), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF0EA5E9))),
                             ],
                           ),
@@ -740,6 +738,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final bodyContent = StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('appointments').snapshots(),
       builder: (context, snapshot) {
@@ -748,7 +748,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text("No payments found."));
+          return Center(child: Text("No payments found.", style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)));
         }
 
         final docs = snapshot.data!.docs;
@@ -768,14 +768,14 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         length: 3,
         child: Column(
           children: [
-            const Material(
-              color: Colors.white,
+            Material(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               child: TabBar(
-                labelColor: Color(0xFF0EA5E9),
-                unselectedLabelColor: Colors.black54,
-                indicatorColor: Color(0xFF0EA5E9),
-                labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                tabs: [
+                labelColor: const Color(0xFF0EA5E9),
+                unselectedLabelColor: isDark ? const Color(0xFF94A3B8) : Colors.black54,
+                indicatorColor: const Color(0xFF0EA5E9),
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: const [
                   Tab(text: "Hospitals"),
                   Tab(text: "Doctors"),
                   Tab(text: "Patients"),
@@ -791,21 +791,21 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0.5,
-          iconTheme: const IconThemeData(color: Colors.black87),
-          title: const Text(
+          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
+          title: Text(
             'Revenue & Payments',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
           ),
-          bottom: const TabBar(
-            labelColor: Color(0xFF0EA5E9),
-            unselectedLabelColor: Colors.black54,
-            indicatorColor: Color(0xFF0EA5E9),
-            labelStyle: TextStyle(fontWeight: FontWeight.bold),
-            tabs: [
+          bottom: TabBar(
+            labelColor: const Color(0xFF0EA5E9),
+            unselectedLabelColor: isDark ? const Color(0xFF94A3B8) : Colors.black54,
+            indicatorColor: const Color(0xFF0EA5E9),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            tabs: const [
               Tab(text: "Hospitals"),
               Tab(text: "Doctors"),
               Tab(text: "Patients"),

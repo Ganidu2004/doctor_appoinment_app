@@ -18,6 +18,8 @@ class SummaryMiniCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     String subText = subtitle ?? '';
     if (subText.isEmpty) {
       if (label.toUpperCase().contains('COMPLET')) {
@@ -33,12 +35,12 @@ class SummaryMiniCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -55,7 +57,7 @@ class SummaryMiniCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
+                    color: color.withValues(alpha: isDark ? 0.2 : 0.12),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
                   ),
@@ -83,10 +85,10 @@ class SummaryMiniCard extends StatelessWidget {
             // Middle Big Metric Number
             Text(
               count,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
                 letterSpacing: -0.5,
               ),
             ),
@@ -102,15 +104,17 @@ class SummaryMiniCard extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              subText,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF94A3B8),
-                fontWeight: FontWeight.w500,
+            if (subText.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                subText,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

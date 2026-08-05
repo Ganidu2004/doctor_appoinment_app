@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:appoinment_app/features/patient/presentation/screens/notifications_page.dart';
 import 'package:appoinment_app/shared/widgets/doc_time_logo.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
 
 
 class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -21,6 +22,31 @@ class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
         fontSize: 18,
       ),
       actions: [
+        ValueListenableBuilder<ThemeMode>(
+          valueListenable: ThemeController.instance,
+          builder: (context, mode, _) {
+            final isDark = mode == ThemeMode.dark;
+            return GestureDetector(
+              onTap: () {
+                ThemeController.instance.toggleTheme();
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                ),
+                child: Icon(
+                  isDark ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+                  color: isDark ? Colors.amber : const Color(0xFF0EA5E9),
+                  size: 20,
+                ),
+              ),
+            );
+          },
+        ),
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -32,9 +58,9 @@ class PatientHeader extends StatelessWidget implements PreferredSizeWidget {
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: ThemeController.instance.isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: ThemeController.instance.isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Stack(
               clipBehavior: Clip.none,

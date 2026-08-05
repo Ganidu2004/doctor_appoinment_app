@@ -91,22 +91,23 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               widget.patientName,
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const Text(
+            Text(
               'Patient Support Thread',
-              style: TextStyle(color: Colors.grey, fontSize: 11),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey, fontSize: 11),
             ),
           ],
         ),
@@ -154,7 +155,9 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
                           maxWidth: MediaQuery.of(context).size.width * 0.75,
                         ),
                         decoration: BoxDecoration(
-                          color: isMe ? const Color(0xFF2563EB) : Colors.white,
+                          color: isMe
+                              ? const Color(0xFF2563EB)
+                              : (isDark ? const Color(0xFF1E293B) : Colors.white),
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
@@ -163,7 +166,7 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             ),
@@ -175,7 +178,9 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
                             Text(
                               text,
                               style: TextStyle(
-                                color: isMe ? Colors.white : Colors.black87,
+                                color: isMe
+                                    ? Colors.white
+                                    : (isDark ? const Color(0xFFE2E8F0) : Colors.black87),
                                 fontSize: 14,
                               ),
                             ),
@@ -183,7 +188,9 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
                             Text(
                               _formatTime(timestamp),
                               style: TextStyle(
-                                color: isMe ? Colors.white.withValues(alpha: 0.6) : Colors.grey,
+                                color: isMe
+                                    ? Colors.white.withValues(alpha: 0.6)
+                                    : (isDark ? const Color(0xFF94A3B8) : Colors.grey),
                                 fontSize: 10,
                               ),
                             ),
@@ -198,22 +205,35 @@ class _AdminChatRoomPageState extends State<AdminChatRoomPage> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
+              ),
+            ),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : Colors.transparent,
+                        ),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TextField(
                         controller: _messageController,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
+                        decoration: InputDecoration(
                           hintText: 'Type a reply...',
+                          hintStyle: TextStyle(color: isDark ? const Color(0xFF64748B) : Colors.grey),
                           border: InputBorder.none,
                         ),
                         maxLines: null,

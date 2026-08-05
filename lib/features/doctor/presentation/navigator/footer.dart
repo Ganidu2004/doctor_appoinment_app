@@ -8,13 +8,15 @@ class CustomFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return BottomNavigationBar(
       currentIndex: selectedIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.grey,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      selectedItemColor: isDark ? const Color(0xFF38BDF8) : Colors.blue,
+      unselectedItemColor: isDark ? const Color(0xFF94A3B8) : Colors.grey,
       showUnselectedLabels: true,
       items: const [
 

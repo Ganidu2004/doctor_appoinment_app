@@ -16,11 +16,13 @@ class PatientPaymentHistoryPage extends StatelessWidget {
       return const Center(child: Text('Please sign in to view your payment history.'));
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text('Payment History', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+        title: Text('Payment History', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(

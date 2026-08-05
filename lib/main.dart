@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:appoinment_app/core/config.dart';
+import 'package:appoinment_app/core/theme_controller.dart';
+
+// Repositories & DataSources
 import 'package:appoinment_app/core/theme.dart';
 import 'package:appoinment_app/core/services/notification_services.dart';
 import 'firebase_options.dart';
@@ -72,7 +75,8 @@ void main() async {
     remoteDataSource: DoctorRemoteDataSourceImpl(firestore: firebaseFirestore),
   );
   final appointmentRepository = AppointmentRepositoryImpl(
-    remoteDataSource: AppointmentRemoteDataSourceImpl(firestore: firebaseFirestore),
+    remoteDataSource:
+        AppointmentRemoteDataSourceImpl(firestore: firebaseFirestore),
   );
   final adminRepository = AdminRepositoryImpl(
     remoteDataSource: AdminRemoteDataSourceImpl(firestore: firebaseFirestore),
@@ -108,7 +112,8 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc(authRepository: authRepository)..add(AuthCheckRequested()),
+          create: (_) => AuthBloc(authRepository: authRepository)
+            ..add(AuthCheckRequested()),
         ),
         BlocProvider<PatientBloc>(
           create: (_) => PatientBloc(patientRepository: patientRepository),
@@ -117,19 +122,25 @@ class MyApp extends StatelessWidget {
           create: (_) => DoctorBloc(doctorRepository: doctorRepository),
         ),
         BlocProvider<AppointmentBloc>(
-          create: (_) => AppointmentBloc(appointmentRepository: appointmentRepository),
+          create: (_) =>
+              AppointmentBloc(appointmentRepository: appointmentRepository),
         ),
         BlocProvider<AdminBloc>(
           create: (_) => AdminBloc(adminRepository: adminRepository),
         ),
       ],
-      child: MaterialApp(
-        title: 'DOC Time',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.light,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        home: const SplashScreen(),
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: ThemeController.instance,
+        builder: (context, themeMode, _) {
+          return MaterialApp(
+            title: 'DOC Time',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeMode,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

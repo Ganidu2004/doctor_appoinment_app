@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -45,10 +46,33 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   String selectedConsultationType = 'In-Person Clinic Visit';
   bool loading = true;
 
+  StreamSubscription? _schedulesSubscription;
+
   @override
   void initState() {
     super.initState();
     _initialize();
+    _listenToSchedules();
+  }
+
+  @override
+  void dispose() {
+    _schedulesSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenToSchedules() {
+    _schedulesSubscription = FirebaseFirestore.instance
+        .collection('doctors')
+        .doc(widget.doctorId)
+        .collection('schedules')
+        .snapshots()
+        .listen((schSnap) {
+      schedules = schSnap.docs
+          .map((d) => ScheduleModel.fromMap(Map<String, dynamic>.from(d.data() as Map)))
+          .toList();
+      _loadSchedulesAndAvailability();
+    });
   }
 
   Future<void> _initialize() async {
@@ -63,6 +87,58 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         }
       });
     }
+  }
+
+  bool _isScheduleDisabledForDate(ScheduleModel s, DateTime date) {
+    if (!s.isActive) return true;
+    if (s.disabledDates.isEmpty) return false;
+
+    final k1 = DateFormat('yyyy-MM-dd').format(date);
+    final k2 = DateFormat('yyyy-M-d').format(date);
+    final k3 = DateFormat('MMMM d, yyyy').format(date);
+    final k4 = DateFormat('MMM d, yyyy').format(date);
+
+    for (var disabledStr in s.disabledDates) {
+      final trimmed = disabledStr.trim();
+      if (trimmed == k1 || trimmed == k2 || trimmed == k3 || trimmed == k4) {
+        return true;
+      }
+      try {
+        final parsed = DateTime.tryParse(trimmed);
+        if (parsed != null && parsed.year == date.year && parsed.month == date.month && parsed.day == date.day) {
+          return true;
+        }
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  bool _isSameDateStr(String d1Str, String d2Str) {
+    if (d1Str.trim() == d2Str.trim()) return true;
+
+    DateTime? parseDate(String s) {
+      try {
+        return DateFormat("MMMM d, yyyy").parse(s.trim());
+      } catch (_) {
+        try {
+          return DateFormat("yyyy-MM-dd").parse(s.trim());
+        } catch (_) {
+          try {
+            return DateTime.parse(s.trim());
+          } catch (_) {
+            return null;
+          }
+        }
+      }
+    }
+
+    final p1 = parseDate(d1Str);
+    final p2 = parseDate(d2Str);
+
+    if (p1 != null && p2 != null) {
+      return p1.year == p2.year && p1.month == p2.month && p1.day == p2.day;
+    }
+    return false;
   }
 
   Future<void> _fetchDoctorData() async {
@@ -92,13 +168,20 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   String _dateKey(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
   Future<void> _loadSchedulesAndAvailability() async {
-    QuerySnapshot schSnap = await FirebaseFirestore.instance.collection('doctors').doc(widget.doctorId).collection('schedules').get();
-    schedules = schSnap.docs.map((d) => ScheduleModel.fromMap(Map<String, dynamic>.from(d.data() as Map))).toList();
+    if (schedules.isEmpty) {
+      QuerySnapshot schSnap = await FirebaseFirestore.instance.collection('doctors').doc(widget.doctorId).collection('schedules').get();
+      schedules = schSnap.docs.map((d) => ScheduleModel.fromMap(Map<String, dynamic>.from(d.data() as Map))).toList();
+    }
 
     DateTime today = DateTime.now();
     dateOptions = [];
     fullyBookedMap.clear();
     slotInfoByDate.clear();
+
+    // Fetch all doctor appointments to correctly match dates across all formats
+    QuerySnapshot apptSnap = await FirebaseFirestore.instance.collection('appointments')
+        .where('doctorId', isEqualTo: widget.doctorId)
+        .get();
 
     for (int i = 0; i < 14; i++) {
       DateTime date = DateTime(today.year, today.month, today.day).add(Duration(days: i));
@@ -108,8 +191,8 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
       List<ScheduleModel> daySchedules = schedules.where((s) {
         final d = s.day.toLowerCase();
-        return d.contains(weekdayFull) || d.contains(weekdayShort);
-      }).where((s) => s.isActive && !s.disabledDates.contains(dateKey)).toList();
+        return (d.contains(weekdayFull) || d.contains(weekdayShort)) && !_isScheduleDisabledForDate(s, date);
+      }).toList();
 
       if (daySchedules.isEmpty) continue;
 
@@ -132,17 +215,19 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         }
       }
 
-      QuerySnapshot apptSnap = await FirebaseFirestore.instance.collection('appointments')
-          .where('doctorId', isEqualTo: widget.doctorId)
-          .where('date', isEqualTo: dateKey)
-          .get();
-
       Map<String, int> bookedBySlot = {};
       for (var doc in apptSnap.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        final time = (data['time'] ?? '').toString();
-        if (time.isEmpty) continue;
-        bookedBySlot[time] = (bookedBySlot[time] ?? 0) + 1;
+        final statusLower = (data['status'] ?? '').toString().toLowerCase();
+        if (statusLower.contains('cancel')) continue;
+
+        final apptDate = (data['date'] ?? '').toString();
+        if (_isSameDateStr(apptDate, dateKey)) {
+          final time = (data['time'] ?? '').toString();
+          if (time.isNotEmpty) {
+            bookedBySlot[time] = (bookedBySlot[time] ?? 0) + 1;
+          }
+        }
       }
 
       bool allSlotsFull = true;
@@ -161,18 +246,26 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
       fullyBookedMap[dateKey] = allSlotsFull;
       dateOptions.add(date);
     }
+
+    if (mounted) {
+      setState(() {
+        if (selectedDate != null && !dateOptions.any((d) => _isSameDateStr(_dateKey(d), _dateKey(selectedDate!)))) {
+          selectedDate = dateOptions.isNotEmpty ? dateOptions.first : null;
+          selectedTime = null;
+        }
+      });
+    }
   }
 
   List<String> _generateTimeSlotsForDate(DateTime date) {
     if (schedules.isEmpty) return [];
     String weekdayFull = DateFormat('EEEE').format(date).toLowerCase();
     String weekdayShort = DateFormat('EEE').format(date).toLowerCase();
-    String dateKey = _dateKey(date);
 
     List<ScheduleModel> daySchedules = schedules.where((s) {
       final d = s.day.toLowerCase();
-      return d.contains(weekdayFull) || d.contains(weekdayShort);
-    }).where((s) => s.isActive && !s.disabledDates.contains(dateKey)).toList();
+      return (d.contains(weekdayFull) || d.contains(weekdayShort)) && !_isScheduleDisabledForDate(s, date);
+    }).toList();
 
     Set<String> slots = {};
     DateFormat ampm = DateFormat('hh:mm a');
@@ -213,13 +306,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   ScheduleModel? _getSelectedSchedule() {
     if (selectedDate == null) return null;
-    String dateKey = _dateKey(selectedDate!);
 
     return schedules.firstWhere(
       (schedule) {
         final dayMatches = schedule.day.toLowerCase().contains(DateFormat('EEEE').format(selectedDate!).toLowerCase()) ||
             schedule.day.toLowerCase().contains(DateFormat('EEE').format(selectedDate!).toLowerCase());
-        return dayMatches && schedule.isActive && !schedule.disabledDates.contains(dateKey);
+        return dayMatches && !_isScheduleDisabledForDate(schedule, selectedDate!);
       },
       orElse: () => schedules.isNotEmpty ? schedules.first : ScheduleModel(
         id: '',
@@ -262,9 +354,11 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (loading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -273,7 +367,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
               const SizedBox(height: 16),
               Text(
                 'Checking slot availability...',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 14, fontWeight: FontWeight.w500),
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade600, fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -282,24 +376,24 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
           children: [
-            const Text(
+            Text(
               "Select Appointment Slot",
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 2),
             Text(
               "Step 1 of 2 • Date & Time",
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -333,16 +427,17 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
 
   Widget _buildDoctorCard(Map<String, dynamic> data) {
     final fee = _getSelectedScheduleFee();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFEFF6FF), Color(0xFFF0F9FF)],
+        gradient: LinearGradient(
+          colors: isDark ? [const Color(0xFF1E293B), const Color(0xFF0F172A)] : [const Color(0xFFEFF6FF), const Color(0xFFF0F9FF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFBAE6FD)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0EA5E9).withValues(alpha: 0.06),
@@ -362,7 +457,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 ),
                 child: CircleAvatar(
                   radius: 32,
-                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                   backgroundImage: data['profileImageUrl'] != null && data['profileImageUrl'].toString().isNotEmpty
                       ? NetworkImage(data['profileImageUrl'])
                       : null,
@@ -376,8 +471,8 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 bottom: 0,
                 child: Container(
                   padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF10B981)),
@@ -392,10 +487,10 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
               children: [
                 Text(
                   "Dr. ${data['name'] ?? 'Doctor'}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 17,
-                    color: Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                     letterSpacing: -0.2,
                   ),
                   maxLines: 1,
@@ -416,19 +511,19 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
+                    color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                    border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.payments_rounded, size: 13, color: Color(0xFF047857)),
+                      Icon(Icons.payments_rounded, size: 13, color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857)),
                       const SizedBox(width: 5),
                       Text(
                         'Fee: ${_formatCurrency(fee)}',
-                        style: const TextStyle(
-                          color: Color(0xFF047857),
+                        style: TextStyle(
+                          color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -445,6 +540,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   }
 
   Widget _buildHospitalDetails() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (selectedDate == null) return const SizedBox.shrink();
 
     final weekdayFull = DateFormat('EEEE').format(selectedDate!).toLowerCase();
@@ -485,9 +581,9 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -504,13 +600,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFE4E6),
+                  color: isDark ? const Color(0xFF881337) : const Color(0xFFFFE4E6),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.local_hospital_rounded, color: Color(0xFFE11D48), size: 18),
+                child: Icon(Icons.local_hospital_rounded, color: isDark ? const Color(0xFFFB7185) : const Color(0xFFE11D48), size: 18),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -519,36 +615,36 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: Color(0xFF0F172A),
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                     Text(
                       "Hospital / Clinic location",
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
           ),
           Text(
             name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
           ),
           if (address.isNotEmpty || district.isNotEmpty) ...[
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF64748B)),
+                Icon(Icons.location_on_outlined, size: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     [address, district].where((s) => s.isNotEmpty).join(', '),
-                    style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5),
+                    style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569), fontSize: 12.5),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -560,7 +656,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.phone_outlined, size: 14, color: Color(0xFF64748B)),
+                Icon(Icons.phone_outlined, size: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 const SizedBox(width: 4),
                 Text(
                   contact,
@@ -574,13 +670,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF1F2),
+                color: isDark ? const Color(0xFF881337) : const Color(0xFFFFF1F2),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFFECDD3)),
+                border: Border.all(color: isDark ? const Color(0xFF9F1239) : const Color(0xFFFECDD3)),
               ),
               child: Text(
                 "Hospital Fee: LKR ${charges.toString()}",
-                style: const TextStyle(color: Color(0xFFBE123C), fontWeight: FontWeight.bold, fontSize: 11),
+                style: TextStyle(color: isDark ? const Color(0xFFFDA4AF) : const Color(0xFFBE123C), fontWeight: FontWeight.bold, fontSize: 11),
               ),
             ),
           ],
@@ -590,12 +686,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   }
 
   Widget _buildConsultationTypeSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -607,13 +704,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.video_camera_front_rounded, color: Color(0xFF0EA5E9), size: 18),
-              SizedBox(width: 8),
+              const Icon(Icons.video_camera_front_rounded, color: Color(0xFF0EA5E9), size: 18),
+              const SizedBox(width: 8),
               Text(
                 'Select Consultation Type',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
             ],
           ),
@@ -628,13 +725,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                     padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
                     decoration: BoxDecoration(
                       color: selectedConsultationType == 'In-Person Clinic Visit'
-                          ? const Color(0xFFEFF6FF)
-                          : const Color(0xFFF8FAFC),
+                          ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF))
+                          : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: selectedConsultationType == 'In-Person Clinic Visit'
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFFE2E8F0),
+                            : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         width: selectedConsultationType == 'In-Person Clinic Visit' ? 2 : 1,
                       ),
                     ),
@@ -644,15 +741,15 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: selectedConsultationType == 'In-Person Clinic Visit'
-                                ? const Color(0xFFDBEAFE)
-                                : const Color(0xFFF1F5F9),
+                                ? (isDark ? const Color(0xFF1D4ED8) : const Color(0xFFDBEAFE))
+                                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.local_hospital_rounded,
                             color: selectedConsultationType == 'In-Person Clinic Visit'
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF64748B),
+                                ? (isDark ? Colors.white : const Color(0xFF2563EB))
+                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             size: 22,
                           ),
                         ),
@@ -663,14 +760,14 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: selectedConsultationType == 'In-Person Clinic Visit'
-                                ? const Color(0xFF1E40AF)
-                                : const Color(0xFF475569),
+                                ? (isDark ? Colors.white : const Color(0xFF1E40AF))
+                                : (isDark ? Colors.white70 : const Color(0xFF475569)),
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'Hospital Visit',
-                          style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                          style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8)),
                         ),
                       ],
                     ),
@@ -686,13 +783,13 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                     padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
                     decoration: BoxDecoration(
                       color: selectedConsultationType == 'Online / Live Video Consultation'
-                          ? const Color(0xFFECFDF5)
-                          : const Color(0xFFF8FAFC),
+                          ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5))
+                          : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: selectedConsultationType == 'Online / Live Video Consultation'
                             ? const Color(0xFF10B981)
-                            : const Color(0xFFE2E8F0),
+                            : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         width: selectedConsultationType == 'Online / Live Video Consultation' ? 2 : 1,
                       ),
                     ),
@@ -702,15 +799,15 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: selectedConsultationType == 'Online / Live Video Consultation'
-                                ? const Color(0xFFA7F3D0)
-                                : const Color(0xFFF1F5F9),
+                                ? (isDark ? const Color(0xFF047857) : const Color(0xFFA7F3D0))
+                                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.videocam_rounded,
                             color: selectedConsultationType == 'Online / Live Video Consultation'
-                                ? const Color(0xFF047857)
-                                : const Color(0xFF64748B),
+                                ? (isDark ? Colors.white : const Color(0xFF047857))
+                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             size: 22,
                           ),
                         ),
@@ -721,14 +818,14 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: selectedConsultationType == 'Online / Live Video Consultation'
-                                ? const Color(0xFF047857)
-                                : const Color(0xFF475569),
+                                ? (isDark ? Colors.white : const Color(0xFF047857))
+                                : (isDark ? Colors.white70 : const Color(0xFF475569)),
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'Virtual Room',
-                          style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                          style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8)),
                         ),
                       ],
                     ),
@@ -743,16 +840,17 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   }
 
   Widget _buildDateSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (dateOptions.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         ),
-        child: const Center(
-          child: Text('No doctor availability found in the next 2 weeks', style: TextStyle(color: Color(0xFF64748B))),
+        child: Center(
+          child: Text('No doctor availability found in the next 2 weeks', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
         ),
       );
     }
@@ -764,20 +862,20 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               "Select Date",
-              style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F9FF),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFBAE6FD)),
+                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
               ),
               child: Text(
                 monthYear,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF0369A1), fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1), fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -818,12 +916,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                         : null,
                     color: isSelected
                         ? null
-                        : (isDayFullyBooked ? const Color(0xFFF1F5F9) : Colors.white),
+                        : (isDayFullyBooked ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9)) : (isDark ? const Color(0xFF1E293B) : Colors.white)),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
-                          : (isDayFullyBooked ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),
+                          : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       width: 1,
                     ),
                     boxShadow: isSelected
@@ -850,7 +948,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                         style: TextStyle(
                           color: isDayFullyBooked
                               ? const Color(0xFF94A3B8)
-                              : (isSelected ? Colors.white70 : const Color(0xFF64748B)),
+                              : (isSelected ? Colors.white70 : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -863,7 +961,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                           fontSize: 20,
                           color: isDayFullyBooked
                               ? const Color(0xFF94A3B8)
-                              : (isSelected ? Colors.white : const Color(0xFF0F172A)),
+                              : (isSelected ? Colors.white : (isDark ? Colors.white : const Color(0xFF0F172A))),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -871,12 +969,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEE2E2),
+                            color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
+                          child: Text(
                             'FULL',
-                            style: TextStyle(fontSize: 9, color: Color(0xFFB91C1C), fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 9, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C), fontWeight: FontWeight.bold),
                           ),
                         )
                       else
@@ -897,6 +995,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   }
 
   Widget _buildGeneratedSlotSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (selectedDate == null) return const SizedBox.shrink();
     String formattedDate = DateFormat('EEEE, MMMM d, yyyy').format(selectedDate!);
     List<String> slots = _generateTimeSlotsForDate(selectedDate!);
@@ -907,9 +1006,9 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F9FF),
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFBAE6FD)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
           ),
           child: Row(
             children: [
@@ -919,8 +1018,8 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("SELECTED DATE", style: TextStyle(fontSize: 10, color: Color(0xFF0369A1), fontWeight: FontWeight.bold)),
-                    Text(formattedDate, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                    Text("SELECTED DATE", style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1), fontWeight: FontWeight.bold)),
+                    Text(formattedDate, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   ],
                 ),
               ),
@@ -932,21 +1031,21 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
+              color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFFCA5A5)),
+              border: Border.all(color: isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.block_rounded, color: Color(0xFFB91C1C), size: 20),
-                SizedBox(width: 10),
+                Icon(Icons.block_rounded, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C), size: 20),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('All slots are fully booked for this date.', style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.bold, fontSize: 13.5)),
-                      SizedBox(height: 2),
-                      Text('Please pick another date from the carousel above.', style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 12)),
+                      Text('All slots are fully booked for this date.', style: TextStyle(color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C), fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      const SizedBox(height: 2),
+                      Text('Please pick another date from the carousel above.', style: TextStyle(color: isDark ? const Color(0xFFFECDD3) : const Color(0xFF7F1D1D), fontSize: 12)),
                     ],
                   ),
                 ),
@@ -957,12 +1056,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
-            child: const Center(
-              child: Text('No time slots scheduled for selected date', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+            child: Center(
+              child: Text('No time slots scheduled for selected date', style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13)),
             ),
           )
         else ...[
@@ -975,6 +1074,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
   }
 
   Widget _buildSlotSection(String title, IconData icon, Color iconColor, List<String> slots) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (slots.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -993,12 +1093,12 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             const SizedBox(width: 6),
             Text(
               '(${slots.length})',
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -1028,7 +1128,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                       decoration: BoxDecoration(
                         gradient: isSelected
                             ? const LinearGradient(
@@ -1037,99 +1137,136 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                                 end: Alignment.bottomRight,
                               )
                             : null,
-                        color: isSelected ? null : _statusSurfaceColor(status),
-                        borderRadius: BorderRadius.circular(16),
+                        color: isSelected ? null : (isDark ? const Color(0xFF1E293B) : _statusSurfaceColor(status)),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: isSelected ? Colors.transparent : _statusBorderColor(status),
-                          width: isSelected ? 1.5 : 1,
+                          color: isSelected
+                              ? Colors.transparent
+                              : (isDark ? const Color(0xFF334155) : _statusBorderColor(status)),
+                          width: isSelected ? 2 : 1,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
+                                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 5),
                                 ),
                               ]
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 6,
+                                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                                  blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
                       ),
                       child: Opacity(
-                        opacity: isFull ? 0.7 : 1.0,
+                        opacity: isFull ? 0.6 : 1.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Status chip row
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(5),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white.withValues(alpha: 0.2) : _statusIconBackground(status),
+                                    color: isSelected
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : (isDark
+                                            ? _statusIconBackground(status).withValues(alpha: 0.2)
+                                            : _statusIconBackground(status)),
                                     borderRadius: BorderRadius.circular(7),
                                   ),
                                   child: Icon(
                                     isSelected ? Icons.check_rounded : _statusIcon(status),
-                                    size: 14,
+                                    size: 13,
                                     color: isSelected ? Colors.white : _statusLabelColor(status),
                                   ),
                                 ),
-                                const Spacer(),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white.withValues(alpha: 0.2) : _statusChipBackground(status),
+                                    color: isSelected
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : (isDark
+                                            ? _statusChipBackground(status).withValues(alpha: 0.25)
+                                            : _statusChipBackground(status)),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     _statusLabel(status),
                                     style: TextStyle(
                                       color: isSelected ? Colors.white : _statusLabelColor(status),
-                                      fontSize: 9.5,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
+                            // Large time display
                             Text(
                               time,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : const Color(0xFF0F172A),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13.5,
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 17,
+                                letterSpacing: -0.3,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${info.bookedCount}/${info.capacity} booked',
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.white70 : const Color(0xFF475569),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
+                            // Progress bar
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(6),
                               child: LinearProgressIndicator(
-                                value: info.capacity > 0 ? (info.bookedCount / info.capacity).clamp(0.0, 1.0) : 0.0,
-                                minHeight: 4,
-                                backgroundColor: isSelected ? Colors.white24 : const Color(0xFFE2E8F0),
+                                value: info.capacity > 0
+                                    ? (info.bookedCount / info.capacity).clamp(0.0, 1.0)
+                                    : 0.0,
+                                minHeight: 5,
+                                backgroundColor: isSelected
+                                    ? Colors.white24
+                                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   isSelected ? Colors.white : _statusProgressColor(status),
                                 ),
                               ),
+                            ),
+                            const SizedBox(height: 6),
+                            // Booked count + remaining
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${info.bookedCount}/${info.capacity}',
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white70
+                                        : (isDark
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF475569)),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (info.capacity > 0 && !isFull)
+                                  Text(
+                                    '${info.capacity - info.bookedCount} left',
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white70
+                                          : _statusProgressColor(status),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
@@ -1165,36 +1302,40 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
     return matchingSchedules.first.consultationFee ?? 0.0;
   }
 
-  Widget _buildInfoBox() => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFF6FF),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFBAE6FD)),
-        ),
-        child: const Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.info_rounded, color: Color(0xFF0284C7), size: 18),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "Consultations usually take 20-30 minutes. Please arrive 10 minutes prior to your slot time for check-in.",
-                style: TextStyle(fontSize: 12, color: Color(0xFF0369A1), height: 1.4, fontWeight: FontWeight.w500),
-              ),
+  Widget _buildInfoBox() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_rounded, color: Color(0xFF0284C7), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Consultations usually take 20-30 minutes. Please arrive 10 minutes prior to your slot time for check-in.",
+              style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF7DD3FC) : const Color(0xFF0369A1), height: 1.4, fontWeight: FontWeight.w500),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildConfirmBottomBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool canProceed = selectedDate != null && selectedTime != null;
     final fee = _getSelectedScheduleFee();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
@@ -1217,7 +1358,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                     children: [
                       Text(
                         '${DateFormat('EEE, MMM d').format(selectedDate!)} at $selectedTime',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -1229,15 +1370,15 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                      border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
-                        SizedBox(width: 4),
-                        Text('Slot Selected', style: TextStyle(color: Color(0xFF047857), fontWeight: FontWeight.bold, fontSize: 11)),
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
+                        const SizedBox(width: 4),
+                        Text('Slot Selected', style: TextStyle(color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857), fontWeight: FontWeight.bold, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -1271,7 +1412,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                 child: ElevatedButton(
                   onPressed: canProceed ? _navigateToPaymentPage : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: canProceed ? Colors.transparent : const Color(0xFFE2E8F0),
+                    backgroundColor: canProceed ? Colors.transparent : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -1281,7 +1422,7 @@ class _SelectSlotPageState extends State<SelectSlotPage> {
                       Text(
                         canProceed ? "Proceed to Booking" : "Select Date & Time Slot",
                         style: TextStyle(
-                          color: canProceed ? Colors.white : const Color(0xFF94A3B8),
+                          color: canProceed ? Colors.white : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),

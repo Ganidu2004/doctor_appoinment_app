@@ -68,9 +68,9 @@ class _PatientMainLayoutState extends State<PatientMainLayout> {
   Widget build(BuildContext context) {
 
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -94,7 +94,7 @@ class _PatientMainLayoutState extends State<PatientMainLayout> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PatientHeader(userName: _patientName),
       body: IndexedStack(
         index: _selectedIndex,
