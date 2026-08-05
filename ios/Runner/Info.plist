@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to let you upload profile pictures and medical records.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to your camera to let you take photos of medical documents and profile pictures.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to your microphone for consultation services.</string>
 </dict>
 </plist>

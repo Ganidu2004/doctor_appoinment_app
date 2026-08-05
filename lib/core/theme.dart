@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class AppTheme {
   static const Color primary = Color(0xFF0EA5E9);
@@ -32,6 +33,13 @@ class AppTheme {
         centerTitle: true,
         titleTextStyle: TextStyle(color: onSurface, fontSize: 20, fontWeight: FontWeight.w700),
         surfaceTintColor: Colors.transparent,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surface,
@@ -133,6 +141,13 @@ class AppTheme {
         centerTitle: true,
         titleTextStyle: TextStyle(color: darkOnSurface, fontSize: 20, fontWeight: FontWeight.w700),
         surfaceTintColor: Colors.transparent,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: darkSurface,
