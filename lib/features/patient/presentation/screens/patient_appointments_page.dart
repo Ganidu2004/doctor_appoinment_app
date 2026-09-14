@@ -102,73 +102,97 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
 
   String _formatStatusBadge(String status) {
     final lower = status.toLowerCase();
+    if (lower.contains('pending resolution') || lower.contains('action required')) {
+      return 'Action Needed';
+    }
     if (lower.contains('refund')) return 'Refunded';
     if (lower.contains('reschedule')) return 'Rescheduled';
+    if (lower.contains('cancelled') || lower == 'cancelled') return 'Cancelled';
     if (lower == 'booked' || lower == 'confirmed') return 'Confirmed';
     if (lower == 'completed') return 'Completed';
-    if (lower == 'cancelled') return 'Cancelled';
     return status.isEmpty ? 'Booked' : status[0].toUpperCase() + status.substring(1);
   }
 
   IconData _statusIcon(String status) {
     final lower = status.toLowerCase();
+    if (lower.contains('pending resolution') || lower.contains('action required') || lower.contains('pending')) {
+      return Icons.pending_actions_rounded;
+    }
     if (lower.contains('refund')) return Icons.account_balance_wallet_rounded;
     if (lower.contains('reschedule')) return Icons.update_rounded;
     if (lower == 'booked' || lower == 'confirmed') return Icons.event_available_rounded;
     if (lower == 'completed') return Icons.check_circle_rounded;
-    if (lower == 'cancelled') return Icons.cancel_rounded;
+    if (lower.contains('cancelled')) return Icons.cancel_rounded;
     return Icons.bookmark_border_rounded;
   }
 
   Color _statusTextColor(String status, [bool isDark = false]) {
-    switch (status.toLowerCase()) {
-      case 'booked':
-      case 'confirmed':
-        return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1);
-      case 'completed':
-        return isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
-      case 'cancelled':
-        return isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C);
-      case 'refunded':
-      case 'cancelled (refunded)':
-        return isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
-      default:
-        return isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final lower = status.toLowerCase();
+    if (lower.contains('pending resolution') || lower.contains('action required') || (lower.contains('pending') && lower.contains('cancel'))) {
+      return isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
     }
+    if (lower.contains('refund') || lower.contains('cancelled (refunded)')) {
+      return isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
+    }
+    if (lower.contains('reschedule')) {
+      return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
+    }
+    if (lower.contains('cancelled')) {
+      return isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C);
+    }
+    if (lower == 'booked' || lower == 'confirmed') {
+      return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1);
+    }
+    if (lower == 'completed') {
+      return isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
+    }
+    return isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
   }
 
   Color _statusBgColor(String status, [bool isDark = false]) {
-    switch (status.toLowerCase()) {
-      case 'booked':
-      case 'confirmed':
-        return isDark ? const Color(0xFF0369A1).withValues(alpha: 0.25) : const Color(0xFFE0F2FE);
-      case 'completed':
-        return isDark ? const Color(0xFF15803D).withValues(alpha: 0.25) : const Color(0xFFDCFCE7);
-      case 'cancelled':
-        return isDark ? const Color(0xFF991B1B).withValues(alpha: 0.25) : const Color(0xFFFEE2E2);
-      case 'refunded':
-      case 'cancelled (refunded)':
-        return isDark ? const Color(0xFF92400E).withValues(alpha: 0.25) : const Color(0xFFFEF3C7);
-      default:
-        return isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final lower = status.toLowerCase();
+    if (lower.contains('pending resolution') || lower.contains('action required') || (lower.contains('pending') && lower.contains('cancel'))) {
+      return isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7);
     }
+    if (lower.contains('refund') || lower.contains('cancelled (refunded)')) {
+      return isDark ? const Color(0xFF92400E).withValues(alpha: 0.25) : const Color(0xFFFEF3C7);
+    }
+    if (lower.contains('reschedule')) {
+      return isDark ? const Color(0xFF0369A1).withValues(alpha: 0.25) : const Color(0xFFE0F2FE);
+    }
+    if (lower.contains('cancelled')) {
+      return isDark ? const Color(0xFF991B1B).withValues(alpha: 0.25) : const Color(0xFFFEE2E2);
+    }
+    if (lower == 'booked' || lower == 'confirmed') {
+      return isDark ? const Color(0xFF0369A1).withValues(alpha: 0.25) : const Color(0xFFE0F2FE);
+    }
+    if (lower == 'completed') {
+      return isDark ? const Color(0xFF15803D).withValues(alpha: 0.25) : const Color(0xFFDCFCE7);
+    }
+    return isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
   }
 
   Color _statusBorderColor(String status, [bool isDark = false]) {
-    switch (status.toLowerCase()) {
-      case 'booked':
-      case 'confirmed':
-        return isDark ? const Color(0xFF0284C7).withValues(alpha: 0.5) : const Color(0xFFBAE6FD);
-      case 'completed':
-        return isDark ? const Color(0xFF16A34A).withValues(alpha: 0.5) : const Color(0xFFBBF7D0);
-      case 'cancelled':
-        return isDark ? const Color(0xFFDC2626).withValues(alpha: 0.5) : const Color(0xFFFCA5A5);
-      case 'refunded':
-      case 'cancelled (refunded)':
-        return isDark ? const Color(0xFFD97706).withValues(alpha: 0.5) : const Color(0xFFFDE68A);
-      default:
-        return isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0);
+    final lower = status.toLowerCase();
+    if (lower.contains('pending resolution') || lower.contains('action required') || (lower.contains('pending') && lower.contains('cancel'))) {
+      return isDark ? const Color(0xFFD97706).withValues(alpha: 0.5) : const Color(0xFFFDE68A);
     }
+    if (lower.contains('refund') || lower.contains('cancelled (refunded)')) {
+      return isDark ? const Color(0xFFD97706).withValues(alpha: 0.5) : const Color(0xFFFDE68A);
+    }
+    if (lower.contains('reschedule')) {
+      return isDark ? const Color(0xFF0284C7).withValues(alpha: 0.5) : const Color(0xFFBAE6FD);
+    }
+    if (lower.contains('cancelled')) {
+      return isDark ? const Color(0xFFDC2626).withValues(alpha: 0.5) : const Color(0xFFFCA5A5);
+    }
+    if (lower == 'booked' || lower == 'confirmed') {
+      return isDark ? const Color(0xFF0284C7).withValues(alpha: 0.5) : const Color(0xFFBAE6FD);
+    }
+    if (lower == 'completed') {
+      return isDark ? const Color(0xFF16A34A).withValues(alpha: 0.5) : const Color(0xFFBBF7D0);
+    }
+    return isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0);
   }
 
   String _formatCurrency(dynamic amount) {
@@ -785,7 +809,10 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 const SizedBox(height: 2),
-                                                Row(
+                                                Wrap(
+                                                  spacing: 6,
+                                                  runSpacing: 4,
+                                                  crossAxisAlignment: WrapCrossAlignment.center,
                                                   children: [
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -800,9 +827,10 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                           fontSize: 11.5,
                                                           fontWeight: FontWeight.bold,
                                                         ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
                                                       ),
                                                     ),
-                                                    const SizedBox(width: 8),
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                                       decoration: BoxDecoration(
@@ -822,6 +850,8 @@ class _PatientAppointmentsPageState extends State<PatientAppointmentsPage> {
                                                               fontWeight: FontWeight.bold,
                                                               fontSize: 11,
                                                             ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
                                                         ],
                                                       ),
